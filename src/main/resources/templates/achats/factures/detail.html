@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Facture</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>📑 Facture <span th:text="${facture.numeroFacture}">FACT-001</span></h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+        
+        <div class="card">
+            <h2>Informations Générales</h2>
+            <dl>
+                <dt>Statut:</dt>
+                <dd>
+                    <span th:class="${'badge badge-' + 
+                        (facture.statut == 'EN_ATTENTE' ? 'warning' : 
+                         facture.statut == 'VALIDEE' ? 'success' : 
+                         facture.statut == 'BLOQUEE' ? 'danger' :
+                         facture.statut == 'PAYEE' ? 'info' : 'secondary')}"
+                          th:text="${facture.statut}">EN_ATTENTE</span>
+                </dd>
+                
+                <dt>Fournisseur:</dt>
+                <dd th:text="${facture.fournisseur?.raisonSociale}">Fournisseur</dd>
+                
+                <dt>Bon de Commande:</dt>
+                <dd>
+                    <a th:href="@{/achats/bons-commande/{id}(id=${facture.bonCommande?.id})}"
+                       th:text="${facture.bonCommande?.numero}">BC001</a>
+                </dd>
+                
+                <dt>Date Facture:</dt>
+                <dd th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">01/01/2026</dd>
+                
+                <dt>Date Échéance:</dt>
+                <dd th:text="${#temporals.format(facture.dateEcheance, 'dd/MM/yyyy')}">31/01/2026</dd>
+                
+                <dt>Montant HT:</dt>
+                <dd th:text="${#numbers.formatDecimal(facture.montantHt, 1, 2) + ' €'}">1000.00 €</dd>
+                
+                <dt>Montant TTC:</dt>
+                <dd th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2) + ' €'}">1200.00 €</dd>
+            </dl>
+        </div>
+        
+        <!-- TODO.YML Ligne 17: Résultat 3-way match -->
+        <div th:class="${'card ' + (facture.threeWayMatchOk ? '' : 'alert-danger')}">
+            <h2>🔍 Rapprochement 3-Way Match (Facture vs Réception vs BC)</h2>
+            <dl>
+                <dt>Statut:</dt>
+                <dd>
+                    <span th:class="${'badge badge-' + (facture.threeWayMatchOk ? 'success' : 'danger')}"
+                          th:text="${facture.threeWayMatchOk ? '✅ Rapprochement OK' : '❌ Écarts Détectés'}">❌ Écarts Détectés</span>
+                </dd>
+                
+                <dt th:if="${facture.ecartsThreeWay != null}">Détail des écarts:</dt>
+                <dd th:if="${facture.ecartsThreeWay != null}" class="text-danger" th:text="${facture.ecartsThreeWay}">
+                    Écart montant: BC=1200.00 vs Facture=1250.00
+                </dd>
+            </dl>
+            
+            <form th:action="@{/achats/factures/{id}/three-way-match(id=${facture.id})}" method="post">
+                <button type="submit" class="btn btn-secondary">🔄 Relancer 3-Way Match</button>
+            </form>
+        </div>
+        
+        <!-- TODO.YML Ligne 58: Validation (séparation des tâches) -->
+        <div class="card" th:if="${facture.statut == 'EN_ATTENTE' and facture.threeWayMatchOk}">
+            <h2>Valider la Facture</h2>
+            <p class="info">⚠️ Le valideur ne doit pas être le réceptionnaire (séparation des tâches)</p>
+            <form th:action="@{/achats/factures/{id}/valider(id=${facture.id})}" method="post">
+                <div class="form-group">
+                    <label>Valideur:</label>
+                    <select name="valideurId" required>
+                        <option th:each="user : ${utilisateurs}" 
+                                th:value="${user.id}" 
+                                th:text="${user.nom}">Utilisateur</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-success">✅ Valider Facture</button>
+            </form>
+        </div>
+        
+        <!-- TODO.YML Ligne 18: Débloquer facture -->
+        <div class="card alert-danger" th:if="${facture.statut == 'BLOQUEE'}">
+            <h2>⚠️ Facture Bloquée</h2>
+            <p>Cette facture est bloquée en raison d'écarts détectés lors du 3-way match.</p>
+            <p>Le paiement est impossible tant que les écarts ne sont pas résolus ou justifiés.</p>
+            
+            <form th:action="@{/achats/factures/{id}/debloquer(id=${facture.id})}" method="post">
+                <div class="form-group">
+                    <label>Valideur:</label>
+                    <select name="valideurId" required>
+                        <option th:each="user : ${utilisateurs}" 
+                                th:value="${user.id}" 
+                                th:text="${user.nom}">Utilisateur</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Justification du déblocage:</label>
+                    <textarea name="justification" rows="4" required 
+                              placeholder="Expliquer pourquoi la facture peut être débloquée malgré les écarts..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-warning">🔓 Débloquer Facture</button>
+            </form>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions">
+            <a th:href="@{/achats/factures}" class="btn">← Retour</a>
+            
+            <!-- TODO.YML Ligne 19: Créer paiement -->
+            <a th:if="${facture.statut == 'VALIDEE'}"
+               th:href="@{/achats/paiements/nouveau(factureId=${facture.id})}" 
+               class="btn btn-success">💳 Créer Paiement</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

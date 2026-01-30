@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Pro-formas</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>📋 Gestion Pro-formas</h1>
+        
+        <div th:if="${succes}" class="alert alert-success" th:text="${succes}"></div>
+        <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
+        
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N° Pro-forma</th>
+                        <th>DA</th>
+                        <th>Fournisseur</th>
+                        <th>Montant HT</th>
+                        <th>Statut</th>
+                        <th>Créée le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pf : ${proformas}">
+                        <td th:text="${pf.numero}">PF001</td>
+                        <td th:text="${pf.demandeAchat?.numero}">DA001</td>
+                        <td th:text="${pf.fournisseur?.raisonSociale}">-</td>
+                        <td th:text="${#numbers.formatDecimal(pf.montantTotalHt, 1, 'COMMA', 2)}">-</td>
+                        <td>
+                            <span th:if="${pf.statut == 'BROUILLON'}" class="badge badge-info">Brouillon</span>
+                            <span th:if="${pf.statut == 'ACCEPTE'}" class="badge badge-success">Acceptée</span>
+                            <span th:if="${pf.statut == 'REJETEE'}" class="badge badge-danger">Rejetée</span>
+                            <span th:if="${pf.statut == 'TRANSFORMEE_EN_BC'}" class="badge badge-primary">→ BC</span>
+                        </td>
+                        <td th:text="${#calendars.format(pf.dateCreation, 'dd/MM/yyyy HH:mm')}">-</td>
+                        <td>
+                            <a th:href="@{/achats/pro-formas/{id}(id=${pf.id})}" class="btn btn-sm btn-info">Voir</a>
+                            <a th:href="@{/achats/pro-formas/{id}/editer(id=${pf.id})}" class="btn btn-sm btn-warning">Éditer</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

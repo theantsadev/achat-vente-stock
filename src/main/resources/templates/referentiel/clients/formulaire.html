@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Formulaire Client</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 4: Créer/modifier clients (infos légales, adresses, tarifs) -->
+        <h2 th:text="${titre}">Formulaire Client</h2>
+        
+        <form th:action="${client.id != null ? '/clients/' + client.id : '/clients'}" 
+              th:object="${client}" 
+              method="post">
+            
+            <div class="form-group">
+                <label for="code">Code Client *</label>
+                <input type="text" id="code" th:field="*{code}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="raisonSociale">Raison Sociale *</label>
+                <input type="text" id="raisonSociale" th:field="*{raisonSociale}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adresse">Adresse</label>
+                <textarea id="adresse" th:field="*{adresse}" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" th:field="*{email}">
+            </div>
+            
+            <div class="form-group">
+                <label for="limiteCredit">Limite de Crédit (€)</label>
+                <input type="number" id="limiteCredit" th:field="*{limiteCredit}" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="conditionsPaiement">Conditions de Paiement</label>
+                <input type="text" id="conditionsPaiement" th:field="*{conditionsPaiement}" 
+                       placeholder="Ex: 30 jours net, 60 jours fin de mois">
+            </div>
+            
+            <div class="form-group">
+                <label for="statut">Statut</label>
+                <select id="statut" th:field="*{statut}">
+                    <option value="ACTIF">ACTIF</option>
+                    <option value="BLOQUE">BLOQUÉ</option>
+                    <option value="SUSPENDU">SUSPENDU</option>
+                </select>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" th:text="${action}">Enregistrer</button>
+                <a href="/clients" class="btn" style="background-color: #95a5a6; color: white;">Annuler</a>
+            </div>
+        </form>
+</main>
+</body>
+</html>

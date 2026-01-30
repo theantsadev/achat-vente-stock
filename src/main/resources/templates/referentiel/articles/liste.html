@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Articles</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 1: Gestion articles - Créer/modifier/supprimer articles -->
+        <h2 th:text="${titre}">Gestion des Articles</h2>
+        
+        <div style="margin-bottom: 1rem;">
+            <a href="/articles/nouveau" class="btn btn-success">+ Nouvel Article</a>
+            <a href="/articles/tracabilite" class="btn btn-primary">Articles avec Traçabilité</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Désignation</th>
+                    <th>Famille</th>
+                    <th>Unité</th>
+                    <th>Prix Achat</th>
+                    <th>Prix Vente</th>
+                    <th>Traçabilité Lot</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(articles)}">
+                    <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                        Aucun article trouvé
+                    </td>
+                </tr>
+                <tr th:each="article : ${articles}">
+                    <td th:text="${article.code}"></td>
+                    <td th:text="${article.designation}"></td>
+                    <td th:text="${article.famille != null ? article.famille.libelle : '-'}"></td>
+                    <td th:text="${article.uniteMesure}"></td>
+                    <td th:text="${article.prixAchatMoyen != null ? #numbers.formatDecimal(article.prixAchatMoyen, 1, 2) + ' €' : '-'}"></td>
+                    <td th:text="${article.prixVentePublic != null ? #numbers.formatDecimal(article.prixVentePublic, 1, 2) + ' €' : '-'}"></td>
+                    <td>
+                        <span th:if="${article.tracabiliteLot}" style="color: #27ae60; font-weight: bold;">✓ Oui</span>
+                        <span th:unless="${article.tracabiliteLot}" style="color: #7f8c8d;">Non</span>
+                    </td>
+                    <td>
+                        <span th:if="${article.statut == 'ACTIF'}" 
+                              style="background-color: #27ae60; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            ACTIF
+                        </span>
+                        <span th:if="${article.statut == 'BLOQUE'}" 
+                              style="background-color: #e74c3c; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            BLOQUÉ
+                        </span>
+                        <span th:if="${article.statut == 'OBSOLETE'}" 
+                              style="background-color: #95a5a6; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            OBSOLÈTE
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/articles/' + ${article.id} + '/modifier'}" class="btn btn-primary" style="font-size: 0.8rem;">Modifier</a>
+                        <a th:href="@{'/articles/' + ${article.id} + '/supprimer'}" 
+                           class="btn btn-danger" 
+                           style="font-size: 0.8rem;"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">Supprimer</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</main>
+</body>
+</html>

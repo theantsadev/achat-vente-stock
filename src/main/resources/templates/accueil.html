@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Accueil</title>
+</head>
+<body>
+    <main>
+        <h2>Bienvenue dans le Système de Gestion Achat-Vente-Stock</h2>
+        
+        <div style="margin-top: 2rem;">
+            <h3 style="color: #34495e; margin-bottom: 1rem;">Modules Disponibles</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                <!-- TODO.YML Ligne 1-6: Référentiels -->
+                <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3498db;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">📋 Référentiels</h4>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Gestion des articles, fournisseurs, clients, dépôts
+                    </p>
+                    <a href="/articles" class="btn btn-primary">Accéder</a>
+                </div>
+                
+                <!-- TODO.YML Ligne 7-19: Achats -->
+                <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #e74c3c;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">🛒 Achats</h4>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Demandes d'achat, commandes, réceptions
+                    </p>
+                    <a href="/achats/demandes" class="btn btn-danger">Accéder</a>
+                </div>
+                
+                <!-- TODO.YML Ligne 20-30: Ventes -->
+                <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #27ae60;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">💰 Ventes</h4>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Devis, commandes clients, livraisons, factures
+                    </p>
+                    <a href="/ventes/devis" class="btn btn-success">Accéder</a>
+                </div>
+                
+                <!-- TODO.YML Ligne 31-41: Stock -->
+                <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f39c12;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">📦 Stock</h4>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Mouvements, transferts, lots, valorisation
+                    </p>
+                    <a href="/stock/mouvements" class="btn btn-warning">Accéder</a>
+                </div>
+                
+                <!-- TODO.YML Ligne 42-54: Inventaire -->
+                <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #9b59b6;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">📊 Inventaire</h4>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Gestion des inventaires et ajustements
+                    </p>
+                    <a href="/inventaires" class="btn" style="background-color: #9b59b6; color: white;">Accéder</a>
+                </div>
+                
+                <!-- TODO.YML Ligne 62-67: Reporting -->
+                <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1abc9c;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">📈 Reporting</h4>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        KPI, dashboards et rapports
+                    </p>
+                    <a href="/reporting/direction" class="btn" style="background-color: #1abc9c; color: white;">Accéder</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

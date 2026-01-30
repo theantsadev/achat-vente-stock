@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Formulaire Dépôt</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 5: Créer dépôts/emplacements (site, zone, adresse) -->
+        <h2 th:text="${titre}">Formulaire Dépôt</h2>
+        
+        <form th:action="${depot.id != null ? '/depots/' + depot.id : '/depots'}" 
+              th:object="${depot}" 
+              method="post">
+            
+            <div class="form-group">
+                <label for="code">Code Dépôt *</label>
+                <input type="text" id="code" th:field="*{code}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="libelle">Libellé *</label>
+                <input type="text" id="libelle" th:field="*{libelle}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adresse">Adresse</label>
+                <textarea id="adresse" th:field="*{adresse}" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="type">Type de Dépôt</label>
+                <select id="type" th:field="*{type}">
+                    <option value="">-- Sélectionner --</option>
+                    <option value="PRINCIPAL">PRINCIPAL</option>
+                    <option value="SECONDAIRE">SECONDAIRE</option>
+                    <option value="TRANSIT">TRANSIT</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" th:field="*{actif}">
+                    Dépôt Actif
+                </label>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" th:text="${action}">Enregistrer</button>
+                <a href="/depots" class="btn" style="background-color: #95a5a6; color: white;">Annuler</a>
+            </div>
+        </form>
+</main>
+</body>
+</html>

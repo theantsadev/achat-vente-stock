@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Paiements Fournisseurs</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>💳 Paiements Fournisseurs</h1>
+        
+        <div class="actions">
+            <a th:href="@{/achats/paiements/nouveau}" class="btn btn-primary">➕ Nouveau Paiement</a>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Numéro</th>
+                    <th>Facture</th>
+                    <th>Fournisseur</th>
+                    <th>Date Paiement</th>
+                    <th>Montant</th>
+                    <th>Mode Paiement</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="paiement : ${paiements}">
+                    <td th:text="${paiement.numero}">PAY001</td>
+                    <td th:text="${paiement.factureFournisseur?.numeroFacture}">FACT-001</td>
+                    <td th:text="${paiement.factureFournisseur?.fournisseur?.raisonSociale}">Fournisseur</td>
+                    <td th:text="${#temporals.format(paiement.datePaiement, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td th:text="${#numbers.formatDecimal(paiement.montantPaye, 1, 2) + ' €'}">1200.00 €</td>
+                    <td th:text="${paiement.modePaiement}">VIREMENT</td>
+                    <td>
+                        <span th:class="${'badge badge-' + 
+                            (paiement.statut == 'EN_ATTENTE' ? 'warning' : 
+                             paiement.statut == 'EXECUTE' ? 'success' : 
+                             paiement.statut == 'ANNULE' ? 'danger' : 'secondary')}"
+                              th:text="${paiement.statut}">EN_ATTENTE</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/achats/paiements/{id}(id=${paiement.id})}" class="btn btn-sm">👁️ Voir</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

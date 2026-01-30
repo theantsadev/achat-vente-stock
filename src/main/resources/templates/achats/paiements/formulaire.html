@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Nouveau Paiement</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>💳 Nouveau Paiement Fournisseur</h1>
+        
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <form th:action="@{/achats/paiements}" th:object="${paiement}" method="post">
+            
+            <div class="form-group">
+                <label>Facture:</label>
+                <select th:field="*{factureFournisseur}" required>
+                    <option value="">-- Sélectionner --</option>
+                    <option th:each="facture : ${factures}" 
+                            th:value="${facture.id}" 
+                            th:text="${facture.numeroFacture + ' - ' + facture.fournisseur?.raisonSociale + ' - ' + #numbers.formatDecimal(facture.montantTtc, 1, 2) + ' €'}">
+                        FACT-001 - Fournisseur - 1200.00 €
+                    </option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Date Paiement:</label>
+                <input type="date" th:field="*{datePaiement}" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Montant Payé:</label>
+                <input type="number" th:field="*{montantPaye}" step="0.01" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Mode de Paiement:</label>
+                <select th:field="*{modePaiement}" required>
+                    <option value="VIREMENT">Virement bancaire</option>
+                    <option value="CHEQUE">Chèque</option>
+                    <option value="ESPECES">Espèces</option>
+                    <option value="CARTE">Carte bancaire</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Référence Virement:</label>
+                <input type="text" th:field="*{referenceVirement}" />
+            </div>
+            
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">💾 Créer Paiement</button>
+                <a th:href="@{/achats/paiements}" class="btn">Annuler</a>
+            </div>
+        </form>
+        
+        <div class="info">
+            <p>⚠️ <strong>Contrôles automatiques:</strong></p>
+            <ul>
+                <li>✅ La facture doit être validée</li>
+                <li>🚫 Les factures bloquées ne peuvent pas être payées (TODO.YML Ligne 18)</li>
+                <li>🔍 Le 3-way match doit être OK</li>
+            </ul>
+        </div>
+    </div>
+</main>
+</body>
+</html>

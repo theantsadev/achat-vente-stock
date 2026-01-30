@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Demandes d'Achat</title>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <h1>📋 Demandes d'Achat</h1>
+
+            <!-- TODO.YML Ligne 7: Créer demande d'achat -->
+            <div class="actions">
+                <a th:href="@{/achats/demandes/nouveau}" class="btn btn-primary">➕ Nouvelle Demande</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Demandeur</th>
+                        <th>Service</th>
+                        <th>Date Besoin</th>
+                        <th>Montant HT</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="da : ${demandes}">
+                        <td th:text="${da.numero}">DA001</td>
+                        <td th:text="${da.demandeur?.nom}">Dupont</td>
+                        <td th:text="${da.service?.libelle}">Informatique</td>
+                        <td th:text="${#temporals.format(da.dateBesoin, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td th:text="${#numbers.formatDecimal(da.montantEstimeHt, 1, 2) + ' €'}">1000.00 €</td>
+                        <td>
+                            <span th:class="${'badge badge-' + 
+                            (da.statut == 'BROUILLON' ? 'secondary' : 
+                             da.statut == 'EN_ATTENTE' ? 'warning' : 
+                             da.statut == 'APPROUVEE' ? 'success' : 'danger')}" th:text="${da.statut}">BROUILLON</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/achats/demandes/{id}(id=${da.id})}" class="btn btn-sm">👁️ Voir</a>
+                            <a th:if="${da.statut == 'BROUILLON'}"
+                                th:href="@{/achats/demandes/{id}/editer(id=${da.id})}" class="btn btn-sm">✏️ Éditer</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Pro-forma</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>📋 Pro-forma <span th:text="${proforma.numero}">PF001</span></h1>
+        
+        <div th:if="${succes}" class="alert alert-success" th:text="${succes}"></div>
+        <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
+        
+        <div class="card">
+            <h2>Informations Générales</h2>
+            <dl>
+                <dt>N° Pro-forma:</dt>
+                <dd th:text="${proforma.numero}">PF001</dd>
+                
+                <dt>Statut:</dt>
+                <dd>
+                    <span th:if="${proforma.statut == 'BROUILLON'}" class="badge badge-info">Brouillon</span>
+                    <span th:if="${proforma.statut == 'ACCEPTE'}" class="badge badge-success">Acceptée</span>
+                    <span th:if="${proforma.statut == 'REJETEE'}" class="badge badge-danger">Rejetée</span>
+                    <span th:if="${proforma.statut == 'TRANSFORMEE_EN_BC'}" class="badge badge-primary">→ BC</span>
+                </dd>
+                
+                <dt>Créée le:</dt>
+                <dd th:text="${#calendars.format(proforma.dateCreation, 'dd/MM/yyyy HH:mm')}">-</dd>
+                
+                <dt>Créée par:</dt>
+                <dd th:text="${proforma.createur?.nom}">-</dd>
+            </dl>
+        </div>
+        
+        <div class="card">
+            <h2>Demande d'Achat d'Origine</h2>
+            <dl>
+                <dt>N° DA:</dt>
+                <dd>
+                    <a th:href="@{/achats/demandes/{id}(id=${demandeAchat.id})}" 
+                       th:text="${demandeAchat.numero}">DA001</a>
+                </dd>
+                
+                <dt>Service:</dt>
+                <dd th:text="${demandeAchat.service?.nom}">-</dd>
+                
+                <dt>Date besoin:</dt>
+                <dd th:text="${#calendars.format(demandeAchat.dateBesoin, 'dd/MM/yyyy')}">-</dd>
+                
+                <dt>Montant estimé HT:</dt>
+                <dd th:text="${#numbers.formatDecimal(demandeAchat.montantEstimeHt, 1, 'COMMA', 2)}">-</dd>
+            </dl>
+        </div>
+        
+        <div class="card">
+            <h2>Fournisseur et Conditions</h2>
+            <dl>
+                <dt>Fournisseur:</dt>
+                <dd>
+                    <a th:href="@{/referentiels/fournisseurs/{id}(id=${proforma.fournisseur?.id})}" 
+                       th:text="${proforma.fournisseur?.raisonSociale}">-</a>
+                </dd>
+                
+                <dt>Délai livraison proposé:</dt>
+                <dd th:text="${proforma.delaiLivraisonJours} + ' jours'">- jours</dd>
+                
+                <dt>Date de validité:</dt>
+                <dd th:text="${#calendars.format(proforma.dateValidite, 'dd/MM/yyyy')}">-</dd>
+                
+                <dt>Conditions commerciales:</dt>
+                <dd th:text="${proforma.conditionsCommerciales ?: 'Non précisées'}">-</dd>
+            </dl>
+        </div>
+        
+        <div class="card">
+            <h2>Montants</h2>
+            <dl>
+                <dt>Total HT:</dt>
+                <dd th:text="${#numbers.formatDecimal(proforma.montantTotalHt, 1, 'COMMA', 2)} + ' €'">-</dd>
+                
+                <dt>TVA (20%):</dt>
+                <dd th:text="${#numbers.formatDecimal(proforma.montantTva, 1, 'COMMA', 2)} + ' €'">-</dd>
+                
+                <dt>Total TTC:</dt>
+                <dd th:text="${#numbers.formatDecimal(proforma.montantTotalTtc, 1, 'COMMA', 2)} + ' €'"><strong>-</strong></dd>
+            </dl>
+        </div>
+        
+        <div class="card" th:if="${proforma.remarques}">
+            <h2>Remarques</h2>
+            <p th:text="${proforma.remarques}">-</p>
+        </div>
+        
+        <div class="card" th:if="${proforma.statut == 'ACCEPTE'}">
+            <h2>Validation</h2>
+            <dl>
+                <dt>Acceptée le:</dt>
+                <dd th:text="${#calendars.format(proforma.valideAt, 'dd/MM/yyyy HH:mm')}">-</dd>
+                
+                <dt>Acceptée par:</dt>
+                <dd th:text="${proforma.valideBy?.nom}">-</dd>
+            </dl>
+        </div>
+        
+        <div class="actions">
+            <a th:href="@{/achats/pro-formas/{id}/editer(id=${proforma.id})}" 
+               class="btn btn-warning">✏️ Éditer</a>
+            
+            <form th:if="${proforma.statut == 'BROUILLON'}" 
+                  th:action="@{/achats/pro-formas/{id}/accepter(id=${proforma.id})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-success" 
+                        onclick="return confirm('Accepter cette pro-forma ?')">✅ Accepter</button>
+            </form>
+            
+            <form th:if="${proforma.statut == 'BROUILLON'}" 
+                  th:action="@{/achats/pro-formas/{id}/rejeter(id=${proforma.id})}" 
+                  method="post" style="display: inline;">
+                <input type="hidden" name="motif" 
+                       th:value="'Rejet par ' + ${proforma.createur?.nom}" />
+                <button type="submit" class="btn btn-danger" 
+                        onclick="return confirm('Rejeter cette pro-forma ?')">❌ Rejeter</button>
+            </form>
+            
+            <a th:href="@{/achats/pro-formas}" class="btn">📋 Retour liste</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

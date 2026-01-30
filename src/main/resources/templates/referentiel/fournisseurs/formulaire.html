@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Formulaire Fournisseur</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 3: Créer/modifier fournisseurs (raison sociale, contacts, conditions) -->
+        <h2 th:text="${titre}">Formulaire Fournisseur</h2>
+        
+        <form th:action="${fournisseur.id != null ? '/fournisseurs/' + fournisseur.id : '/fournisseurs'}" 
+              th:object="${fournisseur}" 
+              method="post">
+            
+            <div class="form-group">
+                <label for="code">Code Fournisseur *</label>
+                <input type="text" id="code" th:field="*{code}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="raisonSociale">Raison Sociale *</label>
+                <input type="text" id="raisonSociale" th:field="*{raisonSociale}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="adresse">Adresse</label>
+                <textarea id="adresse" th:field="*{adresse}" rows="3"></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" th:field="*{email}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="telephone">Téléphone</label>
+                    <input type="tel" id="telephone" th:field="*{telephone}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="conditionsPaiement">Conditions de Paiement</label>
+                <input type="text" id="conditionsPaiement" th:field="*{conditionsPaiement}" 
+                       placeholder="Ex: 30 jours net, 60 jours fin de mois">
+            </div>
+            
+            <div class="form-group">
+                <label for="delaiLivraisonJours">Délai de Livraison (jours)</label>
+                <input type="number" id="delaiLivraisonJours" th:field="*{delaiLivraisonJours}">
+            </div>
+            
+            <div class="form-group">
+                <label for="statut">Statut</label>
+                <select id="statut" th:field="*{statut}">
+                    <option value="ACTIF">ACTIF</option>
+                    <option value="BLOQUE">BLOQUÉ</option>
+                    <option value="SUSPENDU">SUSPENDU</option>
+                </select>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" th:text="${action}">Enregistrer</button>
+                <a href="/fournisseurs" class="btn" style="background-color: #95a5a6; color: white;">Annuler</a>
+            </div>
+        </form>
+</main>
+</body>
+</html>

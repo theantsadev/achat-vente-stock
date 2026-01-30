@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Fournisseurs</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 3: Gestion fournisseurs -->
+        <h2 th:text="${titre}">Gestion des Fournisseurs</h2>
+        
+        <div style="margin-bottom: 1rem;">
+            <a href="/fournisseurs/nouveau" class="btn btn-success">+ Nouveau Fournisseur</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Raison Sociale</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Délai Livraison</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(fournisseurs)}">
+                    <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                        Aucun fournisseur trouvé
+                    </td>
+                </tr>
+                <tr th:each="fournisseur : ${fournisseurs}">
+                    <td th:text="${fournisseur.code}"></td>
+                    <td th:text="${fournisseur.raisonSociale}"></td>
+                    <td th:text="${fournisseur.email}"></td>
+                    <td th:text="${fournisseur.telephone}"></td>
+                    <td th:text="${fournisseur.delaiLivraisonJours != null ? fournisseur.delaiLivraisonJours + ' jours' : '-'}"></td>
+                    <td>
+                        <span th:if="${fournisseur.statut == 'ACTIF'}" 
+                              style="background-color: #27ae60; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            ACTIF
+                        </span>
+                        <span th:if="${fournisseur.statut == 'BLOQUE'}" 
+                              style="background-color: #e74c3c; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            BLOQUÉ
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/fournisseurs/' + ${fournisseur.id} + '/modifier'}" class="btn btn-primary" style="font-size: 0.8rem;">Modifier</a>
+                        <a th:href="@{'/fournisseurs/' + ${fournisseur.id} + '/supprimer'}" 
+                           class="btn btn-danger" 
+                           style="font-size: 0.8rem;"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?');">Supprimer</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</main>
+</body>
+</html>

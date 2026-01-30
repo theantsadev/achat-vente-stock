@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Formulaire Demande d'Achat</title>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <h1 th:text="${demande.id == null ? 'Nouvelle Demande d''Achat' : 'Modifier Demande d''Achat'}">
+                Nouvelle Demande d'Achat
+            </h1>
+
+            <form th:action="${demande.id == null ? '/achats/demandes' : '/achats/demandes/' + demande.id}"
+                th:object="${demande}" method="post">
+
+                <div class="form-group">
+                    <label>Service:</label>
+                    <select th:field="*{service}" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option th:each="service : ${services}" 
+                                th:value="${service.id}" 
+                                th:text="${service.libelle}">
+                            Service
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date Besoin:</label>
+                    <input type="date" th:field="*{dateBesoin}" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Justification:</label>
+                    <textarea th:field="*{justification}" rows="4" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Urgence:</label>
+                    <select th:field="*{urgence}">
+                        <option value="NORMALE">Normale</option>
+                        <option value="URGENTE">Urgente</option>
+                        <option value="CRITIQUE">Critique</option>
+                    </select>
+                </div>
+
+                <!-- Articles à commander -->
+                <div class="form-group">
+                    <h3>Articles à commander</h3>
+                    <button type="button" class="btn btn-secondary" id="btn-ajouter-ligne">
+                        ➕ Ajouter un article
+                    </button>
+
+                    <table id="lignes-table" style="margin-top: 1rem; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Article</th>
+                                <th style="width: 15%;">Quantité</th>
+                                <th style="width: 20%;">Prix estimé HT</th>
+                                <th style="width: 20%;">Total HT</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lignes-body">
+                            <!-- Les lignes seront ajoutées ici dynamiquement -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align: right; font-weight: bold;">Total estimé HT:</td>
+                                <td id="total-ht" style="font-weight: bold;">0.00 €</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                    <a th:href="@{/achats/demandes}" class="btn">Annuler</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Données articles stockées dans un attribut data (évite les problèmes Thymeleaf inline) -->
+        <div id="articles-data" style="display:none;" 
+             th:attr="data-articles=${articlesJson}"></div>
+
+        <script>
+            (function() {
+                'use strict';
+                
+                let ligneCounter = 0;
+                let articlesData = [];
+                
+                // Initialisation au chargement du DOM
+                document.addEventListener('DOMContentLoaded', function() {
+                    console.log('🔄 Initialisation du formulaire DA');
+                    
+                    // Récupérer les données articles depuis l'attribut data
+                    const dataDiv = document.getElementById('articles-data');
+                    if (dataDiv) {
+                        const jsonString = dataDiv.getAttribute('data-articles');
+                        if (jsonString) {
+                            try {
+                                articlesData = JSON.parse(jsonString);
+                                console.log('✅ Articles chargés:', articlesData.length);
+                            } catch(e) {
+                                console.error('❌ Erreur parsing JSON articles:', e);
+                                articlesData = [];
+                            }
+                        } else {
+                            console.warn('⚠️ Aucune donnée articles trouvée');
+                        }
+                    } else {
+                        console.error('❌ Élément articles-data non trouvé');
+                    }
+                    
+                    // Ajouter l'event listener au bouton
+                    const btnAjouter = document.getElementById('btn-ajouter-ligne');
+                    if (btnAjouter) {
+                        btnAjouter.addEventListener('click', ajouterLigne);
+                        console.log('✅ Event listener ajouté au bouton');
+                    } else {
+                        console.error('❌ Bouton ajouter non trouvé');
+                    }
+                    
+                    // Ajouter une ligne par défaut si le tableau est vide
+                    const tbody = document.getElementById('lignes-body');
+                    if (tbody && tbody.children.length === 0) {
+                        ajouterLigne();
+                        console.log('✅ Ligne par défaut ajoutée');
+                    }
+                });
+
+                function ajouterLigne() {
+                    console.log('➕ Ajout d\'une ligne article');
+                    
+                    const tbody = document.getElementById('lignes-body');
+                    if (!tbody) {
+                        console.error('❌ Tbody non trouvé');
+                        return;
+                    }
+                    
+                    const tr = document.createElement('tr');
+                    tr.id = 'ligne-' + ligneCounter;
+                    tr.className = 'ligne-article-row';
+
+                    // Construire les options du select
+                    let optionsHtml = '<option value="">-- Sélectionner un article --</option>';
+                    articlesData.forEach(function(article) {
+                        const designation = (article.designation || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                        const code = (article.code || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                        const prixMoyen = article.prixAchatMoyen || 0;
+                        
+                        optionsHtml += '<option value="' + article.id + '" ' +
+                                      'data-code="' + code + '" ' +
+                                      'data-designation="' + designation + '" ' +
+                                      'data-prix="' + prixMoyen + '">' +
+                                      code + ' - ' + designation +
+                                      '</option>';
+                    });
+
+                    const currentIndex = ligneCounter;
+
+                    // Construire le HTML de la ligne
+                    tr.innerHTML = 
+                        '<td>' +
+                            '<select name="articleIds" class="ligne-article" required>' +
+                                optionsHtml +
+                            '</select>' +
+                        '</td>' +
+                        '<td>' +
+                            '<input type="number" name="quantites" class="ligne-quantite" ' +
+                                   'min="1" step="1" value="1" required />' +
+                        '</td>' +
+                        '<td>' +
+                            '<input type="number" name="prix" class="ligne-prix" ' +
+                                   'min="0" step="0.01" value="0.00" required />' +
+                        '</td>' +
+                        '<td>' +
+                            '<span id="total-' + currentIndex + '" class="ligne-total">0.00 €</span>' +
+                        '</td>' +
+                        '<td>' +
+                            '<button type="button" class="btn btn-danger btn-sm" ' +
+                                   'data-ligne="' + currentIndex + '">🗑️</button>' +
+                        '</td>';
+
+                    tbody.appendChild(tr);
+                    
+                    // Ajouter les event listeners pour cette ligne
+                    const selectArticle = tr.querySelector('.ligne-article');
+                    const inputQuantite = tr.querySelector('.ligne-quantite');
+                    const inputPrix = tr.querySelector('.ligne-prix');
+                    const btnSupprimer = tr.querySelector('.btn-danger');
+                    
+                    if (selectArticle) {
+                        selectArticle.addEventListener('change', function() {
+                            const selectedOption = this.options[this.selectedIndex];
+                            const prix = parseFloat(selectedOption.getAttribute('data-prix')) || 0;
+                            if (prix > 0 && inputPrix) {
+                                inputPrix.value = prix.toFixed(2);
+                                calculerTotal(currentIndex);
+                            }
+                        });
+                    }
+                    
+                    if (inputQuantite) {
+                        inputQuantite.addEventListener('change', function() {
+                            calculerTotal(currentIndex);
+                        });
+                        inputQuantite.addEventListener('input', function() {
+                            calculerTotal(currentIndex);
+                        });
+                    }
+                    
+                    if (inputPrix) {
+                        inputPrix.addEventListener('change', function() {
+                            calculerTotal(currentIndex);
+                        });
+                        inputPrix.addEventListener('input', function() {
+                            calculerTotal(currentIndex);
+                        });
+                    }
+                    
+                    if (btnSupprimer) {
+                        btnSupprimer.addEventListener('click', function() {
+                            supprimerLigne(currentIndex);
+                        });
+                    }
+                    
+                    ligneCounter++;
+                    console.log('✅ Ligne ' + currentIndex + ' ajoutée');
+                }
+
+                function supprimerLigne(index) {
+                    console.log('🗑️ Suppression ligne ' + index);
+                    const ligne = document.getElementById('ligne-' + index);
+                    if (ligne) {
+                        ligne.remove();
+                        calculerTotalGeneral();
+                        console.log('✅ Ligne ' + index + ' supprimée');
+                    }
+                }
+
+                function calculerTotal(index) {
+                    const ligne = document.getElementById('ligne-' + index);
+                    if (!ligne) return;
+                    
+                    const inputQuantite = ligne.querySelector('.ligne-quantite');
+                    const inputPrix = ligne.querySelector('.ligne-prix');
+                    
+                    const quantite = parseFloat(inputQuantite.value) || 0;
+                    const prix = parseFloat(inputPrix.value) || 0;
+                    const total = quantite * prix;
+
+                    const totalSpan = document.getElementById('total-' + index);
+                    if (totalSpan) {
+                        totalSpan.textContent = total.toFixed(2) + ' €';
+                    }
+                    
+                    calculerTotalGeneral();
+                }
+
+                function calculerTotalGeneral() {
+                    let total = 0;
+                    document.querySelectorAll('.ligne-total').forEach(function(el) {
+                        const value = parseFloat(el.textContent.replace(' €', '').replace(',', '.'));
+                        if (!isNaN(value)) {
+                            total += value;
+                        }
+                    });
+                    
+                    const totalHtEl = document.getElementById('total-ht');
+                    if (totalHtEl) {
+                        totalHtEl.textContent = total.toFixed(2) + ' €';
+                    }
+                }
+            })();
+        </script>
+    </main>
+</body>
+
+</html>

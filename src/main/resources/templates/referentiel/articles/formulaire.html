@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Formulaire Article</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 1-2: Formulaire de création/modification d'article -->
+        <h2 th:text="${titre}">Formulaire Article</h2>
+        
+        <form th:action="${article.id != null ? '/articles/' + article.id : '/articles'}" 
+              th:object="${article}" 
+              method="post">
+            
+            <div class="form-group">
+                <label for="code">Code Article *</label>
+                <input type="text" id="code" th:field="*{code}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="designation">Désignation *</label>
+                <input type="text" id="designation" th:field="*{designation}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="uniteMesure">Unité de Mesure *</label>
+                <select id="uniteMesure" th:field="*{uniteMesure}" required>
+                    <option value="">-- Sélectionner --</option>
+                    <option value="KG">Kilogramme (KG)</option>
+                    <option value="L">Litre (L)</option>
+                    <option value="M">Mètre (M)</option>
+                    <option value="U">Unité (U)</option>
+                    <option value="PIECE">Pièce</option>
+                    <option value="CARTON">Carton</option>
+                    <option value="PALETTE">Palette</option>
+                </select>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{achetable}">
+                        Article Achetable
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{vendable}">
+                        Article Vendable
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{stockable}">
+                        Article Stockable
+                    </label>
+                </div>
+                
+                <!-- TODO.YML Ligne 2: Gestion traçabilité lots/séries -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{tracabiliteLot}">
+                        Traçabilité Lot Obligatoire
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{dluoObligatoire}">
+                        DLUO Obligatoire
+                    </label>
+                </div>
+            </div>
+            
+            <!-- TODO.YML Ligne 39: Méthode de valorisation (FIFO/CUMP) -->
+            <div class="form-group">
+                <label for="methodeValorisation">Méthode de Valorisation</label>
+                <select id="methodeValorisation" th:field="*{methodeValorisation}">
+                    <option value="">-- Sélectionner --</option>
+                    <option value="FIFO">FIFO (Premier Entré, Premier Sorti)</option>
+                    <option value="CUMP">CUMP (Coût Moyen Pondéré)</option>
+                </select>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="prixAchatMoyen">Prix d'Achat Moyen (€)</label>
+                    <input type="number" id="prixAchatMoyen" th:field="*{prixAchatMoyen}" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label for="prixVentePublic">Prix de Vente Public (€)</label>
+                    <input type="number" id="prixVentePublic" th:field="*{prixVentePublic}" step="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label for="stockMinimum">Stock Minimum</label>
+                    <input type="number" id="stockMinimum" th:field="*{stockMinimum}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="stockMaximum">Stock Maximum</label>
+                    <input type="number" id="stockMaximum" th:field="*{stockMaximum}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="statut">Statut</label>
+                <select id="statut" th:field="*{statut}">
+                    <option value="ACTIF">ACTIF</option>
+                    <option value="BLOQUE">BLOQUÉ</option>
+                    <option value="OBSOLETE">OBSOLÈTE</option>
+                </select>
+            </div>
+            
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success" th:text="${action}">Enregistrer</button>
+                <a href="/articles" class="btn" style="background-color: #95a5a6; color: white;">Annuler</a>
+            </div>
+        </form>
+</main>
+</body>
+</html>

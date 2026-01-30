@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Paiement</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>💳 Paiement <span th:text="${paiement.numero}">PAY001</span></h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="card">
+            <h2>Informations Générales</h2>
+            <dl>
+                <dt>Statut:</dt>
+                <dd>
+                    <span th:class="${'badge badge-' + 
+                        (paiement.statut == 'EN_ATTENTE' ? 'warning' : 
+                         paiement.statut == 'EXECUTE' ? 'success' : 
+                         paiement.statut == 'ANNULE' ? 'danger' : 'secondary')}"
+                          th:text="${paiement.statut}">EN_ATTENTE</span>
+                </dd>
+                
+                <dt>Facture:</dt>
+                <dd>
+                    <a th:href="@{/achats/factures/{id}(id=${paiement.factureFournisseur?.id})}"
+                       th:text="${paiement.factureFournisseur?.numeroFacture}">FACT-001</a>
+                </dd>
+                
+                <dt>Fournisseur:</dt>
+                <dd th:text="${paiement.factureFournisseur?.fournisseur?.raisonSociale}">Fournisseur</dd>
+                
+                <dt>Date Paiement:</dt>
+                <dd th:text="${#temporals.format(paiement.datePaiement, 'dd/MM/yyyy')}">01/01/2026</dd>
+                
+                <dt>Montant Payé:</dt>
+                <dd th:text="${#numbers.formatDecimal(paiement.montantPaye, 1, 2) + ' €'}">1200.00 €</dd>
+                
+                <dt>Mode de Paiement:</dt>
+                <dd th:text="${paiement.modePaiement}">VIREMENT</dd>
+                
+                <dt th:if="${paiement.referenceVirement != null}">Référence Virement:</dt>
+                <dd th:if="${paiement.referenceVirement != null}" th:text="${paiement.referenceVirement}">VIR-2026-001</dd>
+            </dl>
+        </div>
+        
+        <!-- TODO.YML Ligne 19: Exécuter paiement -->
+        <div class="card" th:if="${paiement.statut == 'EN_ATTENTE'}">
+            <h2>Exécuter le Paiement</h2>
+            <form th:action="@{/achats/paiements/{id}/executer(id=${paiement.id})}" method="post">
+                <p>Confirmer l'exécution du paiement de <strong th:text="${#numbers.formatDecimal(paiement.montantPaye, 1, 2) + ' €'}">1200.00 €</strong></p>
+                <button type="submit" class="btn btn-success">✅ Exécuter Paiement</button>
+            </form>
+        </div>
+        
+        <!-- Annuler paiement -->
+        <div class="card" th:if="${paiement.statut == 'EN_ATTENTE'}">
+            <h2>Annuler le Paiement</h2>
+            <form th:action="@{/achats/paiements/{id}/annuler(id=${paiement.id})}" method="post">
+                <div class="form-group">
+                    <label>Motif d'annulation:</label>
+                    <textarea name="motif" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-danger">❌ Annuler Paiement</button>
+            </form>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions">
+            <a th:href="@{/achats/paiements}" class="btn">← Retour</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

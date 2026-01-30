@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Clients</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 4: Gestion clients -->
+        <h2 th:text="${titre}">Gestion des Clients</h2>
+        
+        <div style="margin-bottom: 1rem;">
+            <a href="/clients/nouveau" class="btn btn-success">+ Nouveau Client</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Raison Sociale</th>
+                    <th>Email</th>
+                    <th>Limite Crédit</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(clients)}">
+                    <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                        Aucun client trouvé
+                    </td>
+                </tr>
+                <tr th:each="client : ${clients}">
+                    <td th:text="${client.code}"></td>
+                    <td th:text="${client.raisonSociale}"></td>
+                    <td th:text="${client.email}"></td>
+                    <td th:text="${client.limiteCredit != null ? #numbers.formatDecimal(client.limiteCredit, 1, 2) + ' €' : '-'}"></td>
+                    <td>
+                        <span th:if="${client.statut == 'ACTIF'}" 
+                              style="background-color: #27ae60; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            ACTIF
+                        </span>
+                        <span th:if="${client.statut == 'BLOQUE'}" 
+                              style="background-color: #e74c3c; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
+                            BLOQUÉ
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/clients/' + ${client.id} + '/modifier'}" class="btn btn-primary" style="font-size: 0.8rem;">Modifier</a>
+                        <a th:href="@{'/clients/' + ${client.id} + '/supprimer'}" 
+                           class="btn btn-danger" 
+                           style="font-size: 0.8rem;"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">Supprimer</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</main>
+</body>
+</html>

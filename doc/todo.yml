@@ -1,0 +1,864 @@
+-
+  Ligne: 1
+  Catégorie: Référentiels
+  Module: Articles
+  Page: "Gestion articles"
+  Taches: "Créer/modifier/supprimer articles (code, nom, famille, unité)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 2
+  Catégorie: Référentiels
+  Module: Articles
+  Page: "Gestion articles"
+  Taches: "Gérer lots/séries et dates (DLUO, DLC, traçabilité)"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 3
+  Catégorie: Référentiels
+  Module: Fournisseurs
+  Page: "Gestion fournisseurs"
+  Taches: "Créer/modifier fournisseurs (raison sociale, contacts, conditions)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 4
+  Catégorie: Référentiels
+  Module: Clients
+  Page: "Gestion clients"
+  Taches: "Créer/modifier clients (infos légales, adresses, tarifs)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 5
+  Catégorie: Référentiels
+  Module: Dépôts
+  Page: "Gestion dépôts"
+  Taches: "Créer dépôts/emplacements (site, zone, adresse)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 6
+  Catégorie: Référentiels
+  Module: Taxes
+  Page: Configuration
+  Taches: "Configurer taxes et taux TVA par article/client"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 7
+  Catégorie: Achats
+  Module: "Demande Achat"
+  Page: "Création DA"
+  Taches: "Créer demande d'achat (articles, quantités, fournisseur)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 8
+  Catégorie: Achats
+  Module: "Demande Achat"
+  Page: Workflow
+  Taches: "Workflow approbation N1/N2/N3 selon seuils montant"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 9
+  Catégorie: Achats
+  Module: "Demande Achat"
+  Page: Validation
+  Taches: "Bloquer auto-approbation (créateur ≠ approbateur)"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 10
+  Catégorie: Achats
+  Module: Pro-forma
+  Page: "Gestion pro-forma"
+  Taches: "Générer pro-forma depuis DA approuvée"
+  Type: Front
+  Qui: "GitHub Copilot"
+  Estimation: "4h"
+  "Temps passé": "4h"
+  "Reste à faire": "0h"
+  Avancement: "100%"
+-
+  Ligne: 11
+  Catégorie: Achats
+  Module: "Bon Commande"
+  Page: "Création BC"
+  Taches: "Transformer DA en BC (acheteur uniquement)"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 12
+  Catégorie: Achats
+  Module: "Bon Commande"
+  Page: "Validation BC"
+  Taches: "Validation BC par responsable achats si > seuil"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 13
+  Catégorie: Achats
+  Module: "Bon Commande"
+  Page: Signature
+  Taches: "Approbation finale DG/DAF pour signature légale"
+  Type: Workflow
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 14
+  Catégorie: Achats
+  Module: Réception
+  Page: "Réception marchandises"
+  Taches: "Enregistrer réception (contrôle quantités vs BC)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 15
+  Catégorie: Achats
+  Module: Réception
+  Page: "Bon réception"
+  Taches: "Générer bon de réception, scanner code-barres"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 16
+  Catégorie: Achats
+  Module: Réception
+  Page: "Réception partielle"
+  Taches: "Gérer réceptions partielles et reliquats"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 17
+  Catégorie: Achats
+  Module: "Facture fournisseur"
+  Page: "3-way match"
+  Taches: "Rapprocher facture vs réception vs BC (Finance)"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 18
+  Catégorie: Achats
+  Module: "Facture fournisseur"
+  Page: Validation
+  Taches: "Bloquer paiement si écart non résolu"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 19
+  Catégorie: Achats
+  Module: Paiement
+  Page: "Gestion paiements"
+  Taches: "Enregistrer paiements fournisseurs"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 20
+  Catégorie: Ventes
+  Module: Devis
+  Page: "Création devis"
+  Taches: "Créer devis/pro-forma client (articles, prix, remises)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 21
+  Catégorie: Ventes
+  Module: Devis
+  Page: "Validation remise"
+  Taches: "Valider remises > plafond par responsable ventes"
+  Type: Workflow
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 22
+  Catégorie: Ventes
+  Module: "Commande client"
+  Page: Transformation
+  Taches: "Transformer devis en commande client"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 23
+  Catégorie: Ventes
+  Module: "Commande client"
+  Page: "Réservation stock"
+  Taches: "Réserver stock à la commande (configurable)"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 24
+  Catégorie: Ventes
+  Module: Livraison
+  Page: Préparation
+  Taches: "Préparer livraison (picking : article, qté, emplacement, lot)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 25
+  Catégorie: Ventes
+  Module: Livraison
+  Page: Confirmation
+  Taches: "Confirmer picking et générer bon de livraison"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 26
+  Catégorie: Ventes
+  Module: Livraison
+  Page: Blocage
+  Taches: "Bloquer livraison si stock insuffisant"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 27
+  Catégorie: Ventes
+  Module: "Facture client"
+  Page: Facturation
+  Taches: "Générer facture client depuis livraison"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 28
+  Catégorie: Ventes
+  Module: "Facture client"
+  Page: "Contrôle TVA"
+  Taches: "Contrôler TVA et conformité (Comptable)"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 29
+  Catégorie: Ventes
+  Module: Encaissement
+  Page: Paiement
+  Taches: "Enregistrer encaissements clients"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 30
+  Catégorie: Ventes
+  Module: Avoirs
+  Page: "Gestion avoirs"
+  Taches: "Créer avoirs (retour, erreur prix, casse) avec validation"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 31
+  Catégorie: Stock
+  Module: Mouvements
+  Page: Entrées/Sorties
+  Taches: "Tracer tous mouvements (entrée, sortie, transfert, ajustement)"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 32
+  Catégorie: Stock
+  Module: Mouvements
+  Page: Traçabilité
+  Taches: "Journaliser date/heure, utilisateur, dépôt, emplacement, coût"
+  Type: "Base données"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 33
+  Catégorie: Stock
+  Module: Mouvements
+  Page: Numérotation
+  Taches: "Numérotation automatique et non réutilisable"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 34
+  Catégorie: Stock
+  Module: Transferts
+  Page: Inter-dépôts
+  Taches: "Gérer transferts entre dépôts/sites"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 35
+  Catégorie: Stock
+  Module: Transferts
+  Page: Validation
+  Taches: "Validation transferts par chef magasin"
+  Type: Workflow
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 36
+  Catégorie: Stock
+  Module: Réservations
+  Page: Allocation
+  Taches: "Allocation stock FIFO/FEFO selon nature produit"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 37
+  Catégorie: Stock
+  Module: Lots/Séries
+  Page: Traçabilité
+  Taches: "Traçabilité lot obligatoire sur familles définies"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 38
+  Catégorie: Stock
+  Module: Lots/Séries
+  Page: Blocage
+  Taches: "Bloquer automatiquement lots expirés/non conformes"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 39
+  Catégorie: Stock
+  Module: Valorisation
+  Page: Méthodes
+  Taches: "Implémenter FIFO et CUMP (coût moyen pondéré)"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 40
+  Catégorie: Stock
+  Module: Valorisation
+  Page: Clôture
+  Taches: "Clôture mensuelle : gel coûts et contrôle rétrodatation"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 41
+  Catégorie: Stock
+  Module: Valorisation
+  Page: Écarts
+  Taches: "Rapports variation coût et écarts valorisation"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 42
+  Catégorie: Inventaire
+  Module: Configuration
+  Page: Types
+  Taches: "Définir types inventaire (tournant, annuel, exceptionnel)"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 43
+  Catégorie: Inventaire
+  Module: Configuration
+  Page: Familles
+  Taches: "Définir familles/articles soumis à inventaire obligatoire"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 44
+  Catégorie: Inventaire
+  Module: Configuration
+  Page: Seuils
+  Taches: "Configurer seuils écarts nécessitant validation (valeur/%)"
+  Type: Fonctionnel
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 45
+  Catégorie: Inventaire
+  Module: Création
+  Page: "Écran création"
+  Taches: "Créer écran création inventaire (site, dépôt, type, date)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 46
+  Catégorie: Inventaire
+  Module: Création
+  Page: Snapshot
+  Taches: "Générer snapshot stock théorique à date T"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 47
+  Catégorie: Inventaire
+  Module: Création
+  Page: Gel
+  Taches: "Geler mouvements sur périmètre inventorié"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 48
+  Catégorie: Inventaire
+  Module: Saisie
+  Page: "Liste articles"
+  Taches: "Afficher liste articles (théorique) par emplacement"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 49
+  Catégorie: Inventaire
+  Module: Saisie
+  Page: Comptage
+  Taches: "Saisie quantités physiques (manuel/scan)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 50
+  Catégorie: Inventaire
+  Module: Écarts
+  Page: Calcul
+  Taches: "Calculer écarts (physique - théorique) en temps réel"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 51
+  Catégorie: Inventaire
+  Module: Écarts
+  Page: Affichage
+  Taches: "Afficher écarts valorisés par emplacement/article"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 52
+  Catégorie: Inventaire
+  Module: Ajustements
+  Page: Validation
+  Taches: "Valider ajustements si écart > seuil (chef magasin)"
+  Type: Workflow
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 53
+  Catégorie: Inventaire
+  Module: Ajustements
+  Page: Application
+  Taches: "Appliquer ajustements au stock et journaliser"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 54
+  Catégorie: Inventaire
+  Module: Ajustements
+  Page: Séparation
+  Taches: "Interdire : même personne comptage + validation ajustement"
+  Type: Sécurité
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 55
+  Catégorie: Sécurité
+  Module: RBAC
+  Page: Rôles
+  Taches: "Implémenter rôles (Acheteur, Magasinier, Vendeur, DAF, etc.)"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 56
+  Catégorie: Sécurité
+  Module: ABAC
+  Page: Attributs
+  Taches: "Restrictions par site, dépôt, famille, montant, département"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 57
+  Catégorie: Sécurité
+  Module: Règles
+  Page: "Séparation tâches"
+  Taches: "Bloquer : créer + approuver DA/BC par même personne"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 58
+  Catégorie: Sécurité
+  Module: Règles
+  Page: Réception/Facture
+  Taches: "Bloquer : réceptionner + valider facture par même personne"
+  Type: "Règle métier"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 59
+  Catégorie: Sécurité
+  Module: Règles
+  Page: "Double validation"
+  Taches: "Double validation opérations sensibles (ajustement, annulation)"
+  Type: Workflow
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 60
+  Catégorie: Sécurité
+  Module: Audit
+  Page: Journalisation
+  Taches: "Journalisation complète non modifiable (qui/quoi/quand)"
+  Type: "Base données"
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 61
+  Catégorie: Sécurité
+  Module: Délégation
+  Page: "Accès temporaire"
+  Taches: "Gestion accès temporaires avec expiration et justification"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 62
+  Catégorie: KPI
+  Module: Direction
+  Page: "Dashboard DG"
+  Taches: "CA, marge brute, valeur stock, rotation, top surstocks"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 63
+  Catégorie: KPI
+  Module: Achats
+  Page: "Dashboard Achats"
+  Taches: "Cycle DA→BC, OTD fournisseur, taux réception conforme"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 64
+  Catégorie: KPI
+  Module: Magasin
+  Page: "Dashboard Stock"
+  Taches: "Précision stock, obsolescence, productivité préparation"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 65
+  Catégorie: KPI
+  Module: Ventes
+  Page: "Dashboard Ventes"
+  Taches: "Commandes en cours/retard, taux annulation, backlog"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 66
+  Catégorie: KPI
+  Module: Finance
+  Page: "Dashboard Finance"
+  Taches: "3-way mismatch, valeur stock comptable vs opérationnel"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 67
+  Catégorie: KPI
+  Module: Reporting
+  Page: Exports
+  Taches: "Exports Excel/PDF des rapports et KPI"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 68
+  Catégorie: Admin
+  Module: Utilisateurs
+  Page: "Gestion users"
+  Taches: "Créer/modifier/désactiver utilisateurs"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 69
+  Catégorie: Admin
+  Module: Habilitations
+  Page: "Matrice rôles"
+  Taches: "Configurer matrice rôles et permissions"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 70
+  Catégorie: Admin
+  Module: Intégration
+  Page: "API RH"
+  Taches: "Intégration RH ou via API pour sync utilisateurs"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 71
+  Catégorie: Admin
+  Module: Multi-entités
+  Page: Configuration
+  Taches: "Gérer multi-sites/multi-dépôts/multi-entités légales"
+  Type: Back
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""
+-
+  Ligne: 72
+  Catégorie: Admin
+  Module: Paramètres
+  Page: Configuration
+  Taches: "Paramétrage général (seuils, méthodes valorisation, etc.)"
+  Type: Front
+  Qui: ""
+  Estimation: ""
+  "Temps passé": ""
+  "Reste à faire": ""
+  Avancement: ""

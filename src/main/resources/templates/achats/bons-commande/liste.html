@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Bons de Commande</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>📄 Bons de Commande</h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Numéro</th>
+                    <th>Demande Achat</th>
+                    <th>Acheteur</th>
+                    <th>Date Commande</th>
+                    <th>Montant TTC</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="bc : ${bonsCommande}">
+                    <td th:text="${bc.numero}">BC001</td>
+                    <td th:text="${bc.demandeAchat?.numero}">DA001</td>
+                    <td th:text="${bc.acheteur?.nom}">Martin</td>
+                    <td th:text="${#temporals.format(bc.dateCommande, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td th:text="${#numbers.formatDecimal(bc.montantTotalTtc, 1, 2) + ' €'}">1200.00 €</td>
+                    <td>
+                        <span th:class="${'badge badge-' + 
+                            (bc.statut == 'BROUILLON' ? 'secondary' : 
+                             bc.statut == 'EN_ATTENTE_VALIDATION' ? 'warning' : 
+                             bc.statut == 'VALIDEE' ? 'info' :
+                             bc.statut == 'APPROUVEE' ? 'success' : 
+                             bc.statut == 'ENVOYEE' ? 'primary' : 'danger')}"
+                              th:text="${bc.statut}">BROUILLON</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/achats/bons-commande/{id}(id=${bc.id})}" class="btn btn-sm">👁️ Voir</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

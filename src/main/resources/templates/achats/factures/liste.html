@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title th:text="${titre != null ? titre : 'Factures Fournisseurs'}">Factures Fournisseurs</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1 th:text="${titre != null ? titre : '📑 Factures Fournisseurs'}">📑 Factures Fournisseurs</h1>
+        
+        <div class="actions" th:if="${titre == null}">
+            <a th:href="@{/achats/factures/nouveau}" class="btn btn-primary">➕ Nouvelle Facture</a>
+            <a th:href="@{/achats/factures/bloquees}" class="btn btn-warning">🚫 Factures Bloquées</a>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Numéro</th>
+                    <th>Fournisseur</th>
+                    <th>Bon Commande</th>
+                    <th>Date Facture</th>
+                    <th>Montant TTC</th>
+                    <th>3-Way Match</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="facture : ${factures}">
+                    <td th:text="${facture.numeroFacture}">FACT-001</td>
+                    <td th:text="${facture.fournisseur?.raisonSociale}">Fournisseur</td>
+                    <td th:text="${facture.bonCommande?.numero}">BC001</td>
+                    <td th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2) + ' €'}">1200.00 €</td>
+                    <td>
+                        <!-- TODO.YML Ligne 17: Indicateur 3-way match -->
+                        <span th:class="${'badge badge-' + (facture.threeWayMatchOk ? 'success' : 'danger')}"
+                              th:text="${facture.threeWayMatchOk ? '✅ OK' : '❌ Écart'}">❌ Écart</span>
+                    </td>
+                    <td>
+                        <span th:class="${'badge badge-' + 
+                            (facture.statut == 'EN_ATTENTE' ? 'warning' : 
+                             facture.statut == 'VALIDEE' ? 'success' : 
+                             facture.statut == 'BLOQUEE' ? 'danger' :
+                             facture.statut == 'PAYEE' ? 'info' : 'secondary')}"
+                              th:text="${facture.statut}">EN_ATTENTE</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/achats/factures/{id}(id=${facture.id})}" class="btn btn-sm">👁️ Voir</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

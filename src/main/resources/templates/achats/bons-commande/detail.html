@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Bon de Commande</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>📄 Bon de Commande <span th:text="${bonCommande.numero}">BC001</span></h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+        
+        <div class="card">
+            <h2>Informations Générales</h2>
+            <dl>
+                <dt>Statut:</dt>
+                <dd>
+                    <span th:class="${'badge badge-' + 
+                        (bonCommande.statut == 'BROUILLON' ? 'secondary' : 
+                         bonCommande.statut == 'EN_ATTENTE_VALIDATION' ? 'warning' : 
+                         bonCommande.statut == 'VALIDEE' ? 'info' :
+                         bonCommande.statut == 'APPROUVEE' ? 'success' : 
+                         bonCommande.statut == 'ENVOYEE' ? 'primary' : 'danger')}"
+                          th:text="${bonCommande.statut}">BROUILLON</span>
+                </dd>
+                
+                <dt>Demande d'Achat:</dt>
+                <dd>
+                    <a th:href="@{/achats/demandes/{id}(id=${bonCommande.demandeAchat?.id})}"
+                       th:text="${bonCommande.demandeAchat?.numero}">DA001</a>
+                </dd>
+                
+                <dt>Acheteur:</dt>
+                <dd th:text="${bonCommande.acheteur?.nom}">Martin</dd>
+                
+                <dt>Date Commande:</dt>
+                <dd th:text="${#temporals.format(bonCommande.dateCommande, 'dd/MM/yyyy')}">01/01/2026</dd>
+                
+                <dt>Montant Total HT:</dt>
+                <dd th:text="${#numbers.formatDecimal(bonCommande.montantTotalHt, 1, 2) + ' €'}">1000.00 €</dd>
+                
+                <dt>Montant Total TTC:</dt>
+                <dd th:text="${#numbers.formatDecimal(bonCommande.montantTotalTtc, 1, 2) + ' €'}">1200.00 €</dd>
+                
+                <dt th:if="${bonCommande.approuveBy != null}">Approuvé par:</dt>
+                <dd th:if="${bonCommande.approuveBy != null}">
+                    <span th:text="${bonCommande.approuveBy?.nom}">Directeur</span>
+                    le <span th:text="${#temporals.format(bonCommande.approuveAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                </dd>
+            </dl>
+        </div>
+        
+        <!-- TODO.YML Ligne 12: Validation responsable achats -->
+        <div class="card" th:if="${bonCommande.statut == 'EN_ATTENTE_VALIDATION'}">
+            <h2>Validation Responsable Achats</h2>
+            <form th:action="@{/achats/bons-commande/{id}/valider(id=${bonCommande.id})}" method="post">
+                <div class="form-group">
+                    <label>Responsable:</label>
+                    <select name="responsableId" required>
+                        <option th:each="user : ${utilisateurs}" 
+                                th:value="${user.id}" 
+                                th:text="${user.nom}">Utilisateur</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Décision:</label>
+                    <select name="approuve" required>
+                        <option value="true">✅ Approuver</option>
+                        <option value="false">❌ Rejeter</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Commentaire:</label>
+                    <textarea name="commentaire" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Valider</button>
+            </form>
+        </div>
+        
+        <!-- TODO.YML Ligne 13: Approbation DG/DAF -->
+        <div class="card" th:if="${bonCommande.statut == 'VALIDEE'}">
+            <h2>Approbation Finale (DG/DAF)</h2>
+            <form th:action="@{/achats/bons-commande/{id}/approuver(id=${bonCommande.id})}" method="post">
+                <div class="form-group">
+                    <label>Approbateur (DG/DAF):</label>
+                    <select name="approbateurId" required>
+                        <option th:each="user : ${utilisateurs}" 
+                                th:value="${user.id}" 
+                                th:text="${user.nom}">Utilisateur</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-success">✅ Approuver pour Signature</button>
+            </form>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions">
+            <a th:href="@{/achats/bons-commande}" class="btn">← Retour</a>
+            
+            <!-- TODO.YML Ligne 12: Soumettre pour validation -->
+            <form th:if="${bonCommande.statut == 'BROUILLON'}" 
+                  th:action="@{/achats/bons-commande/{id}/soumettre(id=${bonCommande.id})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-warning">📤 Soumettre pour Validation</button>
+            </form>
+            
+            <!-- Envoyer au fournisseur -->
+            <form th:if="${bonCommande.statut == 'APPROUVEE'}" 
+                  th:action="@{/achats/bons-commande/{id}/envoyer(id=${bonCommande.id})}" 
+                  method="post" style="display: inline;">
+                <button type="submit" class="btn btn-primary">📧 Envoyer au Fournisseur</button>
+            </form>
+            
+            <!-- TODO.YML Ligne 14: Créer réception -->
+            <a th:if="${bonCommande.statut == 'ENVOYEE' || bonCommande.statut == 'APPROUVEE'}"
+               th:href="@{/achats/receptions/nouveau(bcId=${bonCommande.id})}" 
+               class="btn btn-success">📦 Créer Réception</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

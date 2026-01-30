@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Réception</title>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>📦 Réception <span th:text="${reception.numero}">BR001</span></h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="card">
+            <h2>Informations Générales</h2>
+            <dl>
+                <dt>Statut:</dt>
+                <dd>
+                    <span th:class="${'badge badge-' + 
+                        (reception.statut == 'PARTIELLE' ? 'warning' : 
+                         reception.statut == 'COMPLETE' ? 'success' : 
+                         reception.statut == 'AVEC_ECART' ? 'danger' : 'secondary')}"
+                          th:text="${reception.statut}">PARTIELLE</span>
+                </dd>
+                
+                <dt>Bon de Commande:</dt>
+                <dd>
+                    <a th:href="@{/achats/bons-commande/{id}(id=${reception.bonCommande?.id})}"
+                       th:text="${reception.bonCommande?.numero}">BC001</a>
+                </dd>
+                
+                <dt>Magasinier:</dt>
+                <dd th:text="${reception.magasinier?.nom}">Durand</dd>
+                
+                <dt>Date Réception:</dt>
+                <dd th:text="${#temporals.format(reception.dateReception, 'dd/MM/yyyy')}">01/01/2026</dd>
+                
+                <dt>BL Fournisseur:</dt>
+                <dd th:text="${reception.numeroBlFournisseur}">BL-F-001</dd>
+                
+                <dt>Date BL Fournisseur:</dt>
+                <dd th:text="${#temporals.format(reception.dateBlFournisseur, 'dd/MM/yyyy')}">01/01/2026</dd>
+                
+                <dt th:if="${reception.observations != null}">Observations:</dt>
+                <dd th:if="${reception.observations != null}" th:text="${reception.observations}">RAS</dd>
+            </dl>
+        </div>
+        
+        <!-- TODO.YML Ligne 14-16: Lignes de réception avec contrôle quantités -->
+        <div class="card" th:if="${lignes != null and !lignes.isEmpty()}">
+            <h2>Détail Réception</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Qté Commandée</th>
+                        <th>Qté Reçue</th>
+                        <th>Qté Conforme</th>
+                        <th>Qté Non Conforme</th>
+                        <th>Motif Non-Conformité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ligne : ${lignes}">
+                        <td th:text="${ligne.article?.designation}">Article</td>
+                        <td th:text="${ligne.quantiteCommandee}">100</td>
+                        <td th:text="${ligne.quantiteRecue}">95</td>
+                        <td th:text="${ligne.quantiteConforme}">90</td>
+                        <td>
+                            <span th:class="${ligne.quantiteNonConforme > 0 ? 'text-danger' : ''}"
+                                  th:text="${ligne.quantiteNonConforme}">5</span>
+                        </td>
+                        <td th:text="${ligne.motifNonConformite}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- TODO.YML Ligne 16: Finaliser réception -->
+        <div class="card" th:if="${reception.statut == 'PARTIELLE' || reception.statut == 'AVEC_ECART'}">
+            <h2>Finaliser la Réception</h2>
+            <form th:action="@{/achats/receptions/{id}/finaliser(id=${reception.id})}" method="post">
+                <div class="form-group">
+                    <label>Observations finales:</label>
+                    <textarea name="observations" rows="4"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">✅ Finaliser</button>
+            </form>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions">
+            <a th:href="@{/achats/receptions}" class="btn">← Retour</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

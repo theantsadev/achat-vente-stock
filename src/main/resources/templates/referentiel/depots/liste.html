@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Dépôts</title>
+</head>
+<body>
+<main>
+        <!-- TODO.YML Ligne 5: Gestion dépôts -->
+        <h2 th:text="${titre}">Gestion des Dépôts</h2>
+        
+        <div style="margin-bottom: 1rem;">
+            <a href="/depots/nouveau" class="btn btn-success">+ Nouveau Dépôt</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Libellé</th>
+                    <th>Adresse</th>
+                    <th>Type</th>
+                    <th>Actif</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(depots)}">
+                    <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                        Aucun dépôt trouvé
+                    </td>
+                </tr>
+                <tr th:each="depot : ${depots}">
+                    <td th:text="${depot.code}"></td>
+                    <td th:text="${depot.libelle}"></td>
+                    <td th:text="${depot.adresse}"></td>
+                    <td th:text="${depot.type}"></td>
+                    <td>
+                        <span th:if="${depot.actif}" style="color: #27ae60; font-weight: bold;">✓ Oui</span>
+                        <span th:unless="${depot.actif}" style="color: #e74c3c;">✗ Non</span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/depots/' + ${depot.id} + '/modifier'}" class="btn btn-primary" style="font-size: 0.8rem;">Modifier</a>
+                        <a th:href="@{'/depots/' + ${depot.id} + '/supprimer'}" 
+                           class="btn btn-danger" 
+                           style="font-size: 0.8rem;"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce dépôt ?');">Supprimer</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</main>
+</body>
+</html>
