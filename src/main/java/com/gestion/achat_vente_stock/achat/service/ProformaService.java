@@ -52,6 +52,8 @@ public class ProformaService {
         proforma.setCreateur(createur);
         proforma.setDateCreation(LocalDateTime.now());
         proforma.setStatut("BROUILLON");
+        System.out.println(proforma.getCreateur().getNom());
+        System.out.println(proforma.getDateCreation());
 
         // Calculer montant estimé depuis la DA
         if (demandeAchat.getMontantEstimeHt() != null) {
@@ -70,6 +72,7 @@ public class ProformaService {
      */
     public Proforma enregistrer(Proforma proforma) {
         if (proforma.getId() == null) {
+            System.out.println("Création nouvelle pro-forma");
             proforma.setNumero(genererNumero());
             proforma.setDateCreation(LocalDateTime.now());
             proforma.setStatut("BROUILLON");

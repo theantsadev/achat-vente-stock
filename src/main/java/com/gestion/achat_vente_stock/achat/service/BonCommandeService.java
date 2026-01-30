@@ -4,6 +4,7 @@ import com.gestion.achat_vente_stock.achat.model.BonCommande;
 import com.gestion.achat_vente_stock.achat.model.DemandeAchat;
 import com.gestion.achat_vente_stock.achat.model.LigneBC;
 import com.gestion.achat_vente_stock.achat.model.LigneDA;
+import com.gestion.achat_vente_stock.achat.model.Proforma;
 import com.gestion.achat_vente_stock.achat.repository.BonCommandeRepository;
 import com.gestion.achat_vente_stock.achat.repository.LigneDARepository;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
@@ -30,11 +31,61 @@ public class BonCommandeService {
 
     private final BonCommandeRepository bonCommandeRepository;
     private final DemandeAchatService demandeAchatService;
+    private final ProformaService proformaService;
     private final LigneDARepository ligneDARepository;
     private final AuditService auditService;
 
     // TODO.YML Ligne 12: Seuil pour validation responsable achats
     private static final BigDecimal SEUIL_VALIDATION_BC = new BigDecimal("50000");
+
+    /**
+     * TODO.YML Ligne 11: Transformer Proforma acceptée en BC (acheteur uniquement)
+     */
+    public BonCommande creerBonCommandeDepuisProforma(Long proformaId, Utilisateur acheteur) {
+        Proforma proforma = proformaService.obtenirParId(proformaId);
+
+        // Vérifier que la proforma est acceptée
+        if (!"ACCEPTE".equals(proforma.getStatut())) {
+            throw new RuntimeException("Seules les proformas acceptées peuvent être transformées en BC");
+        }
+
+        DemandeAchat da = proforma.getDemandeAchat();
+
+        BonCommande bc = new BonCommande();
+        bc.setNumero(genererNumeroBC());
+        bc.setDemandeAchat(da);
+        bc.setAcheteur(acheteur);
+        bc.setDateCommande(java.time.LocalDate.now());
+        bc.setStatut("BROUILLON");
+        bc.setFournisseur(proforma.getFournisseur());
+
+        // Copier les informations de la proforma
+        bc.setMontantTotalHt(proforma.getMontantTotalHt());
+
+        BonCommande bcSaved = bonCommandeRepository.save(bc);
+
+        // Créer les lignes BC depuis les lignes DA
+        List<LigneDA> lignesDA = ligneDARepository.findByDemandeAchatId(da.getId());
+        for (LigneDA ligneDA : lignesDA) {
+            LigneBC ligneBC = new LigneBC();
+            ligneBC.setBonCommande(bcSaved);
+            ligneBC.setArticle(ligneDA.getArticle());
+            ligneBC.setQuantite(ligneDA.getQuantite());
+            ligneBC.setPrixUnitaireHt(ligneDA.getPrixEstimeHt());
+            ligneBC.setMontantLigneHt(ligneDA.getQuantite().multiply(ligneDA.getPrixEstimeHt()));
+            // Les lignes seront sauvegardées par le repository LigneBC si nécessaire
+        }
+
+        // Marquer la proforma comme transformée en BC
+        proforma.setStatut("TRANSFORMEE_EN_BC");
+        proformaService.enregistrer(proforma);
+
+        // Audit
+        auditService.logAction(acheteur, "bon_commande", bcSaved.getId(),
+                "CREATE_FROM_PROFORMA", null, bcSaved.toString(), null);
+
+        return bcSaved;
+    }
 
     /**
      * TODO.YML Ligne 11: Transformer DA approuvée en BC (acheteur uniquement)

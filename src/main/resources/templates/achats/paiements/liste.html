@@ -31,7 +31,7 @@
             <tbody>
                 <tr th:each="paiement : ${paiements}">
                     <td th:text="${paiement.numero}">PAY001</td>
-                    <td th:text="${paiement.factureFournisseur?.numeroFacture}">FACT-001</td>
+                    <td th:text="${paiement.factureFournisseur?.numero}">FACT-001</td>
                     <td th:text="${paiement.factureFournisseur?.fournisseur?.raisonSociale}">Fournisseur</td>
                     <td th:text="${#temporals.format(paiement.datePaiement, 'dd/MM/yyyy')}">01/01/2026</td>
                     <td th:text="${#numbers.formatDecimal(paiement.montantPaye, 1, 2) + ' €'}">1200.00 €</td>

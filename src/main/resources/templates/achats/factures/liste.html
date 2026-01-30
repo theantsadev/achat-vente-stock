@@ -32,7 +32,7 @@
             </thead>
             <tbody>
                 <tr th:each="facture : ${factures}">
-                    <td th:text="${facture.numeroFacture}">FACT-001</td>
+                    <td th:text="${facture.numero}">FACT-001</td>
                     <td th:text="${facture.fournisseur?.raisonSociale}">Fournisseur</td>
                     <td th:text="${facture.bonCommande?.numero}">BC001</td>
                     <td th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">01/01/2026</td>

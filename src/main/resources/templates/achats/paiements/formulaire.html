@@ -18,7 +18,7 @@
                     <option value="">-- Sélectionner --</option>
                     <option th:each="facture : ${factures}" 
                             th:value="${facture.id}" 
-                            th:text="${facture.numeroFacture + ' - ' + facture.fournisseur?.raisonSociale + ' - ' + #numbers.formatDecimal(facture.montantTtc, 1, 2) + ' €'}">
+                            th:text="${facture.numero + ' - ' + facture.fournisseur?.raisonSociale + ' - ' + #numbers.formatDecimal(facture.montantTtc, 1, 2) + ' €'}">
                         FACT-001 - Fournisseur - 1200.00 €
                     </option>
                 </select>

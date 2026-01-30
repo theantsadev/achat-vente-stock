@@ -1,162 +1,161 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
 <head>
     <title>Détail Demande d'Achat</title>
 </head>
+
 <body>
-<main>
-    <div class="container">
-        <h1>📋 Demande d'Achat <span th:text="${demande.numero}">DA001</span></h1>
-        
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
-        
-        <div class="card">
-            <h2>Informations Générales</h2>
-            <dl>
-                <dt>Statut:</dt>
-                <dd>
-                    <span th:class="${'badge badge-' + 
+    <main>
+        <div class="container">
+            <h1>📋 Demande d'Achat <span th:text="${demande.numero}">DA001</span></h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <div class="card">
+                <h2>Informations Générales</h2>
+                <dl>
+                    <dt>Statut:</dt>
+                    <dd>
+                        <span th:class="${'badge badge-' + 
                         (demande.statut == 'BROUILLON' ? 'secondary' : 
                          demande.statut == 'EN_ATTENTE' ? 'warning' : 
                          demande.statut == 'APPROUVEE' ? 'success' : 'danger')}"
-                          th:text="${demande.statut}">BROUILLON</span>
-                </dd>
-                
-                <dt>Demandeur:</dt>
-                <dd th:text="${demande.demandeur?.nom}">Dupont</dd>
-                
-                <dt>Service:</dt>
-                <dd th:text="${demande.service?.libelle}">Informatique</dd>
-                
-                <dt>Date Besoin:</dt>
-                <dd th:text="${#temporals.format(demande.dateBesoin, 'dd/MM/yyyy')}">01/01/2026</dd>
-                
-                <dt>Montant Estimé HT:</dt>
-                <dd th:text="${#numbers.formatDecimal(demande.montantEstimeHt, 1, 2) + ' €'}">1000.00 €</dd>
-                
-                <dt>Urgence:</dt>
-                <dd th:text="${demande.urgence}">NORMALE</dd>
-                
-                <dt>Justification:</dt>
-                <dd th:text="${demande.justification}">Besoin matériel informatique</dd>
-            </dl>
+                            th:text="${demande.statut}">BROUILLON</span>
+                    </dd>
+
+                    <dt>Demandeur:</dt>
+                    <dd th:text="${demande.demandeur?.nom}">Dupont</dd>
+
+                    <dt>Service:</dt>
+                    <dd th:text="${demande.service?.libelle}">Informatique</dd>
+
+                    <dt>Date Besoin:</dt>
+                    <dd th:text="${#temporals.format(demande.dateBesoin, 'dd/MM/yyyy')}">01/01/2026</dd>
+
+                    <dt>Montant Estimé HT:</dt>
+                    <dd th:text="${#numbers.formatDecimal(demande.montantEstimeHt, 1, 2) + ' €'}">1000.00 €</dd>
+
+                    <dt>Urgence:</dt>
+                    <dd th:text="${demande.urgence}">NORMALE</dd>
+
+                    <dt>Justification:</dt>
+                    <dd th:text="${demande.justification}">Besoin matériel informatique</dd>
+                </dl>
+            </div>
+
+            <!-- TODO.YML Ligne 7: Lignes de la demande -->
+            <div class="card" th:if="${lignes != null and !lignes.isEmpty()}">
+                <h2>Articles Demandés</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Article</th>
+                            <th>Quantité</th>
+                            <th>Prix Estimé HT</th>
+                            <th>Total HT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ligne : ${lignes}">
+                            <td th:text="${ligne.article?.designation}">Article</td>
+                            <td th:text="${ligne.quantite}">10</td>
+                            <td th:text="${#numbers.formatDecimal(ligne.prixEstimeHt, 1, 2) + ' €'}">100.00 €</td>
+                            <td th:text="${#numbers.formatDecimal(ligne.quantite * ligne.prixEstimeHt, 1, 2) + ' €'}">
+                                1000.00 €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TODO.YML Ligne 8-9: Workflow approbation -->
+            <div class="card" th:if="${validations != null and !validations.isEmpty()}">
+                <h2>Historique des Validations</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Niveau</th>
+                            <th>Valideur</th>
+                            <th>Date</th>
+                            <th>Décision</th>
+                            <th>Commentaire</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="validation : ${validations}">
+                            <td>N<span th:text="${validation.niveau}">1</span></td>
+                            <td th:text="${validation.valideur?.nom}">Dupont</td>
+                            <td th:text="${#temporals.format(validation.dateValidation, 'dd/MM/yyyy HH:mm')}">01/01/2026
+                                10:00</td>
+                            <td>
+                                <span
+                                    th:class="${'badge badge-' + (validation.decision == 'APPROUVEE' ? 'success' : 'danger')}"
+                                    th:text="${validation.decision}">APPROUVEE</span>
+                            </td>
+                            <td th:text="${validation.commentaire}">OK</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TODO.YML Ligne 8-9: Formulaire validation -->
+            <div class="card" th:if="${demande.statut == 'EN_ATTENTE'}">
+                <h2>Valider la Demande</h2>
+                <form th:action="@{/achats/demandes/{id}/valider(id=${demande.id})}" method="post">
+                    <div class="form-group">
+                        <label>Valideur:</label>
+                        <select name="valideurId" required>
+                            <option th:each="user : ${utilisateurs}" th:value="${user.id}" th:text="${user.nom}">
+                                Utilisateur</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Niveau d'approbation:</label>
+                        <select name="niveau" required>
+                            <option value="1">N1 - Chef de service</option>
+                            <option value="2">N2 - Directeur</option>
+                            <option value="3">N3 - DG/DAF</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Décision:</label>
+                        <select name="decision" required>
+                            <option value="APPROUVEE">✅ Approuver</option>
+                            <option value="REJETEE">❌ Rejeter</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Commentaire:</label>
+                        <textarea name="commentaire" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Valider</button>
+                </form>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <a th:href="@{/achats/demandes}" class="btn">← Retour</a>
+
+                <!-- TODO.YML Ligne 8: Soumettre pour approbation -->
+                <form th:if="${demande.statut == 'BROUILLON'}"
+                    th:action="@{/achats/demandes/{id}/soumettre(id=${demande.id})}" method="post"
+                    style="display: inline;">
+                    <button type="submit" class="btn btn-warning">📤 Soumettre pour Approbation</button>
+                </form>
+
+                <!-- TODO.YML Ligne 10: Générer pro-forma depuis DA approuvée -->
+                <a th:if="${demande.statut == 'APPROUVEE'}"
+                    th:href="@{/achats/pro-formas/generer/{daId}(daId=${demande.id})}" class="btn btn-info">📋 Générer
+                    Pro-forma</a>
+
+            </div>
         </div>
-        
-        <!-- TODO.YML Ligne 7: Lignes de la demande -->
-        <div class="card" th:if="${lignes != null and !lignes.isEmpty()}">
-            <h2>Articles Demandés</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Article</th>
-                        <th>Quantité</th>
-                        <th>Prix Estimé HT</th>
-                        <th>Total HT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="ligne : ${lignes}">
-                        <td th:text="${ligne.article?.designation}">Article</td>
-                        <td th:text="${ligne.quantite}">10</td>
-                        <td th:text="${#numbers.formatDecimal(ligne.prixEstimeHt, 1, 2) + ' €'}">100.00 €</td>
-                        <td th:text="${#numbers.formatDecimal(ligne.quantite * ligne.prixEstimeHt, 1, 2) + ' €'}">1000.00 €</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- TODO.YML Ligne 8-9: Workflow approbation -->
-        <div class="card" th:if="${validations != null and !validations.isEmpty()}">
-            <h2>Historique des Validations</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Niveau</th>
-                        <th>Valideur</th>
-                        <th>Date</th>
-                        <th>Décision</th>
-                        <th>Commentaire</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="validation : ${validations}">
-                        <td>N<span th:text="${validation.niveau}">1</span></td>
-                        <td th:text="${validation.valideur?.nom}">Dupont</td>
-                        <td th:text="${#temporals.format(validation.dateValidation, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
-                        <td>
-                            <span th:class="${'badge badge-' + (validation.decision == 'APPROUVEE' ? 'success' : 'danger')}"
-                                  th:text="${validation.decision}">APPROUVEE</span>
-                        </td>
-                        <td th:text="${validation.commentaire}">OK</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- TODO.YML Ligne 8-9: Formulaire validation -->
-        <div class="card" th:if="${demande.statut == 'EN_ATTENTE'}">
-            <h2>Valider la Demande</h2>
-            <form th:action="@{/achats/demandes/{id}/valider(id=${demande.id})}" method="post">
-                <div class="form-group">
-                    <label>Valideur:</label>
-                    <select name="valideurId" required>
-                        <option th:each="user : ${utilisateurs}" 
-                                th:value="${user.id}" 
-                                th:text="${user.nom}">Utilisateur</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Niveau d'approbation:</label>
-                    <select name="niveau" required>
-                        <option value="1">N1 - Chef de service</option>
-                        <option value="2">N2 - Directeur</option>
-                        <option value="3">N3 - DG/DAF</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Décision:</label>
-                    <select name="decision" required>
-                        <option value="APPROUVEE">✅ Approuver</option>
-                        <option value="REJETEE">❌ Rejeter</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Commentaire:</label>
-                    <textarea name="commentaire" rows="3"></textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Valider</button>
-            </form>
-        </div>
-        
-        <!-- Actions -->
-        <div class="actions">
-            <a th:href="@{/achats/demandes}" class="btn">← Retour</a>
-            
-            <!-- TODO.YML Ligne 8: Soumettre pour approbation -->
-            <form th:if="${demande.statut == 'BROUILLON'}" 
-                  th:action="@{/achats/demandes/{id}/soumettre(id=${demande.id})}" 
-                  method="post" style="display: inline;">
-                <button type="submit" class="btn btn-warning">📤 Soumettre pour Approbation</button>
-            </form>
-            
-            <!-- TODO.YML Ligne 10: Générer pro-forma depuis DA approuvée -->
-            <a th:if="${demande.statut == 'APPROUVEE'}" 
-               th:href="@{/achats/pro-formas/generer/{daId}(daId=${demande.id})}" 
-               class="btn btn-info">📋 Générer Pro-forma</a>
-            
-            <!-- TODO.YML Ligne 11: Créer BC depuis DA approuvée -->
-            <form th:if="${demande.statut == 'APPROUVEE'}" 
-                  th:action="@{/achats/bons-commande/depuis-da/{daId}(daId=${demande.id})}" 
-                  method="post" style="display: inline;">
-                <button type="submit" class="btn btn-success">📄 Créer Bon de Commande</button>
-            </form>
-        </div>
-    </div>
-</main>
+    </main>
 </body>
+
 </html>

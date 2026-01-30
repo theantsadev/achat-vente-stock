@@ -6,7 +6,7 @@
 <body>
 <main>
     <div class="container">
-        <h1>📑 Facture <span th:text="${facture.numeroFacture}">FACT-001</span></h1>
+        <h1>📑 Facture <span th:text="${facture.numero}">FACT-001</span></h1>
         
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
         <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>

@@ -31,20 +31,20 @@ public class BonCommandeController {
     }
     
     /**
-     * TODO.YML Ligne 11: Créer BC depuis DA
+     * TODO.YML Ligne 11: Créer BC depuis Proforma
      */
-    @PostMapping("/depuis-da/{daId}")
-    public String creerDepuisDA(@PathVariable Long daId, RedirectAttributes redirectAttributes) {
+    @PostMapping("/depuis-proforma/{proformaId}")
+    public String creerDepuisProforma(@PathVariable Long proformaId, RedirectAttributes redirectAttributes) {
         Utilisateur acheteur = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
         try {
-            BonCommande bc = bonCommandeService.creerBonCommandeDepuisDA(daId, acheteur);
-            redirectAttributes.addFlashAttribute("success", "Bon de commande créé depuis la DA");
+            BonCommande bc = bonCommandeService.creerBonCommandeDepuisProforma(proformaId, acheteur);
+            redirectAttributes.addFlashAttribute("success", "Bon de commande créé depuis la Pro-forma");
             return "redirect:/achats/bons-commande/" + bc.getId();
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/achats/demandes/" + daId;
+            return "redirect:/achats/pro-formas/" + proformaId;
         }
     }
     

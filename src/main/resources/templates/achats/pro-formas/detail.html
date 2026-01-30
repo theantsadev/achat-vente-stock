@@ -86,7 +86,8 @@
 
                     <dt>Total TTC:</dt>
                     <dd th:text="${#numbers.formatDecimal(proforma.montantTotalTtc, 1, 2, 'COMMA')} + ' €'">
-                        <strong>-</strong></dd>
+                        <strong>-</strong>
+                    </dd>
                 </dl>
             </div>
 
@@ -122,6 +123,12 @@
                     <input type="hidden" name="motif" th:value="'Rejet par ' + ${proforma.createur?.nom}" />
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Rejeter cette pro-forma ?')">❌
                         Rejeter</button>
+                </form>
+
+                <form th:if="${proforma.statut == 'ACCEPTE'}"
+                    th:action="@{/achats/bons-commande/depuis-proforma/{proformaId}(proformaId=${proforma.id})}"
+                    method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-success">📄 Créer Bon de Commande</button>
                 </form>
 
                 <a th:href="@{/achats/pro-formas}" class="btn">📋 Retour liste</a>
