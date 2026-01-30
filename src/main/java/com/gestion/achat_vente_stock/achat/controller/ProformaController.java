@@ -89,6 +89,11 @@ public class ProformaController {
     public String enregistrer(@ModelAttribute Proforma proforma,
             RedirectAttributes redirectAttributes) {
         try {
+            // Charger l'entité DemandeAchat complète si seulement l'ID est fourni
+            if (proforma.getDemandeAchat() != null && proforma.getDemandeAchat().getId() != null) {
+                DemandeAchat da = demandeAchatService.obtenirParId(proforma.getDemandeAchat().getId());
+                proforma.setDemandeAchat(da);
+            }
             Proforma sauvegardee = proformaService.enregistrer(proforma);
             redirectAttributes.addFlashAttribute("success", "Pro-forma créée avec succès");
             return "redirect:/achats/pro-formas/" + sauvegardee.getId();
@@ -130,6 +135,11 @@ public class ProformaController {
             RedirectAttributes redirectAttributes) {
         try {
             proforma.setId(id);
+            // Charger l'entité DemandeAchat complète si seulement l'ID est fourni
+            if (proforma.getDemandeAchat() != null && proforma.getDemandeAchat().getId() != null) {
+                DemandeAchat da = demandeAchatService.obtenirParId(proforma.getDemandeAchat().getId());
+                proforma.setDemandeAchat(da);
+            }
             Proforma modifiee = proformaService.enregistrer(proforma);
             redirectAttributes.addFlashAttribute("success", "Pro-forma modifiée avec succès");
             return "redirect:/achats/pro-formas/" + id;

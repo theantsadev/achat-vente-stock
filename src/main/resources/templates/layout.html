@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="layout (title, content)">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,40 +11,40 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
         }
-        
+
         /* Header */
         header {
             background-color: #2c3e50;
             color: white;
             padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
         header h1 {
             font-size: 1.5rem;
         }
-        
+
         /* Navigation */
         nav {
             background-color: #34495e;
             padding: 0;
         }
-        
+
         nav ul {
             list-style: none;
             display: flex;
             flex-wrap: wrap;
         }
-        
+
         nav ul li {
             position: relative;
         }
-        
+
         nav ul li a {
             display: block;
             color: white;
@@ -51,54 +52,54 @@
             padding: 1rem 1.5rem;
             transition: background-color 0.3s;
         }
-        
+
         nav ul li a:hover {
             background-color: #2c3e50;
         }
-        
+
         /* Dropdown */
         nav ul li ul {
             display: none;
             position: absolute;
             background-color: #34495e;
             min-width: 200px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
         }
-        
-        nav ul li:hover > ul {
+
+        nav ul li:hover>ul {
             display: block;
         }
-        
+
         nav ul li ul li {
             width: 100%;
         }
-        
+
         nav ul li ul li a {
             padding: 0.75rem 1.5rem;
         }
-        
+
         /* Container */
         .container {
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        
+
         .content-box {
             background: white;
             padding: 2rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
         h2 {
             color: #2c3e50;
             margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #3498db;
         }
-        
+
         /* Buttons */
         .btn {
             display: inline-block;
@@ -111,78 +112,78 @@
             transition: all 0.3s;
             font-size: 0.9rem;
         }
-        
+
         .btn-primary {
             background-color: #3498db;
             color: white;
         }
-        
+
         .btn-primary:hover {
             background-color: #2980b9;
         }
-        
+
         .btn-success {
             background-color: #27ae60;
             color: white;
         }
-        
+
         .btn-success:hover {
             background-color: #229954;
         }
-        
+
         .btn-danger {
             background-color: #e74c3c;
             color: white;
         }
-        
+
         .btn-danger:hover {
             background-color: #c0392b;
         }
-        
+
         .btn-warning {
             background-color: #f39c12;
             color: white;
         }
-        
+
         .btn-warning:hover {
             background-color: #d68910;
         }
-        
+
         /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
         }
-        
+
         table thead {
             background-color: #34495e;
             color: white;
         }
-        
+
         table th,
         table td {
             padding: 0.75rem;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        
+
         table tbody tr:hover {
             background-color: #f8f9fa;
         }
-        
+
         /* Form */
         .form-group {
             margin-bottom: 1rem;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 0.25rem;
             color: #2c3e50;
             font-weight: 500;
         }
-        
+
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -192,40 +193,40 @@
             border-radius: 4px;
             font-size: 1rem;
         }
-        
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
-        
+
         /* Messages */
         .alert {
             padding: 1rem;
             margin-bottom: 1rem;
             border-radius: 4px;
         }
-        
+
         .alert-success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        
+
         .alert-error {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        
+
         .alert-info {
             background-color: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
-        
+
         /* Footer */
         footer {
             background-color: #2c3e50;
@@ -236,16 +237,17 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Système de Gestion Achat-Vente-Stock</h1>
     </header>
-    
+
     <!-- TODO.YML: Navigation pour tous les modules -->
     <nav>
         <ul>
             <li><a href="/">Accueil</a></li>
-            
+
             <!-- TODO.YML Ligne 1-6: Référentiels -->
             <li>
                 <a href="#">Référentiels</a>
@@ -256,19 +258,20 @@
                     <li><a href="/depots">Dépôts</a></li>
                 </ul>
             </li>
-            
+
             <!-- TODO.YML Ligne 7-19: Achats -->
             <li>
                 <a href="#">Achats</a>
                 <ul>
                     <li><a href="/achats/demandes">📋 Demandes d'achat</a></li>
+                    <li><a href="/achats/pro-formas">📄 Pro-formas</a></li>
                     <li><a href="/achats/bons-commande">📄 Bons de commande</a></li>
                     <li><a href="/achats/receptions">📦 Réceptions</a></li>
                     <li><a href="/achats/factures">📑 Factures fournisseurs</a></li>
                     <li><a href="/achats/paiements">💳 Paiements</a></li>
                 </ul>
             </li>
-            
+
             <!-- TODO.YML Ligne 20-30: Ventes -->
             <li>
                 <a href="#">Ventes</a>
@@ -279,7 +282,7 @@
                     <li><a href="/ventes/factures">Factures</a></li>
                 </ul>
             </li>
-            
+
             <!-- TODO.YML Ligne 31-41: Stock -->
             <li>
                 <a href="#">Stock</a>
@@ -290,7 +293,7 @@
                     <li><a href="/stock/lots">Lots/Séries</a></li>
                 </ul>
             </li>
-            
+
             <!-- TODO.YML Ligne 42-54: Inventaire -->
             <li>
                 <a href="#">Inventaire</a>
@@ -299,7 +302,7 @@
                     <li><a href="/inventaires/ajustements">Ajustements</a></li>
                 </ul>
             </li>
-            
+
             <!-- TODO.YML Ligne 62-67: KPI/Reporting -->
             <li>
                 <a href="#">Reporting</a>
@@ -310,7 +313,7 @@
                     <li><a href="/reporting/stock">Dashboard Stock</a></li>
                 </ul>
             </li>
-            
+
             <!-- TODO.YML Ligne 68-72: Admin -->
             <li>
                 <a href="#">Administration</a>
@@ -322,21 +325,22 @@
             </li>
         </ul>
     </nav>
-    
+
     <div class="container">
         <!-- Messages flash -->
         <div th:if="${message}" th:class="'alert alert-' + ${typeMessage}">
             <span th:text="${message}"></span>
         </div>
-        
+
         <!-- Contenu de la page -->
         <div class="content-box">
             <main th:replace="${content}">Contenu de la page</main>
         </div>
     </div>
-    
+
     <footer>
         <p>&copy; 2026 Système de Gestion Achat-Vente-Stock - Tous droits réservés</p>
     </footer>
 </body>
+
 </html>
