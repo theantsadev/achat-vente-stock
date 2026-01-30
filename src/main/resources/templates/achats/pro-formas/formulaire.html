@@ -22,13 +22,13 @@
                 <dd th:text="${demandeAchat?.numero}">DA001</dd>
                 
                 <dt>Service:</dt>
-                <dd th:text="${demandeAchat?.service?.nom}">-</dd>
+                <dd th:text="${demandeAchat?.service?.libelle}">-</dd>
                 
                 <dt>Montant estimé HT:</dt>
-                <dd th:text="${#numbers.formatDecimal(demandeAchat?.montantEstimeHt, 1, 'COMMA', 2)}">-</dd>
+                <dd th:text="${#numbers.formatDecimal(demandeAchat?.montantEstimeHt, 1, 2, 'COMMA')}">-</dd>
                 
                 <dt>Date besoin:</dt>
-                <dd th:text="${#calendars.format(demandeAchat?.dateBesoin, 'dd/MM/yyyy')}">-</dd>
+                <dd th:text="${#temporals.format(demandeAchat?.dateBesoin, 'dd/MM/yyyy')}">-</dd>
             </dl>
         </div>
         

@@ -43,7 +43,7 @@
                 </dd>
                 
                 <dt>Service:</dt>
-                <dd th:text="${demandeAchat.service?.nom}">-</dd>
+                <dd th:text="${demandeAchat.service?.libelle}">-</dd>
                 
                 <dt>Date besoin:</dt>
                 <dd th:text="${#calendars.format(demandeAchat.dateBesoin, 'dd/MM/yyyy')}">-</dd>

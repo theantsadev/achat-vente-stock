@@ -54,7 +54,7 @@ public class ProformaController {
 
             // Vérifier que la DA est approuvée
             if (!demandeAchat.getStatut().equals("APPROUVEE")) {
-                redirectAttributes.addFlashAttribute("erreur",
+                redirectAttributes.addFlashAttribute("error",
                         "La demande d'achat doit être approuvée pour générer une pro-forma");
                 return "redirect:/achats/demandes/" + daId;
             }
@@ -62,7 +62,7 @@ public class ProformaController {
             // Vérifier qu'une pro-forma n'existe pas déjà
             var existante = proformaService.obtenirParDA(demandeAchat);
             if (existante.isPresent()) {
-                redirectAttributes.addFlashAttribute("erreur",
+                redirectAttributes.addFlashAttribute("error",
                         "Une pro-forma existe déjà pour cette demande d'achat");
                 return "redirect:/achats/demandes/" + daId;
             }
@@ -77,7 +77,7 @@ public class ProformaController {
 
             return "achats/pro-formas/formulaire";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("erreur", "Erreur : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/achats/demandes/" + daId;
         }
     }
@@ -90,10 +90,10 @@ public class ProformaController {
             RedirectAttributes redirectAttributes) {
         try {
             Proforma sauvegardee = proformaService.enregistrer(proforma);
-            redirectAttributes.addFlashAttribute("succes", "Pro-forma créée avec succès");
+            redirectAttributes.addFlashAttribute("success", "Pro-forma créée avec succès");
             return "redirect:/achats/pro-formas/" + sauvegardee.getId();
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("erreur", "Erreur : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/achats/pro-formas";
         }
     }
@@ -131,10 +131,10 @@ public class ProformaController {
         try {
             proforma.setId(id);
             Proforma modifiee = proformaService.enregistrer(proforma);
-            redirectAttributes.addFlashAttribute("succes", "Pro-forma modifiée avec succès");
+            redirectAttributes.addFlashAttribute("success", "Pro-forma modifiée avec succès");
             return "redirect:/achats/pro-formas/" + id;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("erreur", "Erreur : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/achats/pro-formas/" + id;
         }
     }
@@ -147,10 +147,10 @@ public class ProformaController {
         try {
             Utilisateur valideur = utilisateurRepository.findById(1L).orElse(null);
             proformaService.accepter(id, valideur);
-            redirectAttributes.addFlashAttribute("succes", "Pro-forma acceptée");
+            redirectAttributes.addFlashAttribute("success", "Pro-forma acceptée");
             return "redirect:/achats/pro-formas/" + id;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("erreur", "Erreur : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/achats/pro-formas/" + id;
         }
     }
@@ -165,10 +165,10 @@ public class ProformaController {
         try {
             Utilisateur valideur = utilisateurRepository.findById(1L).orElse(null);
             proformaService.rejeter(id, valideur, motif);
-            redirectAttributes.addFlashAttribute("succes", "Pro-forma rejetée");
+            redirectAttributes.addFlashAttribute("success", "Pro-forma rejetée");
             return "redirect:/achats/pro-formas/" + id;
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("erreur", "Erreur : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/achats/pro-formas/" + id;
         }
     }
