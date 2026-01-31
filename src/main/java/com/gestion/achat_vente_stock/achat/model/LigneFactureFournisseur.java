@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 
-
 /**
  * TODO.YML Ligne 17: Achats > Facture Fournisseur > Lignes
  * Lignes de facture pour 3-way match
@@ -21,25 +20,25 @@ import com.gestion.achat_vente_stock.referentiel.model.Article;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LigneFactureFournisseur {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facture_fournisseur_id")
     private FactureFournisseur factureFournisseur;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "article_id")
     private Article article;
-    
+
     @Column(precision = 18, scale = 4)
     private BigDecimal quantite;
-    
+
     @Column(name = "prix_unitaire_ht", precision = 18, scale = 4)
     private BigDecimal prixUnitaireHt;
-    
+
     @Column(name = "montant_ligne_ht", precision = 18, scale = 4)
     private BigDecimal montantLigneHt;
 }
