@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import java.math.BigDecimal;
 
 import com.gestion.achat_vente_stock.referentiel.model.Article;
@@ -27,6 +28,7 @@ public class LigneProforma {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proforma_id")
+    @ToString.Exclude
     private Proforma proforma;
 
     @ManyToOne(fetch = FetchType.LAZY)

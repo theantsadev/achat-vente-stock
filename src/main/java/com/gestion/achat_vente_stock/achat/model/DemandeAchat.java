@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,5 +65,6 @@ public class DemandeAchat {
 
     // Lignes de la demande d'achat
     @OneToMany(mappedBy = "demandeAchat", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ToString.Exclude
     private List<LigneDA> lignes = new ArrayList<>();
 }

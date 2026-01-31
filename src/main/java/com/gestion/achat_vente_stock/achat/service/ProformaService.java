@@ -7,7 +7,7 @@ import com.gestion.achat_vente_stock.achat.model.LigneProforma;
 import com.gestion.achat_vente_stock.achat.model.Proforma;
 import com.gestion.achat_vente_stock.achat.repository.ProformaRepository;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,6 @@ import java.util.Optional;
 public class ProformaService {
 
     private final ProformaRepository proformaRepository;
-    private final FournisseurRepository fournisseurRepository;
     private final ObjectMapper objectMapper;
     private static final String PREFIXE_NUMERO = "PF";
 

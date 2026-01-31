@@ -28,7 +28,7 @@ import com.gestion.achat_vente_stock.referentiel.model.Fournisseur;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = { "demandeAchat", "createur", "valideBy" })
+@ToString
 public class Proforma {
 
     @Id
@@ -41,6 +41,7 @@ public class Proforma {
     // Lien vers DA approuvée
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "demande_achat_id", nullable = false)
+    @ToString.Exclude
     private DemandeAchat demandeAchat;
 
     // Fournisseur proposé
@@ -51,6 +52,7 @@ public class Proforma {
     // Créée par (acheteur)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "createur_id")
+    @ToString.Exclude
     private Utilisateur createur;
 
     // Dates
@@ -90,9 +92,11 @@ public class Proforma {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "valide_by")
+    @ToString.Exclude
     private Utilisateur valideBy;
 
     // Lignes de la proforma
     @OneToMany(mappedBy = "proforma", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ToString.Exclude
     private List<LigneProforma> lignes = new ArrayList<>();
 }
