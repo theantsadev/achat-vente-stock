@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Transfert</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-truck"></i> Transfert 
+                <span th:text="${transfert.numero}"></span>
+            </h2>
+            <a th:href="@{/stocks/transferts}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statut et Workflow -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>Statut : 
+                            <span th:if="${transfert.statut == 'BROUILLON'}" class="badge bg-secondary">BROUILLON</span>
+                            <span th:if="${transfert.statut == 'DEMANDE'}" class="badge bg-info">DEMANDE</span>
+                            <span th:if="${transfert.statut == 'VALIDEE'}" class="badge bg-primary">VALIDÉE</span>
+                            <span th:if="${transfert.statut == 'EN_TRANSIT'}" class="badge bg-warning">EN TRANSIT</span>
+                            <span th:if="${transfert.statut == 'RECUE'}" class="badge bg-success">REÇUE</span>
+                            <span th:if="${transfert.statut == 'ANNULEE'}" class="badge bg-danger">ANNULÉE</span>
+                        </h5>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <!-- Actions selon le statut -->
+                        <form th:if="${transfert.statut == 'BROUILLON'}" th:action="@{/stocks/transferts/{id}/soumettre(id=${transfert.id})}" method="post">
+                            <button type="submit" class="btn btn-info">
+                                <i class="bi bi-send"></i> Soumettre
+                            </button>
+                        </form>
+                        
+                        <form th:if="${transfert.statut == 'DEMANDE'}" th:action="@{/stocks/transferts/{id}/valider(id=${transfert.id})}" method="post">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Valider
+                            </button>
+                        </form>
+                        
+                        <form th:if="${transfert.statut == 'VALIDEE'}" th:action="@{/stocks/transferts/{id}/expedier(id=${transfert.id})}" method="post">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-truck"></i> Expédier
+                            </button>
+                        </form>
+                        
+                        <form th:if="${transfert.statut == 'EN_TRANSIT'}" th:action="@{/stocks/transferts/{id}/receptionner(id=${transfert.id})}" method="post">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-box-seam"></i> Réceptionner
+                            </button>
+                        </form>
+                        
+                        <form th:if="${transfert.statut != 'EN_TRANSIT' and transfert.statut != 'RECUE' and transfert.statut != 'ANNULEE'}" 
+                              th:action="@{/stocks/transferts/{id}/annuler(id=${transfert.id})}" method="post">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Confirmer l\'annulation ?')">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informations générales</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Numéro</th>
+                                <td th:text="${transfert.numero}"></td>
+                            </tr>
+                            <tr>
+                                <th>Demandeur</th>
+                                <td th:text="${transfert.demandeur?.nom + ' ' + transfert.demandeur?.prenom}"></td>
+                            </tr>
+                            <tr>
+                                <th>Validé par</th>
+                                <td th:text="${transfert.valideBy?.nom + ' ' + transfert.valideBy?.prenom ?: '-'}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Dépôts et Dates</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Dépôt source</th>
+                                <td th:text="${transfert.depotSource?.code + ' - ' + transfert.depotSource?.libelle}"></td>
+                            </tr>
+                            <tr>
+                                <th>Dépôt destination</th>
+                                <td th:text="${transfert.depotDestination?.code + ' - ' + transfert.depotDestination?.libelle}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date demande</th>
+                                <td th:text="${#temporals.format(transfert.dateDemande, 'dd/MM/yyyy')}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date expédition</th>
+                                <td th:text="${transfert.dateExpedition != null ? #temporals.format(transfert.dateExpedition, 'dd/MM/yyyy') : '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date réception</th>
+                                <td th:text="${transfert.dateReception != null ? #temporals.format(transfert.dateReception, 'dd/MM/yyyy') : '-'}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lignes du transfert -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Lignes du transfert</h5>
+            </div>
+            <div class="card-body">
+                <!-- Formulaire ajout ligne (uniquement si BROUILLON) -->
+                <form th:if="${transfert.statut == 'BROUILLON'}" th:action="@{/stocks/transferts/{id}/lignes(id=${transfert.id})}" method="post" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <select name="articleId" class="form-select" required>
+                            <option value="">-- Article --</option>
+                            <option th:each="article : ${articles}" 
+                                    th:value="${article.id}" 
+                                    th:text="${article.code + ' - ' + article.designation}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="quantiteDemandee" class="form-control" placeholder="Quantité" step="0.01" required>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="lotNumero" class="form-control" placeholder="N° Lot (optionnel)">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-lg"></i> Ajouter
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Table des lignes -->
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Article</th>
+                                <th>Lot</th>
+                                <th class="text-end">Qté Demandée</th>
+                                <th class="text-end">Qté Expédiée</th>
+                                <th class="text-end">Qté Reçue</th>
+                                <th class="text-end">Écart</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${lignes}">
+                                <td th:text="${ligne.article?.code + ' - ' + ligne.article?.designation}"></td>
+                                <td th:text="${ligne.lotNumero ?: '-'}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(ligne.quantiteDemandee ?: 0, 1, 2)}"></td>
+                                <td class="text-end" th:text="${ligne.quantiteExpedie != null ? #numbers.formatDecimal(ligne.quantiteExpedie, 1, 2) : '-'}"></td>
+                                <td class="text-end" th:text="${ligne.quantiteRecue != null ? #numbers.formatDecimal(ligne.quantiteRecue, 1, 2) : '-'}"></td>
+                                <td class="text-end">
+                                    <span th:if="${ligne.quantiteExpedie != null and ligne.quantiteRecue != null}"
+                                          th:text="${#numbers.formatDecimal(ligne.quantiteExpedie - ligne.quantiteRecue, 1, 2)}"
+                                          th:classappend="${ligne.quantiteExpedie - ligne.quantiteRecue != 0} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:unless="${ligne.quantiteExpedie != null and ligne.quantiteRecue != null}">-</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(lignes)}">
+                                <td colspan="6" class="text-center text-muted">Aucune ligne</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

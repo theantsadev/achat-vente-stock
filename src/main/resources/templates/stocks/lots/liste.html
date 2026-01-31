@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Gestion des Lots</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-upc-scan"></i> Gestion des Lots</h2>
+            <div>
+                <a th:href="@{/stocks/lots/alertes-expiration}" class="btn btn-warning">
+                    <i class="bi bi-clock-history"></i> Alertes Expiration
+                </a>
+                <a th:href="@{/stocks/lots/nouveau}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> Nouveau Lot
+                </a>
+            </div>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/stocks/lots}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Article</label>
+                        <select name="articleId" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="article : ${articles}" 
+                                    th:value="${article.id}" 
+                                    th:text="${article.code + ' - ' + article.designation}"
+                                    th:selected="${article.id == articleId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}" th:selected="${s == statut}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a th:href="@{/stocks/lots}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table des lots -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>N° Lot</th>
+                                <th>Article</th>
+                                <th>Fournisseur</th>
+                                <th>Date Fab.</th>
+                                <th>DLUO</th>
+                                <th>DLC</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="lot : ${lots}">
+                                <td>
+                                    <a th:href="@{/stocks/lots/{id}(id=${lot.id})}" th:text="${lot.numero}"></a>
+                                </td>
+                                <td th:text="${lot.article?.code + ' - ' + lot.article?.designation}"></td>
+                                <td th:text="${lot.fournisseur?.raisonSociale ?: '-'}"></td>
+                                <td th:text="${lot.dateFabrication != null ? #temporals.format(lot.dateFabrication, 'dd/MM/yyyy') : '-'}"></td>
+                                <td>
+                                    <span th:if="${lot.dluo}" th:text="${#temporals.format(lot.dluo, 'dd/MM/yyyy')}"
+                                          th:classappend="${lot.dluo.isBefore(#temporals.createToday())} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:unless="${lot.dluo}">-</span>
+                                </td>
+                                <td>
+                                    <span th:if="${lot.dlc}" th:text="${#temporals.format(lot.dlc, 'dd/MM/yyyy')}"
+                                          th:classappend="${lot.dlc.isBefore(#temporals.createToday())} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:unless="${lot.dlc}">-</span>
+                                </td>
+                                <td>
+                                    <span th:if="${lot.statut == 'ACTIF'}" class="badge bg-success">ACTIF</span>
+                                    <span th:if="${lot.statut == 'BLOQUE'}" class="badge bg-warning">BLOQUÉ</span>
+                                    <span th:if="${lot.statut == 'EXPIRE'}" class="badge bg-danger">EXPIRÉ</span>
+                                    <span th:if="${lot.statut == 'NON_CONFORME'}" class="badge bg-dark">NON CONFORME</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/stocks/lots/{id}(id=${lot.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(lots)}">
+                                <td colspan="8" class="text-center text-muted">Aucun lot trouvé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Réservation</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-bookmark"></i> Réservation #<span th:text="${reservation.id}"></span>
+            </h2>
+            <a th:href="@{/stocks/reservations}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5 class="mb-0">Informations</h5>
+                        <span th:if="${reservation.statut == 'ACTIVE'}" class="badge bg-success">ACTIVE</span>
+                        <span th:if="${reservation.statut == 'CONSOMMEE'}" class="badge bg-primary">CONSOMMÉE</span>
+                        <span th:if="${reservation.statut == 'EXPIREE'}" class="badge bg-warning">EXPIRÉE</span>
+                        <span th:if="${reservation.statut == 'ANNULEE'}" class="badge bg-danger">ANNULÉE</span>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Article</th>
+                                <td th:text="${reservation.article?.code + ' - ' + reservation.article?.designation}"></td>
+                            </tr>
+                            <tr>
+                                <th>Dépôt</th>
+                                <td th:text="${reservation.depot?.code + ' - ' + reservation.depot?.libelle}"></td>
+                            </tr>
+                            <tr>
+                                <th>Lot</th>
+                                <td th:text="${reservation.lotNumero ?: '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>Quantité réservée</th>
+                                <td class="fw-bold" th:text="${#numbers.formatDecimal(reservation.quantiteReservee ?: 0, 1, 2)}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Dates et Référence</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Commande Client</th>
+                                <td th:text="${reservation.commandeClientId ?: '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date de réservation</th>
+                                <td th:text="${#temporals.format(reservation.dateReservation, 'dd/MM/yyyy')}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date d'expiration</th>
+                                <td>
+                                    <span th:if="${reservation.dateExpiration}" th:text="${#temporals.format(reservation.dateExpiration, 'dd/MM/yyyy')}"
+                                          th:classappend="${reservation.dateExpiration.isBefore(#temporals.createToday())} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:unless="${reservation.dateExpiration}">-</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div th:if="${reservation.statut == 'ACTIVE'}" class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <form th:action="@{/stocks/reservations/{id}/consommer(id=${reservation.id})}" method="post">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Consommer (Livraison effectuée)
+                        </button>
+                    </form>
+                    <form th:action="@{/stocks/reservations/{id}/annuler(id=${reservation.id})}" method="post">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Confirmer l\'annulation ?')">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

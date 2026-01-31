@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Transferts de Stock</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-truck"></i> <span th:text="${titre ?: 'Transferts de Stock'}">Transferts de Stock</span></h2>
+            <a th:href="@{/stocks/transferts/nouveau}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouveau Transfert
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/stocks/transferts}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}" th:selected="${s == statut}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a th:href="@{/stocks/transferts}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table des transferts -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Date demande</th>
+                                <th>Dépôt Source</th>
+                                <th>Dépôt Destination</th>
+                                <th>Demandeur</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="trf : ${transferts}">
+                                <td>
+                                    <a th:href="@{/stocks/transferts/{id}(id=${trf.id})}" th:text="${trf.numero}"></a>
+                                </td>
+                                <td th:text="${#temporals.format(trf.dateDemande, 'dd/MM/yyyy')}"></td>
+                                <td th:text="${trf.depotSource?.code + ' - ' + trf.depotSource?.libelle}"></td>
+                                <td th:text="${trf.depotDestination?.code + ' - ' + trf.depotDestination?.libelle}"></td>
+                                <td th:text="${trf.demandeur?.nom + ' ' + trf.demandeur?.prenom}"></td>
+                                <td>
+                                    <span th:if="${trf.statut == 'BROUILLON'}" class="badge bg-secondary">BROUILLON</span>
+                                    <span th:if="${trf.statut == 'DEMANDE'}" class="badge bg-info">DEMANDE</span>
+                                    <span th:if="${trf.statut == 'VALIDEE'}" class="badge bg-primary">VALIDÉE</span>
+                                    <span th:if="${trf.statut == 'EN_TRANSIT'}" class="badge bg-warning">EN TRANSIT</span>
+                                    <span th:if="${trf.statut == 'RECUE'}" class="badge bg-success">REÇUE</span>
+                                    <span th:if="${trf.statut == 'ANNULEE'}" class="badge bg-danger">ANNULÉE</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/stocks/transferts/{id}(id=${trf.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(transferts)}">
+                                <td colspan="7" class="text-center text-muted">Aucun transfert trouvé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
