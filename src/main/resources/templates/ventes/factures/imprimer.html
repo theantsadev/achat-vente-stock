@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${facture.numero}">Facture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .facture {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 30px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+        .company {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .facture-info {
+            text-align: right;
+        }
+        .facture-info p {
+            margin: 5px 0;
+        }
+        .client-info {
+            margin: 30px 0;
+            padding: 15px;
+            background: #f5f5f5;
+        }
+        .client-info h3 {
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        tr.total {
+            font-weight: bold;
+            background: #f0f0f0;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="facture">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="company">🏢 Mon Entreprise</div>
+            <div class="facture-info">
+                <p><strong>FACTURE</strong></p>
+                <p th:text="${facture.numero}">FC00001</p>
+                <p th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">01/01/2025</p>
+            </div>
+        </div>
+
+        <!-- Informations client -->
+        <div class="client-info">
+            <h3>Client</h3>
+            <p th:text="${facture.client.raisonSociale}">Client</p>
+            <p th:text="${facture.client.adresse}">Adresse</p>
+            <p th:text="${facture.client.codePostal} + ' ' + ${facture.client.ville}">Code postal Ville</p>
+        </div>
+
+        <!-- Lignes de facture -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th class="text-right">Montant HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="ligne : ${facture.lignes}">
+                    <td th:text="${ligne.article.code} + ' - ' + ${ligne.article.designation}">Article</td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(ligne.quantite, 1, 2)}">1.00</td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(ligne.prixUnitaireHt, 1, 2)}">100.00</td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(ligne.montantLigneHt, 1, 2)}">100.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totaux -->
+        <table>
+            <tr>
+                <td style="border: none;"></td>
+                <td style="border: none;"></td>
+                <th>Montant HT</th>
+                <td class="text-right" th:text="${#numbers.formatDecimal(facture.montantHt, 1, 2)}">1000.00</td>
+            </tr>
+            <tr>
+                <td style="border: none;"></td>
+                <td style="border: none;"></td>
+                <th>TVA (20%)</th>
+                <td class="text-right" th:text="${#numbers.formatDecimal(facture.montantTva, 1, 2)}">200.00</td>
+            </tr>
+            <tr class="total">
+                <td style="border: none;"></td>
+                <td style="border: none;"></td>
+                <th>Montant TTC</th>
+                <td class="text-right" th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2)}">1200.00</td>
+            </tr>
+        </table>
+
+        <!-- Conditions -->
+        <div class="footer">
+            <p><strong>Conditions de paiement:</strong> Net 30 jours</p>
+            <p><strong>Échéance:</strong> <span th:text="${#temporals.format(facture.dateEcheance, 'dd/MM/yyyy')}">01/02/2025</span></p>
+            <p>Merci de votre confiance</p>
+        </div>
+    </div>
+
+    <script>
+        window.print();
+    </script>
+</body>
+
+</html>

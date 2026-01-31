@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Devis Clients</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 20: Créer devis/pro-forma client -->
+        <div class="container">
+            <h1>📋 Gestion des Devis</h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+            <!-- Bouton nouveau devis -->
+            <div class="actions mb-3">
+                <a th:href="@{/ventes/devis/nouveau}" class="btn btn-primary">➕ Nouveau Devis</a>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Devis</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Validité</th>
+                            <th>Montant HT</th>
+                            <th>Montant TTC</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="devis : ${devisList}">
+                            <td th:text="${devis.numero}">DEV001</td>
+                            <td th:text="${devis.client?.raisonSociale}">-</td>
+                            <td th:text="${#temporals.format(devis.dateDevis, 'dd/MM/yyyy')}">-</td>
+                            <td th:text="${#temporals.format(devis.dateValidite, 'dd/MM/yyyy')}">-</td>
+                            <td th:text="${#numbers.formatDecimal(devis.montantTotalHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td th:text="${#numbers.formatDecimal(devis.montantTotalTtc, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td>
+                                <span th:if="${devis.statut == 'BROUILLON'}" class="badge badge-secondary">Brouillon</span>
+                                <span th:if="${devis.statut == 'EN_ATTENTE_VALIDATION'}" class="badge badge-warning">Attente validation</span>
+                                <span th:if="${devis.statut == 'VALIDE'}" class="badge badge-info">Validé</span>
+                                <span th:if="${devis.statut == 'ACCEPTE'}" class="badge badge-success">Accepté</span>
+                                <span th:if="${devis.statut == 'REFUSE'}" class="badge badge-danger">Refusé</span>
+                                <span th:if="${devis.statut == 'EXPIRE'}" class="badge badge-dark">Expiré</span>
+                                <span th:if="${devis.statut == 'TRANSFORME_EN_COMMANDE'}" class="badge badge-primary">→ Commande</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/ventes/devis/{id}(id=${devis.id})}" 
+                                   class="btn btn-sm btn-info">Voir</a>
+                                <a th:if="${devis.statut == 'BROUILLON'}"
+                                   th:href="@{/ventes/devis/{id}/editer(id=${devis.id})}" 
+                                   class="btn btn-sm btn-warning">Éditer</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(devisList)}">
+                            <td colspan="8" class="text-center">Aucun devis trouvé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -60,6 +60,9 @@ public class Article {
     @Column(name = "prix_vente_public", precision = 18, scale = 4)
     private BigDecimal prixVentePublic;
 
+    @Column(name = "taux_tva", precision = 5, scale = 2)
+    private BigDecimal tauxTva = new BigDecimal("20"); // TVA par défaut 20%
+
     @Column(name = "stock_minimum")
     private Integer stockMinimum;
 

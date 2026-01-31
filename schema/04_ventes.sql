@@ -88,6 +88,7 @@ CREATE TABLE facture_client (
   montant_ht NUMERIC(18,4),
   montant_tva NUMERIC(18,4),
   montant_ttc NUMERIC(18,4),
+  est_payee BOOLEAN DEFAULT FALSE,
   statut TEXT
 );
 
@@ -97,6 +98,7 @@ CREATE TABLE ligne_facture_client (
   article_id BIGINT,
   quantite NUMERIC(18,4),
   prix_unitaire_ht NUMERIC(18,4),
+  remise_pourcent NUMERIC(5,2),
   montant_ligne_ht NUMERIC(18,4)
 );
 
@@ -105,11 +107,15 @@ CREATE TABLE avoir_client (
   numero TEXT NOT NULL UNIQUE,
   facture_client_id BIGINT,
   client_id BIGINT,
+  createur_id BIGINT,
   date_avoir DATE,
+  date_validation DATE,
   montant_ht NUMERIC(18,4),
   montant_tva NUMERIC(18,4),
   montant_ttc NUMERIC(18,4),
   motif TEXT,
+  commentaire TEXT,
+  statut_rejet TEXT,
   statut TEXT,
   valide_by BIGINT -- FK added in Module 6
 );
@@ -122,6 +128,9 @@ CREATE TABLE encaissement (
   montant_encaisse NUMERIC(18,4),
   mode_paiement TEXT,
   reference TEXT,
+  banque TEXT,
+  date_echeance DATE,
+  commentaire TEXT,
   statut TEXT
 );
 
@@ -226,6 +235,10 @@ ALTER TABLE devis
 ALTER TABLE avoir_client
   ADD CONSTRAINT fk_ac_valide_by
   FOREIGN KEY (valide_by) REFERENCES utilisateur(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+ALTER TABLE avoir_client
+  ADD CONSTRAINT fk_ac_createur
+  FOREIGN KEY (createur_id) REFERENCES utilisateur(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 COMMIT;

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title th:text="${commande.id ? 'Modifier Commande' : 'Nouvelle Commande'}">Commande Client</title>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 th:text="${commande.id ? '✏️ Modifier Commande' : '➕ Nouvelle Commande'}">Commande</h1>
+                <a th:href="@{/ventes/commandes}" class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <form th:action="${commande.id ? @{/ventes/commandes/{id}(id=${commande.id})} : @{/ventes/commandes}}" 
+                  method="post">
+                
+                <!-- Client -->
+                <div class="card mb-3">
+                    <div class="card-header"><h3>👤 Client</h3></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="clientId">Client *</label>
+                            <select id="clientId" name="client.id" class="form-control" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option th:each="client : ${clients}" 
+                                        th:value="${client.id}"
+                                        th:selected="${commande.client?.id == client.id}"
+                                        th:text="${client.raisonSociale}">Client</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paramètres -->
+                <div class="card mb-3">
+                    <div class="card-header"><h3>📋 Paramètres</h3></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dateCommande">Date commande</label>
+                                    <input type="date" id="dateCommande" name="dateCommande" class="form-control"
+                                           th:value="${#temporals.format(commande.dateCommande ?: T(java.time.LocalDate).now(), 'yyyy-MM-dd')}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dateLivraisonPrevue">Date livraison prévue</label>
+                                    <input type="date" id="dateLivraisonPrevue" name="dateLivraisonPrevue" class="form-control"
+                                           th:value="${#temporals.format(commande.dateLivraisonPrevue ?: T(java.time.LocalDate).now().plusDays(7), 'yyyy-MM-dd')}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totaux -->
+                <div class="card mb-3">
+                    <div class="card-header"><h3>💰 Totaux</h3></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p>Montant HT: <strong th:text="${#numbers.formatDecimal(commande.montantTotalHt ?: 0, 1, 2)}">0.00</strong> €</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>TVA (20%): <strong th:text="${#numbers.formatDecimal(commande.montantTva ?: 0, 1, 2)}">0.00</strong> €</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Montant TTC: <strong th:text="${#numbers.formatDecimal(commande.montantTotalTtc ?: 0, 1, 2)}">0.00</strong> €</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+
+</html>

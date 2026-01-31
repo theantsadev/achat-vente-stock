@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Bons de Livraison</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Lignes 24-26: Livraisons -->
+        <div class="container">
+            <h1>📋 Gestion des Bons de Livraison</h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° BL</th>
+                            <th>N° Commande</th>
+                            <th>Client</th>
+                            <th>Dépôt</th>
+                            <th>Date création</th>
+                            <!-- <th>Date expédition</th> -->
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="bl : ${livraisons}">
+                            <td th:text="${bl.numero}">BL001</td>
+                            <td>
+                                <a th:if="${bl.commandeClient != null}"
+                                   th:href="@{/ventes/commandes/{id}(id=${bl.commandeClient.id})}"
+                                   th:text="${bl.commandeClient.numero}">-</a>
+                            </td>
+                            <td th:text="${bl.commandeClient?.client?.raisonSociale}">-</td>
+                            <td th:text="${bl.depot?.libelle}">-</td>
+                            <td th:text="${#temporals.format(bl.dateLivraison, 'dd/MM/yyyy')}">-</td>
+                            <!-- <td th:text="${bl.dateExpedition != null ? #temporals.format(bl.dateExpedition, 'dd/MM/yyyy') : '-'}">-</td> -->
+                            <td>
+                                <span th:if="${bl.statut == 'EN_PREPARATION'}" class="badge badge-warning">En préparation</span>
+                                <span th:if="${bl.statut == 'PRET'}" class="badge badge-info">Prêt</span>
+                                <span th:if="${bl.statut == 'EXPEDIE'}" class="badge badge-primary">Expédié</span>
+                                <span th:if="${bl.statut == 'LIVRE'}" class="badge badge-success">Livré</span>
+                                <span th:if="${bl.statut == 'ANNULE'}" class="badge badge-danger">Annulé</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/ventes/livraisons/{id}(id=${bl.id})}" 
+                                   class="btn btn-sm btn-info">Voir</a>
+                                <a th:if="${bl.statut == 'EN_PREPARATION'}"
+                                   th:href="@{/ventes/livraisons/{id}/picking(id=${bl.id})}" 
+                                   class="btn btn-sm btn-warning">Picking</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(livraisons)}">
+                            <td colspan="8" class="text-center">Aucun bon de livraison trouvé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

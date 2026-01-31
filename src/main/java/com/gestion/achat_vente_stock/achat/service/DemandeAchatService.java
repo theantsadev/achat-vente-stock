@@ -176,7 +176,7 @@ public class DemandeAchatService {
     @Transactional(readOnly = true)
     public DemandeAchat obtenirParId(Long id) {
         return demandeAchatRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Demande d'achat introuvable avec l'ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Demande d'achat introuvable avec l'ID: " + id));
     }
 
     @Transactional(readOnly = true)

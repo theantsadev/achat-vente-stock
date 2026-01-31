@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Picking - Préparation Commande</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 24: Préparer livraison (picking) -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📋 Picking - BL <span th:text="${livraison.numero}">BL001</span></h1>
+                <a th:href="@{/ventes/livraisons/{id}(id=${livraison.id})}" class="btn btn-secondary">← Retour au BL</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <!-- Informations client -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <strong>Client:</strong> <span th:text="${livraison.commandeClient?.client?.raisonSociale}">-</span> |
+                    <strong>Commande:</strong> <span th:text="${livraison.commandeClient?.numero}">-</span> |
+                    <strong>Dépôt:</strong> <span th:text="${livraison.depot?.libelle}">-</span>
+                </div>
+            </div>
+
+            <!-- Lignes de picking -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📦 Articles à préparer</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code Article</th>
+                                <th>Désignation</th>
+                                <th>Qté commandée</th>
+                                <th>Qté à préparer</th>
+                                <th>N° Lot</th>
+                                <th>DLUO</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${livraison.lignes}">
+                                <td th:text="${ligne.article?.code}">-</td>
+                                <td th:text="${ligne.article?.designation}">-</td>
+                                <td th:text="${ligne.ligneCommande?.quantite}">0</td>
+                                <td>
+                                    <form th:action="@{/ventes/livraisons/{id}/picking/{ligneId}(id=${livraison.id}, ligneId=${ligne.id})}" 
+                                          method="post" class="form-inline">
+                                        <input type="number" name="quantitePreparee" 
+                                               th:value="${ligne.quantiteLivree}" 
+                                               class="form-control form-control-sm" 
+                                               style="width: 80px;"
+                                               min="0" step="1" required>
+                                </td>
+                                <td>
+                                        <input type="text" name="lotNumero" 
+                                               th:value="${ligne.lotNumero}"
+                                               class="form-control form-control-sm" 
+                                               style="width: 100px;"
+                                               placeholder="N° Lot">
+                                </td>
+                                <td>
+                                        <input type="date" name="dluo" 
+                                               th:value="${ligne.dluo}"
+                                               class="form-control form-control-sm">
+                                </td>
+                                <td>
+                                        <button type="submit" class="btn btn-sm btn-primary">💾</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="@{/ventes/livraisons/{id}/confirmer-picking(id=${livraison.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            ✅ Confirmer le picking (BL prêt)
+                        </button>
+                    </form>
+                    <p class="mt-2 text-muted">
+                        <small>En confirmant le picking, le bon de livraison sera marqué comme "Prêt pour expédition".</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

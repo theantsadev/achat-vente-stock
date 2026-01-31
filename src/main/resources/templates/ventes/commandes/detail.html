@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Détail Commande Client</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Lignes 22-23: Commande et réservation stock -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📄 Commande <span th:text="${commande.numero}">CMD001</span></h1>
+                <a th:href="@{/ventes/commandes}" class="btn btn-secondary">← Retour à la liste</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+
+            <!-- Informations générales -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>📋 Informations de la commande</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Numéro:</strong> <span th:text="${commande.numero}">-</span></p>
+                            <p><strong>Devis d'origine:</strong> 
+                                <a th:if="${commande.devis != null}" 
+                                   th:href="@{/ventes/devis/{id}(id=${commande.devis.id})}"
+                                   th:text="${commande.devis.numero}">-</a>
+                                <span th:unless="${commande.devis != null}">-</span>
+                            </p>
+                            <p><strong>Date commande:</strong> 
+                                <span th:text="${#temporals.format(commande.dateCommande, 'dd/MM/yyyy HH:mm')}">-</span>
+                            </p>
+                            <p><strong>Livraison prévue:</strong> 
+                                <span th:text="${commande.dateLivraisonPrevue != null ? #temporals.format(commande.dateLivraisonPrevue, 'dd/MM/yyyy') : 'Non définie'}">-</span>
+                            </p>
+                            <p><strong>Statut:</strong> 
+                                <span th:if="${commande.statut == 'BROUILLON'}" class="badge badge-secondary">Brouillon</span>
+                                <span th:if="${commande.statut == 'CONFIRMEE'}" class="badge badge-info">Confirmée</span>
+                                <span th:if="${commande.statut == 'EN_PREPARATION'}" class="badge badge-warning">En préparation</span>
+                                <span th:if="${commande.statut == 'PRET_EXPEDITION'}" class="badge badge-primary">Prêt pour expédition</span>
+                                <span th:if="${commande.statut == 'EXPEDIEE'}" class="badge badge-info">Expédiée</span>
+                                <span th:if="${commande.statut == 'LIVREE'}" class="badge badge-success">Livrée</span>
+                                <span th:if="${commande.statut == 'ANNULEE'}" class="badge badge-danger">Annulée</span>
+                            </p>
+                            <p><strong>Stock réservé:</strong>
+                                <span th:if="${commande.stockReserve}" class="badge badge-success">✓ Oui</span>
+                                <span th:unless="${commande.stockReserve}" class="badge badge-secondary">Non</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>👤 Client</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Raison sociale:</strong> 
+                                <span th:text="${commande.client?.raisonSociale}">-</span>
+                            </p>
+                            <p><strong>Adresse:</strong> 
+                                <span th:text="${commande.client?.adresse}">-</span>
+                            </p>
+                            <p><strong>Email:</strong> 
+                                <span th:text="${commande.client?.email}">-</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lignes de commande -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📦 Articles commandés</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Désignation</th>
+                                <th>Quantité commandée</th>
+                                <th>Quantité préparée</th>
+                                <th>Quantité livrée</th>
+                                <th>Prix unitaire HT</th>
+                                <th>Remise (%)</th>
+                                <th>Montant HT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${commande.lignes}">
+                                <td th:text="${ligne.article?.code}">-</td>
+                                <td th:text="${ligne.article?.designation}">-</td>
+                                <td th:text="${ligne.quantite}">0</td>
+                                <td th:text="${ligne.quantitePreparee}">0</td>
+                                <td th:text="${ligne.quantiteLivree}">0</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.prixUnitaireHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                                <td th:text="${ligne.remisePourcent != null ? ligne.remisePourcent + '%' : '-'}">-</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.montantLigneHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="7" class="text-right"><strong>Total HT:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(commande.montantTotalHt, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="7" class="text-right"><strong>TVA:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(commande.montantTva, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="7" class="text-right"><strong>Total TTC:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(commande.montantTotalTtc, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions selon le statut -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚡ Actions</h3>
+                </div>
+                <div class="card-body">
+                    <!-- TODO.YML Ligne 23: Réserver le stock -->
+                    <form th:if="${commande.statut == 'BROUILLON' && !commande.stockReserve}" 
+                          th:action="@{/ventes/commandes/{id}/reserver-stock(id=${commande.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-warning">📦 Réserver le stock</button>
+                    </form>
+
+                    <!-- Confirmer la commande -->
+                    <form th:if="${commande.statut == 'BROUILLON'}" 
+                          th:action="@{/ventes/commandes/{id}/confirmer(id=${commande.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">✅ Confirmer la commande</button>
+                    </form>
+
+                    <!-- TODO.YML Ligne 24: Démarrer la préparation (picking) -->
+                    <form th:if="${commande.statut == 'CONFIRMEE'}" 
+                          th:action="@{/ventes/commandes/{id}/demarrer-preparation(id=${commande.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">📋 Démarrer la préparation</button>
+                    </form>
+
+                    <!-- Créer un bon de livraison -->
+                    <a th:if="${commande.statut == 'EN_PREPARATION' || commande.statut == 'CONFIRMEE'}"
+                       th:href="@{/ventes/livraisons/preparer/{id}(id=${commande.id})}" 
+                       class="btn btn-info">🚚 Créer bon de livraison</a>
+
+                    <!-- Annuler la commande -->
+                    <form th:if="${commande.statut == 'BROUILLON' || commande.statut == 'CONFIRMEE'}" 
+                          th:action="@{/ventes/commandes/{id}/annuler(id=${commande.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Êtes-vous sûr de vouloir annuler cette commande ?')">
+                            ❌ Annuler
+                        </button>
+                    </form>
+
+                    <!-- Imprimer -->
+                    <a th:href="@{/ventes/commandes/{id}/imprimer(id=${commande.id})}" 
+                       class="btn btn-secondary">🖨️ Imprimer</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

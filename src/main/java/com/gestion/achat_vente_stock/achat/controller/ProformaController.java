@@ -2,6 +2,8 @@ package com.gestion.achat_vente_stock.achat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gestion.achat_vente_stock.achat.model.DemandeAchat;
+import com.gestion.achat_vente_stock.achat.model.LigneDA;
+import com.gestion.achat_vente_stock.achat.model.LigneProforma;
 import com.gestion.achat_vente_stock.achat.model.Proforma;
 import com.gestion.achat_vente_stock.achat.service.DemandeAchatService;
 import com.gestion.achat_vente_stock.achat.service.ProformaService;
@@ -15,7 +17,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * TODO.YML Ligne 10: Achats > Pro-forma
@@ -71,9 +76,13 @@ public class ProformaController {
             Utilisateur createur = utilisateurRepository.findById(1L).orElse(null);
             Proforma proforma = proformaService.genererDepuisDA(demandeAchat, createur);
 
+            // Convertir les lignes DA en JSON pour le formulaire
+            String lignesPFJson = convertLignesToJson(proforma.getLignes());
+            System.out.println("✅ Lignes PF pour formulaire généré: " + lignesPFJson);
             model.addAttribute("proforma", proforma);
             model.addAttribute("fournisseurs", fournisseurRepository.findAll());
             model.addAttribute("demandeAchat", demandeAchat);
+            model.addAttribute("lignesPFJson", lignesPFJson);
 
             return "achats/pro-formas/formulaire";
         } catch (Exception e) {
@@ -119,10 +128,21 @@ public class ProformaController {
      * Formulaire édition pro-forma
      */
     @GetMapping("/{id}/editer")
-    public String editerFormulaire(@PathVariable Long id, Model model) {
+    public String editerFormulaire(@PathVariable Long id, Model model) throws Exception {
         Proforma proforma = proformaService.obtenirParId(id);
+
+        // Convertir les lignes proforma ou DA en JSON pour le formulaire
+        List<?> lignesToConvert = (proforma.getLignes() != null && !proforma.getLignes().isEmpty())
+                ? proforma.getLignes()
+                : proforma.getDemandeAchat().getLignes();
+
+        System.out.println("✅ Lignes à convertir: " + lignesToConvert.size());
+        String lignesPFJson = convertLignesToJson(lignesToConvert);
+        System.out.println("✅ JSON lignes: " + lignesPFJson);
+
         model.addAttribute("proforma", proforma);
         model.addAttribute("fournisseurs", fournisseurRepository.findAll());
+        model.addAttribute("lignesPFJson", lignesPFJson);
         return "achats/pro-formas/formulaire";
     }
 
@@ -132,6 +152,7 @@ public class ProformaController {
     @PostMapping("/{id}")
     public String modifier(@PathVariable Long id,
             @ModelAttribute Proforma proforma,
+            @RequestParam(required = false) String lignesModifiees,
             RedirectAttributes redirectAttributes) {
         try {
             proforma.setId(id);
@@ -140,6 +161,13 @@ public class ProformaController {
                 DemandeAchat da = demandeAchatService.obtenirParId(proforma.getDemandeAchat().getId());
                 proforma.setDemandeAchat(da);
             }
+
+            // Traiter les lignes modifiées si présentes
+            if (lignesModifiees != null && !lignesModifiees.isEmpty()) {
+                System.out.println("📦 Lignes modifiées reçues: " + lignesModifiees);
+                proformaService.mettreAJourLignes(id, lignesModifiees);
+            }
+
             Proforma modifiee = proformaService.enregistrer(proforma);
             redirectAttributes.addFlashAttribute("success", "Pro-forma modifiée avec succès");
             return "redirect:/achats/pro-formas/" + id;
@@ -181,5 +209,107 @@ public class ProformaController {
             redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/achats/pro-formas/" + id;
         }
+    }
+
+    /**
+     * API REST pour récupérer les lignes d'une proforma en JSON
+     */
+    @GetMapping("/api/{id}/lignes")
+    @ResponseBody
+    public List<Map<String, Object>> getLignesProforma(@PathVariable Long id) throws Exception {
+        Proforma proforma = proformaService.obtenirParId(id);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        List<?> lignesToConvert = (proforma.getLignes() != null && !proforma.getLignes().isEmpty())
+                ? proforma.getLignes()
+                : proforma.getDemandeAchat().getLignes();
+
+        for (Object ligne : lignesToConvert) {
+            Map<String, Object> ligneMap = new HashMap<>();
+
+            if (ligne instanceof LigneDA) {
+                LigneDA ligneDA = (LigneDA) ligne;
+                ligneMap.put("id", ligneDA.getId());
+                ligneMap.put("quantite", ligneDA.getQuantite());
+                ligneMap.put("prixEstimeHt", ligneDA.getPrixEstimeHt());
+
+                Map<String, Object> articleMap = new HashMap<>();
+                if (ligneDA.getArticle() != null) {
+                    articleMap.put("id", ligneDA.getArticle().getId());
+                    articleMap.put("code", ligneDA.getArticle().getCode());
+                    articleMap.put("designation", ligneDA.getArticle().getDesignation());
+                    articleMap.put("prixAchatMoyen", ligneDA.getArticle().getPrixAchatMoyen());
+                }
+                ligneMap.put("article", articleMap);
+            } else if (ligne instanceof LigneProforma) {
+                LigneProforma lignePF = (LigneProforma) ligne;
+                ligneMap.put("id", lignePF.getId());
+                ligneMap.put("quantite", lignePF.getQuantite());
+                ligneMap.put("prixUnitaireHt", lignePF.getPrixUnitaireHt());
+                ligneMap.put("remisePourcent", lignePF.getRemisePourcent());
+
+                Map<String, Object> articleMap = new HashMap<>();
+                if (lignePF.getArticle() != null) {
+                    articleMap.put("id", lignePF.getArticle().getId());
+                    articleMap.put("code", lignePF.getArticle().getCode());
+                    articleMap.put("designation", lignePF.getArticle().getDesignation());
+                    articleMap.put("prixAchatMoyen", lignePF.getArticle().getPrixAchatMoyen());
+                }
+                ligneMap.put("article", articleMap);
+            }
+
+            result.add(ligneMap);
+        }
+
+        return result;
+    }
+
+    /**
+     * Convertir les lignes DA ou PF en structure JSON sérialisable
+     */
+    private String convertLignesToJson(List<?> lignes) throws Exception {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Object ligne : lignes) {
+            Map<String, Object> ligneMap = new HashMap<>();
+
+            if (ligne instanceof LigneDA) {
+                LigneDA ligneDA = (LigneDA) ligne;
+                ligneMap.put("id", ligneDA.getId());
+                ligneMap.put("quantite", ligneDA.getQuantite());
+                ligneMap.put("prixEstimeHt", ligneDA.getPrixEstimeHt());
+
+                Map<String, Object> articleMap = new HashMap<>();
+                if (ligneDA.getArticle() != null) {
+                    articleMap.put("id", ligneDA.getArticle().getId());
+                    articleMap.put("code", ligneDA.getArticle().getCode());
+                    articleMap.put("designation", ligneDA.getArticle().getDesignation());
+                    articleMap.put("prixAchatMoyen", ligneDA.getArticle().getPrixAchatMoyen());
+                }
+                ligneMap.put("article", articleMap);
+            } else if (ligne instanceof LigneProforma) {
+                LigneProforma lignePF = (LigneProforma) ligne;
+                ligneMap.put("id", lignePF.getId());
+                ligneMap.put("quantite", lignePF.getQuantite());
+                ligneMap.put("prixUnitaireHt", lignePF.getPrixUnitaireHt());
+                ligneMap.put("remisePourcent", lignePF.getRemisePourcent());
+
+                System.out.println("🔍 LigneProforma: id=" + lignePF.getId() +
+                        ", article=" + (lignePF.getArticle() != null ? lignePF.getArticle().getId() : "NULL"));
+
+                Map<String, Object> articleMap = new HashMap<>();
+                if (lignePF.getArticle() != null) {
+                    articleMap.put("id", lignePF.getArticle().getId());
+                    articleMap.put("code", lignePF.getArticle().getCode());
+                    articleMap.put("designation", lignePF.getArticle().getDesignation());
+                    articleMap.put("prixAchatMoyen", lignePF.getArticle().getPrixAchatMoyen());
+                }
+                ligneMap.put("article", articleMap);
+            }
+
+            result.add(ligneMap);
+        }
+
+        return objectMapper.writeValueAsString(result);
     }
 }

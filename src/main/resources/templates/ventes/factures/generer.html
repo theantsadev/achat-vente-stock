@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Générer Facture</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 27: Émettre facture depuis BL -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📄 Générer une Facture</h1>
+                <a th:href="@{/ventes/livraisons/{id}(id=${bonLivraison.id})}" class="btn btn-secondary">← Retour au BL</a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <!-- Récapitulatif du BL -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>🚚 Bon de Livraison <span th:text="${bonLivraison.numero}">BL001</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Client:</strong> <span th:text="${bonLivraison.commandeClient?.client?.raisonSociale}">-</span></p>
+                            <p><strong>Commande:</strong> <span th:text="${bonLivraison.commandeClient?.numero}">-</span></p>
+                            <p><strong>Date livraison:</strong> <span th:text="${bonLivraison.dateLivraison != null ? #temporals.format(bonLivraison.dateLivraison, 'dd/MM/yyyy') : '-'}">-</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Montant HT:</strong> <span th:text="${#numbers.formatDecimal(bonLivraison.commandeClient?.montantTotalHt, 1, 2, 'COMMA')} + ' €'">-</span></p>
+                            <p><strong>TVA:</strong> <span th:text="${#numbers.formatDecimal(bonLivraison.commandeClient?.montantTva, 1, 2, 'COMMA')} + ' €'">-</span></p>
+                            <p><strong>Montant TTC:</strong> <span th:text="${#numbers.formatDecimal(bonLivraison.commandeClient?.montantTotalTtc, 1, 2, 'COMMA')} + ' €'">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Articles livrés -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📦 Articles livrés</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Désignation</th>
+                                <th>Quantité livrée</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${bonLivraison.lignes}">
+                                <td th:text="${ligne.article?.code}">-</td>
+                                <td th:text="${ligne.article?.designation}">-</td>
+                                <td th:text="${ligne.quantiteLivree}">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Paramètres de facturation -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚙️ Paramètres de facturation</h3>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/ventes/factures/depuis-bl/{id}(id=${bonLivraison.id})}" method="post">
+                        <div class="form-group">
+                            <label for="delaiPaiement">Délai de paiement (jours)</label>
+                            <select id="delaiPaiement" name="delaiPaiement" class="form-control">
+                                <option value="0">Comptant</option>
+                                <option value="15">15 jours</option>
+                                <option value="30" selected>30 jours</option>
+                                <option value="45">45 jours</option>
+                                <option value="60">60 jours</option>
+                                <option value="90">90 jours</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                L'échéance sera calculée automatiquement à partir de la date de facturation.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> La TVA sera calculée automatiquement selon le taux de chaque article.
+                            Le contrôle TVA sera effectué lors de la validation de la facture.
+                        </div>
+
+                        <div class="text-right mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                📄 Générer la facture
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

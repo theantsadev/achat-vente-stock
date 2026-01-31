@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Détail Bon de Livraison</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Lignes 24-26: Livraison, picking, BL -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📄 Bon de Livraison <span th:text="${livraison.numero}">BL001</span></h1>
+                <a th:href="@{/ventes/livraisons}" class="btn btn-secondary">← Retour à la liste</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+            <!-- Informations générales -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>📋 Informations du BL</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Numéro:</strong> <span th:text="${livraison.numero}">-</span></p>
+                            <p><strong>Commande:</strong> 
+                                <a th:if="${livraison.commandeClient != null}"
+                                   th:href="@{/ventes/commandes/{id}(id=${livraison.commandeClient.id})}"
+                                   th:text="${livraison.commandeClient.numero}">-</a>
+                            </p>
+                            <p><strong>Dépôt:</strong> 
+                                <span th:text="${livraison.depot?.libelle}">-</span>
+                            </p>
+                            <p><strong>Magasinier:</strong> 
+                                <span th:text="${livraison.magasinier?.nom + ' ' + livraison.magasinier?.prenom}">-</span>
+                            </p>
+                            <p><strong>Date création:</strong> 
+                                <span th:text="${#temporals.format(livraison.dateLivraison, 'dd/MM/yyyy HH:mm')}">-</span>
+                            </p>
+                            <!-- <p><strong>Date expédition:</strong> 
+                                <span th:text="${livraison.dateExpedition != null ? #temporals.format(livraison.dateExpedition, 'dd/MM/yyyy HH:mm') : 'Non expédié'}">-</span>
+                            </p> -->
+                            <p><strong>Date livraison:</strong> 
+                                <span th:text="${livraison.dateLivraison != null ? #temporals.format(livraison.dateLivraison, 'dd/MM/yyyy HH:mm') : 'Non livré'}">-</span>
+                            </p>
+                            <p><strong>Statut:</strong> 
+                                <span th:if="${livraison.statut == 'EN_PREPARATION'}" class="badge badge-warning">En préparation</span>
+                                <span th:if="${livraison.statut == 'PRET'}" class="badge badge-info">Prêt pour expédition</span>
+                                <span th:if="${livraison.statut == 'EXPEDIE'}" class="badge badge-primary">Expédié</span>
+                                <span th:if="${livraison.statut == 'LIVRE'}" class="badge badge-success">Livré</span>
+                                <span th:if="${livraison.statut == 'ANNULE'}" class="badge badge-danger">Annulé</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>👤 Client</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Raison sociale:</strong> 
+                                <span th:text="${livraison.commandeClient?.client?.raisonSociale}">-</span>
+                            </p>
+                            <p><strong>Adresse:</strong> 
+                                <span th:text="${livraison.commandeClient?.client?.adresse}">-</span>
+                            </p>
+                          
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lignes du BL -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📦 Articles à livrer</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Désignation</th>
+                                <th>Qté commandée</th>
+                                <th>Qté livrée</th>
+                                <th>N° Lot</th>
+                                <th>DLUO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${livraison.lignes}">
+                                <td th:text="${ligne.article?.code}">-</td>
+                                <td th:text="${ligne.article?.designation}">-</td>
+                                <td th:text="${ligne.ligneCommande?.quantite}">0</td>
+                                <td th:text="${ligne.quantiteLivree}">0</td>
+                                <td th:text="${ligne.lotNumero != null ? ligne.lotNumero : '-'}">-</td>
+                                <td th:text="${ligne.dluo != null ? #temporals.format(ligne.dluo, 'dd/MM/yyyy') : '-'}">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions selon le statut -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚡ Actions</h3>
+                </div>
+                <div class="card-body">
+                    <!-- TODO.YML Ligne 24: Picking -->
+                    <a th:if="${livraison.statut == 'EN_PREPARATION'}"
+                       th:href="@{/ventes/livraisons/{id}/picking(id=${livraison.id})}" 
+                       class="btn btn-warning">📋 Effectuer le picking</a>
+
+                    <!-- TODO.YML Ligne 25: Confirmer picking -->
+                    <form th:if="${livraison.statut == 'EN_PREPARATION'}" 
+                          th:action="@{/ventes/livraisons/{id}/confirmer-picking(id=${livraison.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">✅ Confirmer picking (prêt)</button>
+                    </form>
+
+                    <!-- Expédier -->
+                    <form th:if="${livraison.statut == 'PRET'}" 
+                          th:action="@{/ventes/livraisons/{id}/expedier(id=${livraison.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">🚚 Expédier</button>
+                    </form>
+
+                    <!-- Confirmer livraison -->
+                    <form th:if="${livraison.statut == 'EXPEDIE'}" 
+                          th:action="@{/ventes/livraisons/{id}/confirmer-livraison(id=${livraison.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">✅ Confirmer livraison</button>
+                    </form>
+
+                    <!-- Générer facture -->
+                    <a th:if="${livraison.statut == 'LIVRE'}"
+                       th:href="@{/ventes/factures/generer/{id}(id=${livraison.id})}" 
+                       class="btn btn-info">📄 Générer facture</a>
+
+                    <!-- Imprimer -->
+                    <a th:href="@{/ventes/livraisons/{id}/imprimer(id=${livraison.id})}" 
+                       class="btn btn-secondary">🖨️ Imprimer BL</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

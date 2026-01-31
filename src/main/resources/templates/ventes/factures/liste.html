@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Factures Clients</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Lignes 27-28: Facturation client -->
+        <div class="container">
+            <h1>📋 Gestion des Factures Clients</h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+            <!-- Filtres -->
+            <div class="mb-3">
+                <a th:href="@{/ventes/factures}" 
+                   th:classappend="${filtreActif == null ? 'btn-primary' : 'btn-outline-primary'}"
+                   class="btn btn-sm">Toutes</a>
+                <a th:href="@{/ventes/factures/non-payees}" 
+                   th:classappend="${filtreActif == 'non-payees' ? 'btn-primary' : 'btn-outline-primary'}"
+                   class="btn btn-sm">Non payées</a>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Facture</th>
+                            <th>Client</th>
+                            <th>N° BL</th>
+                            <th>Date</th>
+                            <th>Échéance</th>
+                            <th>Montant HT</th>
+                            <th>TVA</th>
+                            <th>Montant TTC</th>
+                            <th>Payée</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="facture : ${factures}">
+                            <td th:text="${facture.numero}">FAC001</td>
+                            <td th:text="${facture.client?.raisonSociale}">-</td>
+                            <td>
+                                <a th:if="${facture.bonLivraison != null}"
+                                   th:href="@{/ventes/livraisons/{id}(id=${facture.bonLivraison.id})}"
+                                   th:text="${facture.bonLivraison.numero}">-</a>
+                            </td>
+                            <td th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">-</td>
+                            <td th:text="${facture.dateEcheance != null ? #temporals.format(facture.dateEcheance, 'dd/MM/yyyy') : '-'}">-</td>
+                            <td th:text="${#numbers.formatDecimal(facture.montantHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td th:text="${#numbers.formatDecimal(facture.montantTva, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td>
+                                <span th:if="${facture.estPayee}" class="badge badge-success">✓ Oui</span>
+                                <span th:unless="${facture.estPayee}" class="badge badge-warning">Non</span>
+                            </td>
+                            <td>
+                                <span th:if="${facture.statut == 'BROUILLON'}" class="badge badge-secondary">Brouillon</span>
+                                <span th:if="${facture.statut == 'VALIDEE'}" class="badge badge-info">Validée</span>
+                                <span th:if="${facture.statut == 'ENVOYEE'}" class="badge badge-primary">Envoyée</span>
+                                <span th:if="${facture.statut == 'PAYEE'}" class="badge badge-success">Payée</span>
+                                <span th:if="${facture.statut == 'ANNULEE'}" class="badge badge-danger">Annulée</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/ventes/factures/{id}(id=${facture.id})}" 
+                                   class="btn btn-sm btn-info">Voir</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(factures)}">
+                            <td colspan="11" class="text-center">Aucune facture trouvée</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

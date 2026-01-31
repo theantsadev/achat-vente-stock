@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Encaissements - Facture</title>
+</head>
+
+<body>
+    <main>
+        <!-- Encaissements d'une facture -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h1>💰 Encaissements</h1>
+                    <p class="text-muted" th:if="${facture}">
+                        Facture <strong th:text="${facture.numero}"></strong> - Client: <strong
+                            th:text="${facture.client.raisonSociale}"></strong>
+                    </p>
+                </div>
+                <a th:href="@{/ventes/encaissements}" class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <!-- Récapitulatif facture -->
+            <div class="card mb-3" th:if="${facture}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Montant TTC:</strong> <span
+                                    th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2)}">0.00</span> €</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Solde restant:</strong> <span
+                                    th:text="${#numbers.formatDecimal(soldeRestant, 1, 2)}">0.00</span> €</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Statut:</strong> <span th:text="${facture.statut}"
+                                    class="badge badge-info"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des encaissements -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>📊 Encaissements</h3>
+                    <a th:if="${facture}" th:href="@{/ventes/encaissements/nouveau(factureId=${facture.id})}"
+                        class="btn btn-sm btn-primary">
+                        ➕ Nouvel encaissement
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(encaissements)}" class="alert alert-info">
+                        Aucun encaissement enregistré pour cette facture
+                    </div>
+
+                    <table class="table table-hover" th:unless="${#lists.isEmpty(encaissements)}">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Mode</th>
+                                <th>Référence</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="enc : ${encaissements}">
+                                <td><strong th:text="${enc.numero}">ENC00001</strong></td>
+                                <td th:text="${#temporals.format(enc.dateEncaissement, 'dd/MM/yyyy')}">01/01/2025</td>
+                                <td class="text-right">
+                                    <strong
+                                        th:text="${#numbers.formatDecimal(enc.montantEncaisse, 1, 2)}">1000.00</strong>
+                                    €
+                                </td>
+                                <td th:text="${enc.modePaiement}">VIREMENT</td>
+                                <td th:text="${enc.reference}">REF001</td>
+                                <td>
+                                    <span th:if="${enc.statut == 'VALIDE'}" class="badge badge-success">✓ Validé</span>
+                                    <span th:if="${enc.statut == 'EN_ATTENTE'}" class="badge badge-warning">⏳ En
+                                        attente</span>
+                                    <span th:if="${enc.statut == 'REJETE'}" class="badge badge-danger">✗ Rejeté</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/ventes/encaissements/{id}(id=${enc.id})}"
+                                        class="btn btn-sm btn-info">👁️</a>
+                                    <a th:if="${enc.statut == 'EN_ATTENTE'}"
+                                        th:href="@{/ventes/encaissements/{id}/valider(id=${enc.id})}"
+                                        class="btn btn-sm btn-success"
+                                        onclick="return confirm('Valider cet encaissement ?')">✓</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

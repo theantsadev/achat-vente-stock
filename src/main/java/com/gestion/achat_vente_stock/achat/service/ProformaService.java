@@ -1,10 +1,13 @@
 package com.gestion.achat_vente_stock.achat.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gestion.achat_vente_stock.achat.model.DemandeAchat;
+import com.gestion.achat_vente_stock.achat.model.LigneDA;
+import com.gestion.achat_vente_stock.achat.model.LigneProforma;
 import com.gestion.achat_vente_stock.achat.model.Proforma;
 import com.gestion.achat_vente_stock.achat.repository.ProformaRepository;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -27,7 +31,7 @@ import java.util.Optional;
 public class ProformaService {
 
     private final ProformaRepository proformaRepository;
-    private final FournisseurRepository fournisseurRepository;
+    private final ObjectMapper objectMapper;
     private static final String PREFIXE_NUMERO = "PF";
 
     /**
@@ -52,9 +56,16 @@ public class ProformaService {
         proforma.setCreateur(createur);
         proforma.setDateCreation(LocalDateTime.now());
         proforma.setStatut("BROUILLON");
-        System.out.println(proforma.getCreateur().getNom());
-        System.out.println(proforma.getDateCreation());
 
+        for (LigneDA ligneDA : demandeAchat.getLignes()) {
+            LigneProforma ligneProforma = new LigneProforma();
+            ligneProforma.setArticle(ligneDA.getArticle());
+            ligneProforma.setPrixUnitaireHt(ligneDA.getPrixEstimeHt());
+            ligneProforma.setQuantite(ligneDA.getQuantite());
+            ligneProforma.setRemisePourcent(new BigDecimal(0));
+            ligneProforma.setProforma(proforma); // ✅ Ajouter la référence bidirectionnelle
+            proforma.getLignes().add(ligneProforma);
+        }
         // Calculer montant estimé depuis la DA
         if (demandeAchat.getMontantEstimeHt() != null) {
             proforma.setMontantTotalHt(demandeAchat.getMontantEstimeHt());
@@ -144,5 +155,53 @@ public class ProformaService {
     private String genererNumero() {
         long count = proformaRepository.count() + 1;
         return PREFIXE_NUMERO + String.format("%05d", count);
+    }
+
+    /**
+     * Mettre à jour les lignes d'une pro-forma depuis le JSON du formulaire
+     */
+    public void mettreAJourLignes(Long proformaId, String lignesJsonString) {
+        try {
+            Proforma proforma = proformaRepository.findById(proformaId)
+                    .orElseThrow(() -> new IllegalArgumentException("Pro-forma non trouvée"));
+
+            // Parser le JSON
+            List<Map<String, Object>> lignesData = objectMapper.readValue(
+                    lignesJsonString,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+
+            System.out.println("🔄 Mise à jour de " + lignesData.size() + " lignes");
+
+            // Mettre à jour chaque ligne
+            for (int i = 0; i < lignesData.size() && i < proforma.getLignes().size(); i++) {
+                Map<String, Object> ligneData = lignesData.get(i);
+                LigneProforma ligne = proforma.getLignes().get(i);
+
+                // Mettre à jour les valeurs
+                if (ligneData.containsKey("quantite")) {
+                    Number quantite = (Number) ligneData.get("quantite");
+                    ligne.setQuantite(new BigDecimal(quantite.toString()));
+                }
+
+                if (ligneData.containsKey("prixUnitaireHt")) {
+                    Number prix = (Number) ligneData.get("prixUnitaireHt");
+                    ligne.setPrixUnitaireHt(new BigDecimal(prix.toString()));
+                }
+
+                if (ligneData.containsKey("remisePourcent")) {
+                    Number remise = (Number) ligneData.get("remisePourcent");
+                    ligne.setRemisePourcent(new BigDecimal(remise.toString()));
+                }
+
+                System.out.println("✅ Ligne " + i + " mise à jour: Q=" + ligne.getQuantite() +
+                        ", P=" + ligne.getPrixUnitaireHt() + ", R=" + ligne.getRemisePourcent() + "%");
+            }
+
+            proformaRepository.save(proforma);
+            System.out.println("✅ Pro-forma " + proformaId + " mise à jour avec succès");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de la mise à jour des lignes: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

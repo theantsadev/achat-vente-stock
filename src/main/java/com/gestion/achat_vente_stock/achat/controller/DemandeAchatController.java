@@ -9,6 +9,7 @@ import com.gestion.achat_vente_stock.achat.service.DemandeAchatService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.repository.ServiceRepository;
 import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.referentiel.dto.ArticleDTO;
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
@@ -49,39 +50,40 @@ public class DemandeAchatController {
 
     /**
      * TODO.YML Ligne 7: Formulaire création DA
-     * CORRECTION: Utilisation de DTO pour éviter les problèmes de sérialisation Thymeleaf
+     * CORRECTION: Utilisation de DTO pour éviter les problèmes de sérialisation
+     * Thymeleaf
      */
     @GetMapping("/nouveau")
     public String nouveauFormulaire(Model model) {
         try {
             // Demande vide
             model.addAttribute("demande", new DemandeAchat());
-            
+
             // Charger les articles et les convertir en DTO
             List<Article> articles = articleRepository.findAll();
             List<ArticleDTO> articlesDTO = articles.stream()
-                .map(a -> new ArticleDTO(
-                    a.getId(), 
-                    a.getCode(), 
-                    a.getDesignation(),
-                    a.getPrixAchatMoyen()
-                ))
-                .collect(Collectors.toList());
-            
+                    .map(a -> new ArticleDTO(
+                            a.getId(),
+                            a.getCode(),
+                            a.getDesignation(),
+                            a.getPrixAchatMoyen(), 
+                            a.getPrixVentePublic()))
+                    .collect(Collectors.toList());
+
             model.addAttribute("articles", articlesDTO);
-            
+
             // Sérialiser en JSON pour JavaScript
             String articlesJson = objectMapper.writeValueAsString(articlesDTO);
             model.addAttribute("articlesJson", articlesJson);
-            
+
             // Autres données
             model.addAttribute("fournisseurs", fournisseurRepository.findAll());
             model.addAttribute("services", serviceRepository.findAll());
-            
+
             System.out.println("✅ Formulaire DA chargé - " + articlesDTO.size() + " articles");
-            
+
             return "achats/demandes/formulaire";
-            
+
         } catch (JsonProcessingException e) {
             System.err.println("❌ Erreur sérialisation JSON: " + e.getMessage());
             throw new RuntimeException("Erreur lors du chargement du formulaire", e);
@@ -196,27 +198,5 @@ public class DemandeAchatController {
         redirectAttributes.addFlashAttribute("success", "Demande d'achat modifiée");
         return "redirect:/achats/demandes/" + id;
     }
-    
-    /**
-     * DTO pour éviter les problèmes de sérialisation avec les relations JPA
-     */
-    public static class ArticleDTO {
-        private Long id;
-        private String code;
-        private String designation;
-        private java.math.BigDecimal prixAchatMoyen;
-        
-        public ArticleDTO(Long id, String code, String designation, java.math.BigDecimal prixAchatMoyen) {
-            this.id = id;
-            this.code = code;
-            this.designation = designation;
-            this.prixAchatMoyen = prixAchatMoyen;
-        }
-        
-        // Getters requis pour Jackson et Thymeleaf
-        public Long getId() { return id; }
-        public String getCode() { return code; }
-        public String getDesignation() { return designation; }
-        public java.math.BigDecimal getPrixAchatMoyen() { return prixAchatMoyen; }
-    }
+
 }

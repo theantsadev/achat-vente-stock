@@ -61,6 +61,7 @@ public class BonCommandeService {
 
         // Copier les informations de la proforma
         bc.setMontantTotalHt(proforma.getMontantTotalHt());
+        bc.setMontantTotalTtc(proforma.getMontantTotalTtc());
 
         BonCommande bcSaved = bonCommandeRepository.save(bc);
 

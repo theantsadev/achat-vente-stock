@@ -18,11 +18,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/achats/paiements")
 @RequiredArgsConstructor
 public class PaiementFournisseurController {
-    
+
     private final PaiementFournisseurService paiementFournisseurService;
     private final FactureFournisseurService factureFournisseurService;
     private final UtilisateurRepository utilisateurRepository;
-    
+
     /**
      * TODO.YML Ligne 19: Liste des paiements
      */
@@ -31,32 +31,32 @@ public class PaiementFournisseurController {
         model.addAttribute("paiements", paiementFournisseurService.listerTous());
         return "achats/paiements/liste";
     }
-    
+
     /**
      * TODO.YML Ligne 19: Formulaire nouveau paiement
      */
     @GetMapping("/nouveau")
     public String nouveauFormulaire(@RequestParam(required = false) Long factureId, Model model) {
         PaiementFournisseur paiement = new PaiementFournisseur();
-        
+
         if (factureId != null) {
             paiement.setFactureFournisseur(factureFournisseurService.trouverParId(factureId));
         }
-        
+
         model.addAttribute("paiement", paiement);
         model.addAttribute("factures", factureFournisseurService.listerTous());
         return "achats/paiements/formulaire";
     }
-    
+
     /**
      * TODO.YML Ligne 18-19: Créer paiement (vérifie blocage)
      */
     @PostMapping
     public String creer(@ModelAttribute PaiementFournisseur paiement,
-                       RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes) {
         Utilisateur tresorier = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
+
         try {
             PaiementFournisseur created = paiementFournisseurService.creerPaiement(paiement, tresorier);
             redirectAttributes.addFlashAttribute("success", "Paiement créé");
@@ -66,7 +66,7 @@ public class PaiementFournisseurController {
             return "redirect:/achats/paiements/nouveau";
         }
     }
-    
+
     /**
      * Détail paiement
      */
@@ -75,7 +75,7 @@ public class PaiementFournisseurController {
         model.addAttribute("paiement", paiementFournisseurService.trouverParId(id));
         return "achats/paiements/detail";
     }
-    
+
     /**
      * TODO.YML Ligne 19: Exécuter paiement
      */
@@ -83,34 +83,34 @@ public class PaiementFournisseurController {
     public String executer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Utilisateur tresorier = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
+
         try {
             paiementFournisseurService.executerPaiement(id, tresorier);
             redirectAttributes.addFlashAttribute("success", "Paiement exécuté");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        
+
         return "redirect:/achats/paiements/" + id;
     }
-    
+
     /**
      * Annuler paiement
      */
     @PostMapping("/{id}/annuler")
     public String annuler(@PathVariable Long id,
-                         @RequestParam String motif,
-                         RedirectAttributes redirectAttributes) {
+            @RequestParam String motif,
+            RedirectAttributes redirectAttributes) {
         Utilisateur tresorier = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
+
         try {
             paiementFournisseurService.annulerPaiement(id, motif, tresorier);
             redirectAttributes.addFlashAttribute("success", "Paiement annulé");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        
+
         return "redirect:/achats/paiements/" + id;
     }
 }

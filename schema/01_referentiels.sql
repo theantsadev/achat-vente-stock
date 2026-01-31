@@ -46,6 +46,7 @@ CREATE TABLE article (
   methode_valorisation TEXT,
   prix_achat_moyen NUMERIC(18,4),
   prix_vente_public NUMERIC(18,4),
+  taux_tva NUMERIC(5,2) DEFAULT 20,
   stock_minimum INTEGER,
   stock_maximum INTEGER,
   statut TEXT,

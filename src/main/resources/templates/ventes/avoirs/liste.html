@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Avoirs Clients</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 30: Avoirs clients -->
+        <div class="container">
+            <h1>📋 Gestion des Avoirs</h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+
+            <!-- Filtres -->
+            <div class="mb-3">
+                <a th:href="@{/ventes/avoirs}" 
+                   th:classappend="${filtreActif == null ? 'btn-primary' : 'btn-outline-primary'}"
+                   class="btn btn-sm">Tous</a>
+                <a th:href="@{/ventes/avoirs/en-attente}" 
+                   th:classappend="${filtreActif == 'en-attente' ? 'btn-primary' : 'btn-outline-primary'}"
+                   class="btn btn-sm">En attente validation</a>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Avoir</th>
+                            <th>N° Facture</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Motif</th>
+                            <th>Montant HT</th>
+                            <th>Montant TTC</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="avoir : ${avoirs}">
+                            <td th:text="${avoir.numero}">AV001</td>
+                            <td>
+                                <a th:if="${avoir.factureClient != null}"
+                                   th:href="@{/ventes/factures/{id}(id=${avoir.factureClient.id})}"
+                                   th:text="${avoir.factureClient.numero}">-</a>
+                            </td>
+                            <td th:text="${avoir.client?.raisonSociale}">-</td>
+                            <td th:text="${#temporals.format(avoir.dateAvoir, 'dd/MM/yyyy')}">-</td>
+                            <td>
+                                <span th:if="${avoir.motif == 'RETOUR'}" class="badge badge-info">Retour</span>
+                                <span th:if="${avoir.motif == 'ERREUR_PRIX'}" class="badge badge-warning">Erreur prix</span>
+                                <span th:if="${avoir.motif == 'CASSE'}" class="badge badge-danger">Casse</span>
+                                <span th:if="${avoir.motif == 'COMMERCIAL'}" class="badge badge-primary">Commercial</span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(avoir.montantHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td th:text="${#numbers.formatDecimal(avoir.montantTtc, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td>
+                                <span th:if="${avoir.statut == 'BROUILLON'}" class="badge badge-secondary">Brouillon</span>
+                                <span th:if="${avoir.statut == 'EN_ATTENTE_VALIDATION'}" class="badge badge-warning">Attente validation</span>
+                                <span th:if="${avoir.statut == 'VALIDE'}" class="badge badge-info">Validé</span>
+                                <span th:if="${avoir.statut == 'APPLIQUE'}" class="badge badge-success">Appliqué</span>
+                                <span th:if="${avoir.statut == 'REFUSE'}" class="badge badge-danger">Refusé</span>
+                                <span th:if="${avoir.statut == 'ANNULE'}" class="badge badge-dark">Annulé</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/ventes/avoirs/{id}(id=${avoir.id})}" 
+                                   class="btn btn-sm btn-info">Voir</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(avoirs)}">
+                            <td colspan="9" class="text-center">Aucun avoir trouvé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
