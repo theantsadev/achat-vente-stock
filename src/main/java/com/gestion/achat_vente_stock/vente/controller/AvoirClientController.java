@@ -72,7 +72,7 @@ public class AvoirClientController {
     public String listerParFacture(@PathVariable Long factureId, Model model) {
         List<AvoirClient> avoirs = avoirClientService.listerParFacture(factureId);
         FactureClient facture = factureClientService.obtenirParId(factureId);
-        
+
         model.addAttribute("avoirs", avoirs);
         model.addAttribute("facture", facture);
         return "ventes/avoirs/liste-facture";
@@ -86,7 +86,7 @@ public class AvoirClientController {
     @GetMapping("/nouveau/{factureId}")
     public String nouveauFormulaire(@PathVariable Long factureId, Model model) {
         FactureClient facture = factureClientService.obtenirParId(factureId);
-        
+
         model.addAttribute("facture", facture);
         model.addAttribute("avoir", new AvoirClient());
         model.addAttribute("motifs", List.of("RETOUR", "ERREUR_PRIX", "CASSE", "COMMERCIAL"));
@@ -98,25 +98,25 @@ public class AvoirClientController {
      */
     @PostMapping("/facture/{factureId}")
     public String creer(@PathVariable Long factureId,
-                       @RequestParam String motif,
-                       @RequestParam BigDecimal montantHt,
-                       @RequestParam(required = false) String commentaire,
-                       RedirectAttributes redirectAttributes) {
+            @RequestParam String motif,
+            @RequestParam BigDecimal montantHt,
+            @RequestParam(required = false) String commentaire,
+            RedirectAttributes redirectAttributes) {
         try {
             Utilisateur createur = utilisateurRepository.findById(1L).orElse(null);
-            
+
             AvoirClient avoir = avoirClientService.creerAvoir(
-                factureId, motif, montantHt, commentaire, createur);
-            
-            redirectAttributes.addFlashAttribute("success", 
-                "Avoir " + avoir.getNumero() + " créé avec succès");
-            
+                    factureId, motif, montantHt, commentaire, createur);
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Avoir " + avoir.getNumero() + " créé avec succès");
+
             // Message si validation requise
             if (avoir.getStatut().equals("EN_ATTENTE_VALIDATION")) {
-                redirectAttributes.addFlashAttribute("info", 
-                    "Cet avoir nécessite une validation par un responsable");
+                redirectAttributes.addFlashAttribute("info",
+                        "Cet avoir nécessite une validation par un responsable");
             }
-            
+
             return "redirect:/ventes/avoirs/" + avoir.getId();
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
@@ -158,8 +158,8 @@ public class AvoirClientController {
      */
     @PostMapping("/{id}/refuser")
     public String refuser(@PathVariable Long id,
-                         @RequestParam(required = false) String motifRefus,
-                         RedirectAttributes redirectAttributes) {
+            @RequestParam(required = false) String motifRefus,
+            RedirectAttributes redirectAttributes) {
         try {
             avoirClientService.refuserAvoir(id, motifRefus);
             redirectAttributes.addFlashAttribute("warning", "Avoir refusé");
@@ -176,8 +176,8 @@ public class AvoirClientController {
     public String appliquer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             avoirClientService.appliquerAvoir(id);
-            redirectAttributes.addFlashAttribute("success", 
-                "Avoir appliqué - le solde client a été crédité");
+            redirectAttributes.addFlashAttribute("success",
+                    "Avoir appliqué - le solde client a été crédité");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur: " + e.getMessage());
         }

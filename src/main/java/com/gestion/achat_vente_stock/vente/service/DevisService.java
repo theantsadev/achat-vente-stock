@@ -54,7 +54,10 @@ public class DevisService {
         calculerTotaux(devis);
 
         Devis saved = devisRepository.save(devis);
-
+        for (LigneDevis ligne : devis.getLignes()) {
+            ligne.setDevis(saved);
+            ligneDevisRepository.save(ligne);
+        }
         // Audit
         auditService.logAction(commercial, "devis", saved.getId(),
                 "CREATE", null, "Devis créé: " + saved.getNumero(), null);
@@ -210,7 +213,7 @@ public class DevisService {
 
         // Calcul des lignes
         for (LigneDevis ligne : devis.getLignes()) {
-            ligne.calculerMontant();
+            ligne.calculerMontantHt();
             if (ligne.getMontantLigneHt() != null) {
                 totalHt = totalHt.add(ligne.getMontantLigneHt());
             }

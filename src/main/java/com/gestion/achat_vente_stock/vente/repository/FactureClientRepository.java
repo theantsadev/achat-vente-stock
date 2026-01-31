@@ -29,6 +29,9 @@ public interface FactureClientRepository extends JpaRepository<FactureClient, Lo
     /** Rechercher les factures par statut */
     List<FactureClient> findByStatut(String statut);
 
+    /** Rechercher les factures non payées */
+    List<FactureClient> findByEstPayeeFalse();
+
     /** Compter le nombre de factures */
     long count();
 }

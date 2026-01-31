@@ -47,6 +47,10 @@ public class LigneFactureClient {
     @Column(name = "prix_unitaire_ht", precision = 18, scale = 4)
     private BigDecimal prixUnitaireHt;
 
+    /** Remise en pourcentage */
+    @Column(name = "remise_pourcent", precision = 5, scale = 2)
+    private BigDecimal remisePourcent;
+
     /** Montant total HT de la ligne */
     @Column(name = "montant_ligne_ht", precision = 18, scale = 4)
     private BigDecimal montantLigneHt;
@@ -56,7 +60,33 @@ public class LigneFactureClient {
      */
     public void calculerMontant() {
         if (quantite != null && prixUnitaireHt != null) {
-            this.montantLigneHt = quantite.multiply(prixUnitaireHt);
+            BigDecimal montant = quantite.multiply(prixUnitaireHt);
+            
+            // Appliquer la remise si elle existe
+            if (remisePourcent != null && remisePourcent.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal remise = montant.multiply(remisePourcent).divide(new BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP);
+                montant = montant.subtract(remise);
+            }
+            
+            this.montantLigneHt = montant;
         }
+    }
+
+    /**
+     * Calcule et retourne le montant HT
+     */
+    public BigDecimal calculerMontantHt() {
+        if (quantite != null && prixUnitaireHt != null) {
+            BigDecimal montant = quantite.multiply(prixUnitaireHt);
+            
+            // Appliquer la remise si elle existe
+            if (remisePourcent != null && remisePourcent.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal remise = montant.multiply(remisePourcent).divide(new BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP);
+                montant = montant.subtract(remise);
+            }
+            
+            return montant;
+        }
+        return BigDecimal.ZERO;
     }
 }

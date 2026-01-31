@@ -41,7 +41,23 @@ public class FactureClientService {
     /**
      * TODO.YML Ligne 27: Générer une facture depuis un bon de livraison
      */
+    public FactureClient genererDepuisBL(Long blId, int delaiPaiement) {
+        return genererDepuisBL(blId, null, delaiPaiement);
+    }
+
+    /**
+     * TODO.YML Ligne 27: Générer une facture depuis un bon de livraison (avec
+     * utilisateur)
+     */
     public FactureClient genererDepuisBL(Long blId, Utilisateur utilisateur) {
+        return genererDepuisBL(blId, utilisateur, 30);
+    }
+
+    /**
+     * TODO.YML Ligne 27: Générer une facture depuis un bon de livraison (version
+     * complète)
+     */
+    public FactureClient genererDepuisBL(Long blId, Utilisateur utilisateur, int delaiPaiement) {
         BonLivraison bl = bonLivraisonRepository.findById(blId)
                 .orElseThrow(() -> new IllegalArgumentException("Bon de livraison non trouvé: " + blId));
 
@@ -65,7 +81,7 @@ public class FactureClientService {
         facture.setBonLivraison(bl);
         facture.setClient(commande.getClient());
         facture.setDateFacture(LocalDate.now());
-        facture.setDateEcheance(LocalDate.now().plusDays(30)); // Échéance 30 jours par défaut
+        facture.setDateEcheance(LocalDate.now().plusDays(delaiPaiement));
         facture.setStatut("BROUILLON");
 
         FactureClient savedFacture = factureClientRepository.save(facture);
@@ -78,6 +94,7 @@ public class FactureClientService {
             ligneFacture.setArticle(ligneBL.getArticle());
             ligneFacture.setQuantite(ligneBL.getQuantiteLivree());
             ligneFacture.setPrixUnitaireHt(ligneBL.getLigneCommande().getPrixUnitaireHt());
+            ligneFacture.setRemisePourcent(ligneBL.getLigneCommande().getRemisePourcent());
             ligneFacture.calculerMontant();
             ligneFactureClientRepository.save(ligneFacture);
             savedFacture.getLignes().add(ligneFacture);
@@ -116,6 +133,20 @@ public class FactureClientService {
      */
     public List<FactureClient> listerTous() {
         return factureClientRepository.findAll();
+    }
+
+    /**
+     * Alias pour listerTous (compatibilité féminime)
+     */
+    public List<FactureClient> listerToutes() {
+        return listerTous();
+    }
+
+    /**
+     * Lister les factures non payées
+     */
+    public List<FactureClient> listerFacturesNonPayees() {
+        return factureClientRepository.findByEstPayeeFalse();
     }
 
     /**
@@ -191,6 +222,26 @@ public class FactureClientService {
     }
 
     /**
+     * Envoyer la facture au client (via email, notification, etc.)
+     */
+    public void envoyerFacture(Long factureId) {
+        FactureClient facture = obtenirParId(factureId);
+        facture.setStatut("ENVOYEE");
+        factureClientRepository.save(facture);
+    }
+
+    /**
+     * Marquer comme totalement payée (surcharge simple)
+     */
+    public void marquerPayee(Long factureId) {
+        FactureClient facture = obtenirParId(factureId);
+
+        facture.setStatut("PAYEE");
+        facture.setEstPayee(true);
+        factureClientRepository.save(facture);
+    }
+
+    /**
      * Marquer comme totalement payée
      */
     public void marquerPayee(Long factureId, Utilisateur utilisateur) {
@@ -201,6 +252,13 @@ public class FactureClientService {
 
         auditService.logAction(utilisateur, "facture_client", factureId,
                 "PAID", facture.getStatut(), "PAYEE", null);
+    }
+
+    /**
+     * Annuler une facture (surcharge simple)
+     */
+    public void annulerFacture(Long factureId) {
+        annulerFacture(factureId, null, null);
     }
 
     /**
@@ -217,8 +275,10 @@ public class FactureClientService {
         facture.setStatut("ANNULEE");
         factureClientRepository.save(facture);
 
-        auditService.logAction(utilisateur, "facture_client", factureId,
-                "CANCEL", ancienStatut, "ANNULEE", motif);
+        if (utilisateur != null) {
+            auditService.logAction(utilisateur, "facture_client", factureId,
+                    "CANCEL", ancienStatut, "ANNULEE", motif);
+        }
     }
 
     // ==================== UTILITAIRES ====================
@@ -229,6 +289,19 @@ public class FactureClientService {
     private String genererNumero() {
         long count = factureClientRepository.count() + 1;
         return PREFIXE_NUMERO + String.format("%05d", count);
+    }
+
+    /**
+     * Calculer le solde restant d'une facture (surcharge simple)
+     */
+    public BigDecimal calculerSoldeRestant(Long factureId) {
+        FactureClient facture = obtenirParId(factureId);
+        // Récupérer les encaissements validés
+        BigDecimal totalEncaisse = facture.getEncaissements().stream()
+                .filter(e -> "VALIDE".equals(e.getStatut()))
+                .map(Encaissement::getMontantEncaisse)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return calculerSoldeRestant(factureId, totalEncaisse);
     }
 
     /**

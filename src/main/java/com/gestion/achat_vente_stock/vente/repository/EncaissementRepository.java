@@ -28,6 +28,12 @@ public interface EncaissementRepository extends JpaRepository<Encaissement, Long
     /** Rechercher les encaissements par statut */
     List<Encaissement> findByStatut(String statut);
 
+    /** Rechercher les encaissements par date */
+    List<Encaissement> findByDateEncaissement(java.time.LocalDate date);
+
+    /** Rechercher les encaissements par période */
+    List<Encaissement> findByDateEncaissementBetween(java.time.LocalDate debut, java.time.LocalDate fin);
+
     /** Calculer le total encaissé pour une facture */
     @Query("SELECT COALESCE(SUM(e.montantEncaisse), 0) FROM Encaissement e WHERE e.factureClient.id = :factureId AND e.statut = 'VALIDE'")
     BigDecimal calculerTotalEncaisseParFacture(Long factureId);

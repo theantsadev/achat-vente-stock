@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Enregistrer un Encaissement</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 29: Enregistrer encaissement -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>💳 Enregistrer un Encaissement</h1>
+                <a th:href="@{/ventes/factures/{id}(id=${facture.id})}" class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <!-- Récapitulatif facture -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>📄 Facture <span th:text="${facture.numero}">FAC001</span></h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Client:</strong> <span th:text="${facture.client?.raisonSociale}">-</span></p>
+                            <p><strong>Date facture:</strong> <span th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">-</span></p>
+                            <p><strong>Échéance:</strong> <span th:text="${facture.dateEcheance != null ? #temporals.format(facture.dateEcheance, 'dd/MM/yyyy') : '-'}">-</span></p>
+                            <p><strong>Montant TTC:</strong> <span th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2, 'COMMA')} + ' €'">-</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3 bg-warning">
+                        <div class="card-header">
+                            <h3>💰 Solde à payer</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <h1 th:text="${#numbers.formatDecimal(soldeRestant, 1, 2, 'COMMA')} + ' €'">0,00 €</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire d'encaissement -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>💳 Détails du paiement</h3>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/ventes/encaissements/facture/{id}(id=${facture.id})}" method="post">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="montant">Montant encaissé *</label>
+                                    <div class="input-group">
+                                        <input type="number" id="montant" name="montant" 
+                                               class="form-control" step="0.01" min="0.01"
+                                               th:max="${soldeRestant}"
+                                               th:value="${soldeRestant}" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">€</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Maximum: <span th:text="${#numbers.formatDecimal(soldeRestant, 1, 2, 'COMMA')}">-</span> €
+                                    </small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="modePaiement">Mode de paiement *</label>
+                                    <select id="modePaiement" name="modePaiement" class="form-control" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option th:each="mode : ${modesPaiement}" 
+                                                th:value="${mode}" th:text="${mode}">Mode</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="reference">Référence (chèque, virement...)</label>
+                                    <input type="text" id="reference" name="reference" 
+                                           class="form-control" placeholder="N° chèque, N° virement...">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="banque">Banque</label>
+                                    <input type="text" id="banque" name="banque" class="form-control">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="dateEcheance">Date d'échéance (effet)</label>
+                                    <input type="date" id="dateEcheance" name="dateEcheance" class="form-control">
+                                    <small class="form-text text-muted">
+                                        Uniquement pour les effets de commerce
+                                    </small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="commentaire">Commentaire</label>
+                                    <textarea id="commentaire" name="commentaire" 
+                                              class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                💾 Enregistrer l'encaissement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

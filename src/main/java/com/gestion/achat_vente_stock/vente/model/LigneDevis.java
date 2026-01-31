@@ -58,7 +58,7 @@ public class LigneDevis {
     /**
      * Calcule le montant de la ligne avec remise
      */
-    public void calculerMontant() {
+    public void calculerMontantHt() {
         if (quantite != null && prixUnitaireHt != null) {
             BigDecimal montantBrut = quantite.multiply(prixUnitaireHt);
             if (remisePourcent != null && remisePourcent.compareTo(BigDecimal.ZERO) > 0) {

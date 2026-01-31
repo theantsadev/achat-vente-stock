@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Rapport Encaissements</title>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📊 Rapport Encaissements</h1>
+                <a th:href="@{/ventes/encaissements}" class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <!-- Résumé -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-muted">Total validé</p>
+                            <h3 id="totalValide">0.00 €</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-muted">En attente</p>
+                            <h3 id="totalAttente">0.00 €</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-muted">Rejetés</p>
+                            <h3 id="totalRejet">0.00 €</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="text-muted">Nombre d'encaissements</p>
+                            <h3 id="nombre" th:text="${#lists.size(encaissements)}">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtre par période -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>🔍 Filtrer par période</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3">
+                            <label for="dateDebut" class="mr-2">Du:</label>
+                            <input type="date" id="dateDebut" name="dateDebut" class="form-control">
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="dateFin" class="mr-2">Au:</label>
+                            <input type="date" id="dateFin" name="dateFin" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tableau -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📝 Détails des encaissements</h3>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(encaissements)}" class="alert alert-info">
+                        Aucun encaissement trouvé
+                    </div>
+
+                    <table class="table table-hover" th:unless="${#lists.isEmpty(encaissements)}">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Facture</th>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Mode</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="enc : ${encaissements}">
+                                <td><strong th:text="${enc.numero}">ENC00001</strong></td>
+                                <td th:text="${enc.factureClient.numero}">FC00001</td>
+                                <td th:text="${enc.factureClient.client.raisonSociale}">Client</td>
+                                <td th:text="${#temporals.format(enc.dateEncaissement, 'dd/MM/yyyy')}">01/01/2025</td>
+                                <td class="text-right">
+                                    <strong th:text="${#numbers.formatDecimal(enc.montantEncaisse, 1, 2)}">1000.00</strong> €
+                                </td>
+                                <td th:text="${enc.modePaiement}">VIREMENT</td>
+                                <td>
+                                    <span th:if="${enc.statut == 'VALIDE'}" class="badge badge-success">✓ Validé</span>
+                                    <span th:if="${enc.statut == 'EN_ATTENTE'}" class="badge badge-warning">⏳ En attente</span>
+                                    <span th:if="${enc.statut == 'REJETE'}" class="badge badge-danger">✗ Rejeté</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-dark">
+                                <td colspan="4" class="text-right"><strong>TOTAL</strong></td>
+                                <td class="text-right">
+                                    <strong id="totalAll">0.00</strong> €
+                                </td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Calculer les totaux
+        document.addEventListener('DOMContentLoaded', function() {
+            let totalValide = 0, totalAttente = 0, totalRejet = 0, totalAll = 0;
+            
+            document.querySelectorAll('tbody tr').forEach(function(row) {
+                const montant = parseFloat(row.cells[4].textContent.replace(' €', '').replace(',', '.')) || 0;
+                const statut = row.cells[6].textContent.trim();
+                
+                totalAll += montant;
+                if (statut.includes('Validé')) totalValide += montant;
+                if (statut.includes('En attente')) totalAttente += montant;
+                if (statut.includes('Rejeté')) totalRejet += montant;
+            });
+            
+            document.getElementById('totalValide').textContent = totalValide.toFixed(2) + ' €';
+            document.getElementById('totalAttente').textContent = totalAttente.toFixed(2) + ' €';
+            document.getElementById('totalRejet').textContent = totalRejet.toFixed(2) + ' €';
+            document.getElementById('totalAll').textContent = totalAll.toFixed(2);
+        });
+    </script>
+</body>
+
+</html>

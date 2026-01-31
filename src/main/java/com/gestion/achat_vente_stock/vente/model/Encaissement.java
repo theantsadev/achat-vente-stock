@@ -58,6 +58,16 @@ public class Encaissement {
     /** Référence du paiement (n° chèque, n° virement...) */
     private String reference;
 
+    /** Banque ou organisme de paiement */
+    private String banque;
+
+    /** Date d'échéance (pour effets) */
+    @Column(name = "date_echeance")
+    private LocalDate dateEcheance;
+
+    /** Commentaire ou motif (en cas de rejet) */
+    private String commentaire;
+
     /**
      * Statut de l'encaissement:
      * - EN_ATTENTE: En attente de validation

@@ -24,7 +24,7 @@
                             <th>Client</th>
                             <th>Dépôt</th>
                             <th>Date création</th>
-                            <th>Date expédition</th>
+                            <!-- <th>Date expédition</th> -->
                             <th>Statut</th>
                             <th>Actions</th>
                         </tr>
@@ -39,8 +39,8 @@
                             </td>
                             <td th:text="${bl.commandeClient?.client?.raisonSociale}">-</td>
                             <td th:text="${bl.depot?.libelle}">-</td>
-                            <td th:text="${#temporals.format(bl.dateCreation, 'dd/MM/yyyy')}">-</td>
-                            <td th:text="${bl.dateExpedition != null ? #temporals.format(bl.dateExpedition, 'dd/MM/yyyy') : '-'}">-</td>
+                            <td th:text="${#temporals.format(bl.dateLivraison, 'dd/MM/yyyy')}">-</td>
+                            <!-- <td th:text="${bl.dateExpedition != null ? #temporals.format(bl.dateExpedition, 'dd/MM/yyyy') : '-'}">-</td> -->
                             <td>
                                 <span th:if="${bl.statut == 'EN_PREPARATION'}" class="badge badge-warning">En préparation</span>
                                 <span th:if="${bl.statut == 'PRET'}" class="badge badge-info">Prêt</span>

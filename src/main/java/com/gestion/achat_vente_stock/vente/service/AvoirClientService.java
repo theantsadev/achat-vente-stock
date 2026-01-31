@@ -31,7 +31,7 @@ public class AvoirClientService {
 
     /** Préfixe pour les numéros d'avoir */
     private static final String PREFIXE_NUMERO = "AV";
-    
+
     /** Taux TVA par défaut */
     private static final BigDecimal TAUX_TVA = new BigDecimal("0.20");
 
@@ -41,12 +41,20 @@ public class AvoirClientService {
      * TODO.YML Ligne 30: Créer un avoir sur une facture
      */
     public AvoirClient creerAvoir(Long factureId, BigDecimal montantHt, String motif, Utilisateur utilisateur) {
+        return creerAvoir(factureId, motif, montantHt, null, utilisateur);
+    }
+
+    /**
+     * TODO.YML Ligne 30: Créer un avoir sur une facture avec commentaire
+     */
+    public AvoirClient creerAvoir(Long factureId, String motif, BigDecimal montantHt, String commentaire,
+            Utilisateur utilisateur) {
         FactureClient facture = factureClientRepository.findById(factureId)
                 .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée: " + factureId));
 
         // Vérifier que la facture est validée ou payée
-        if (!"VALIDEE".equals(facture.getStatut()) 
-                && !"PAYEE".equals(facture.getStatut()) 
+        if (!"VALIDEE".equals(facture.getStatut())
+                && !"PAYEE".equals(facture.getStatut())
                 && !"PAYEE_PARTIELLEMENT".equals(facture.getStatut())) {
             throw new IllegalStateException("La facture doit être validée pour créer un avoir");
         }
@@ -66,6 +74,8 @@ public class AvoirClientService {
         avoir.setMontantTva(montantHt.multiply(TAUX_TVA).setScale(4, RoundingMode.HALF_UP));
         avoir.setMontantTtc(avoir.getMontantHt().add(avoir.getMontantTva()));
         avoir.setMotif(motif);
+        avoir.setCommentaire(commentaire);
+        avoir.setCreateur(utilisateur);
         avoir.setStatut("EN_ATTENTE_VALIDATION");
 
         AvoirClient saved = avoirClientRepository.save(avoir);
@@ -79,7 +89,8 @@ public class AvoirClientService {
     /**
      * Créer un avoir sans facture (geste commercial)
      */
-    public AvoirClient creerAvoirSansFacture(Long clientId, BigDecimal montantHt, String motif, Utilisateur utilisateur) {
+    public AvoirClient creerAvoirSansFacture(Long clientId, BigDecimal montantHt, String motif,
+            Utilisateur utilisateur) {
         AvoirClient avoir = new AvoirClient();
         avoir.setNumero(genererNumero());
         // avoir.setClient(...) - À récupérer depuis le repository client
@@ -127,7 +138,28 @@ public class AvoirClientService {
         return avoirClientRepository.findByClientId(clientId);
     }
 
+    /**
+     * Récupérer les avoirs en attente de validation
+     */
+    public List<AvoirClient> listerEnAttenteValidation() {
+        return avoirClientRepository.findByStatut("EN_ATTENTE_VALIDATION");
+    }
+
+    /**
+     * Récupérer les avoirs d'une facture
+     */
+    public List<AvoirClient> listerParFacture(Long factureId) {
+        return avoirClientRepository.findByFactureClientId(factureId);
+    }
+
     // ==================== WORKFLOW ====================
+
+    /**
+     * TODO.YML Ligne 30: Valider un avoir (surcharge simple)
+     */
+    public void validerAvoir(Long avoirId, Utilisateur valideur) {
+        validerAvoir(avoirId, valideur, true, null);
+    }
 
     /**
      * TODO.YML Ligne 30: Valider un avoir (double validation)
@@ -143,8 +175,9 @@ public class AvoirClientService {
         if (approuve) {
             avoir.setStatut("VALIDE");
             avoir.setValideBy(valideur);
+            avoir.setDateValidation(LocalDate.now());
         } else {
-            avoir.setStatut("ANNULE");
+            avoir.setStatut("REFUSE");
         }
 
         avoirClientRepository.save(avoir);
@@ -154,9 +187,24 @@ public class AvoirClientService {
     }
 
     /**
-     * Appliquer l'avoir (déduire du compte client)
+     * Refuser un avoir
      */
-    public void appliquerAvoir(Long avoirId, Utilisateur utilisateur) {
+    public void refuserAvoir(Long avoirId, String motifRefus) {
+        AvoirClient avoir = obtenirParId(avoirId);
+
+        if (!"EN_ATTENTE_VALIDATION".equals(avoir.getStatut()) && !"BROUILLON".equals(avoir.getStatut())) {
+            throw new IllegalStateException("Seuls les avoirs en brouillon ou en attente peuvent être refusés");
+        }
+
+        avoir.setStatut("REFUSE");
+        avoir.setCommentaire(motifRefus);
+        avoirClientRepository.save(avoir);
+    }
+
+    /**
+     * Appliquer l'avoir (surcharge simple, sans utilisateur)
+     */
+    public void appliquerAvoir(Long avoirId) {
         AvoirClient avoir = obtenirParId(avoirId);
 
         if (!"VALIDE".equals(avoir.getStatut())) {
@@ -165,9 +213,23 @@ public class AvoirClientService {
 
         avoir.setStatut("APPLIQUE");
         avoirClientRepository.save(avoir);
+    }
+
+    /**
+     * Appliquer l'avoir (déduire du compte client)
+     */
+    public void appliquerAvoir(Long avoirId, Utilisateur utilisateur) {
+        appliquerAvoir(avoirId);
 
         auditService.logAction(utilisateur, "avoir_client", avoirId,
                 "APPLY", "VALIDE", "APPLIQUE", null);
+    }
+
+    /**
+     * Annuler un avoir (surcharge simple, sans utilisateur)
+     */
+    public void annulerAvoir(Long avoirId) {
+        annulerAvoir(avoirId, null, null);
     }
 
     /**
@@ -184,8 +246,10 @@ public class AvoirClientService {
         avoir.setStatut("ANNULE");
         avoirClientRepository.save(avoir);
 
-        auditService.logAction(utilisateur, "avoir_client", avoirId,
-                "CANCEL", ancienStatut, "ANNULE", motif);
+        if (utilisateur != null) {
+            auditService.logAction(utilisateur, "avoir_client", avoirId,
+                    "CANCEL", ancienStatut, "ANNULE", motif);
+        }
     }
 
     // ==================== UTILITAIRES ====================

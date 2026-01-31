@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Créer un Avoir</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 30: Créer avoir (retour, erreur prix, casse, commercial) -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📝 Créer un Avoir</h1>
+                <a th:href="@{/ventes/factures/{id}(id=${facture.id})}" class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <!-- Récapitulatif facture -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📄 Facture d'origine: <span th:text="${facture.numero}">FAC001</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Client:</strong> <span th:text="${facture.client?.raisonSociale}">-</span></p>
+                            <p><strong>Date facture:</strong> <span th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">-</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Montant HT:</strong> <span th:text="${#numbers.formatDecimal(facture.montantHt, 1, 2, 'COMMA')} + ' €'">-</span></p>
+                            <p><strong>Montant TTC:</strong> <span th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2, 'COMMA')} + ' €'">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire avoir -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📝 Détails de l'avoir</h3>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/ventes/avoirs/facture/{id}(id=${facture.id})}" method="post">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="motif">Motif de l'avoir *</label>
+                                    <select id="motif" name="motif" class="form-control" required>
+                                        <option value="">-- Sélectionner un motif --</option>
+                                        <option th:each="m : ${motifs}" th:value="${m}">
+                                            <span th:if="${m == 'RETOUR'}">Retour marchandise</span>
+                                            <span th:if="${m == 'ERREUR_PRIX'}">Erreur de prix</span>
+                                            <span th:if="${m == 'CASSE'}">Marchandise cassée/défectueuse</span>
+                                            <span th:if="${m == 'COMMERCIAL'}">Geste commercial</span>
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="montantHt">Montant HT de l'avoir *</label>
+                                    <div class="input-group">
+                                        <input type="number" id="montantHt" name="montantHt" 
+                                               class="form-control" step="0.01" min="0.01"
+                                               th:max="${facture.montantHt}" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">€</span>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Maximum: <span th:text="${#numbers.formatDecimal(facture.montantHt, 1, 2, 'COMMA')}">-</span> € HT
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="commentaire">Commentaire / Justification</label>
+                                    <textarea id="commentaire" name="commentaire" 
+                                              class="form-control" rows="5"
+                                              placeholder="Détaillez la raison de cet avoir..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>📌 Note:</strong> La TVA sera calculée automatiquement au taux de 20%.
+                            <br>
+                            <strong>⚠️ Important:</strong> Les avoirs dépassant un certain montant nécessiteront 
+                            une validation par un responsable avant d'être appliqués.
+                        </div>
+
+                        <hr>
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                💾 Créer l'avoir
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

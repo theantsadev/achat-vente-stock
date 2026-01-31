@@ -38,7 +38,7 @@
                         <tr th:each="devis : ${devisList}">
                             <td th:text="${devis.numero}">DEV001</td>
                             <td th:text="${devis.client?.raisonSociale}">-</td>
-                            <td th:text="${#temporals.format(devis.dateCreation, 'dd/MM/yyyy')}">-</td>
+                            <td th:text="${#temporals.format(devis.dateDevis, 'dd/MM/yyyy')}">-</td>
                             <td th:text="${#temporals.format(devis.dateValidite, 'dd/MM/yyyy')}">-</td>
                             <td th:text="${#numbers.formatDecimal(devis.montantTotalHt, 1, 2, 'COMMA')} + ' €'">-</td>
                             <td th:text="${#numbers.formatDecimal(devis.montantTotalTtc, 1, 2, 'COMMA')} + ' €'">-</td>

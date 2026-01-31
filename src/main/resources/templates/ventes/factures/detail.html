@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Détail Facture Client</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Lignes 27-28: Facture avec contrôle TVA -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📄 Facture <span th:text="${facture.numero}">FAC001</span></h1>
+                <a th:href="@{/ventes/factures}" class="btn btn-secondary">← Retour à la liste</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+            <!-- Informations générales -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>📋 Informations de la facture</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Numéro:</strong> <span th:text="${facture.numero}">-</span></p>
+                            <p><strong>BL d'origine:</strong> 
+                                <a th:if="${facture.bonLivraison != null}"
+                                   th:href="@{/ventes/livraisons/{id}(id=${facture.bonLivraison.id})}"
+                                   th:text="${facture.bonLivraison.numero}">-</a>
+                            </p>
+                            <p><strong>Date facture:</strong> 
+                                <span th:text="${#temporals.format(facture.dateFacture, 'dd/MM/yyyy')}">-</span>
+                            </p>
+                            <p><strong>Date échéance:</strong> 
+                                <span th:text="${facture.dateEcheance != null ? #temporals.format(facture.dateEcheance, 'dd/MM/yyyy') : '-'}">-</span>
+                            </p>
+                            <p><strong>Statut:</strong> 
+                                <span th:if="${facture.statut == 'BROUILLON'}" class="badge badge-secondary">Brouillon</span>
+                                <span th:if="${facture.statut == 'VALIDEE'}" class="badge badge-info">Validée</span>
+                                <span th:if="${facture.statut == 'ENVOYEE'}" class="badge badge-primary">Envoyée</span>
+                                <span th:if="${facture.statut == 'PAYEE'}" class="badge badge-success">Payée</span>
+                                <span th:if="${facture.statut == 'ANNULEE'}" class="badge badge-danger">Annulée</span>
+                            </p>
+                            <p><strong>Payée:</strong>
+                                <span th:if="${facture.estPayee}" class="badge badge-success">✓ Oui</span>
+                                <span th:unless="${facture.estPayee}" class="badge badge-warning">Non</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>👤 Client</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Raison sociale:</strong> 
+                                <span th:text="${facture.client?.raisonSociale}">-</span>
+                            </p>
+                            <p><strong>Adresse:</strong> 
+                                <span th:text="${facture.client?.adresse}">-</span>
+                            </p>
+                            <!-- <p><strong>N° TVA:</strong> 
+                                <span th:text="${facture.client?.numeroTva != null ? facture.client.numeroTva : 'Non renseigné'}">-</span>
+                            </p> -->
+                        </div>
+                    </div>
+
+                    <!-- Solde restant -->
+                    <div class="card mb-3" th:if="${!facture.estPayee}">
+                        <div class="card-header bg-warning">
+                            <h3>💰 Solde à payer</h3>
+                        </div>
+                        <div class="card-body">
+                            <h2 class="text-center" th:text="${#numbers.formatDecimal(soldeRestant, 1, 2, 'COMMA')} + ' €'">-</h2>
+                            <p class="text-center">
+                                <a th:href="@{/ventes/encaissements/nouveau/{id}(id=${facture.id})}" 
+                                   class="btn btn-success">💳 Enregistrer un paiement</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lignes de la facture -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📦 Détail des articles</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Désignation</th>
+                                <th>Quantité</th>
+                                <th>Prix unitaire HT</th>
+                                <th>Remise (%)</th>
+                                <th>Taux TVA</th>
+                                <th>Montant HT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${facture.lignes}">
+                                <td th:text="${ligne.article?.code}">-</td>
+                                <td th:text="${ligne.article?.designation}">-</td>
+                                <td th:text="${ligne.quantite}">0</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.prixUnitaireHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                                <td th:text="${ligne.remisePourcent != null ? ligne.remisePourcent + '%' : '-'}">-</td>
+                                <td th:text="${ligne.article?.tauxTva != null ? ligne.article.tauxTva + '%' : '20%'}">-</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.calculerMontantHt(), 1, 2, 'COMMA')} + ' €'">-</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>Total HT:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(facture.montantHt, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>TVA (contrôlée):</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(facture.montantTva, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td colspan="6" class="text-right"><strong>Total TTC:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(facture.montantTtc, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Encaissements liés -->
+            <div class="card mb-3" th:if="${facture.encaissements != null && !facture.encaissements.isEmpty()}">
+                <div class="card-header">
+                    <h3>💳 Encaissements</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Mode</th>
+                                <th>Référence</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="enc : ${facture.encaissements}">
+                                <td th:text="${#temporals.format(enc.dateEncaissement, 'dd/MM/yyyy')}">-</td>
+                                <td th:text="${enc.modePaiement}">-</td>
+                                <td th:text="${enc.reference != null ? enc.reference : '-'}">-</td>
+                                <td th:text="${#numbers.formatDecimal(enc.montantEncaisse, 1, 2, 'COMMA')} + ' €'">-</td>
+                                <td>
+                                    <span th:if="${enc.statut == 'VALIDE'}" class="badge badge-success">Validé</span>
+                                    <span th:if="${enc.statut == 'EN_ATTENTE'}" class="badge badge-warning">En attente</span>
+                                    <span th:if="${enc.statut == 'REJETE'}" class="badge badge-danger">Rejeté</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <a th:href="@{/ventes/encaissements/facture/{id}(id=${facture.id})}" 
+                       class="btn btn-sm btn-outline-primary">Voir tous les encaissements</a>
+                </div>
+            </div>
+
+            <!-- Actions selon le statut -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚡ Actions</h3>
+                </div>
+                <div class="card-body">
+                    <!-- TODO.YML Ligne 28: Valider (contrôle TVA) -->
+                    <form th:if="${facture.statut == 'BROUILLON'}" 
+                          th:action="@{/ventes/factures/{id}/valider(id=${facture.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">✅ Valider (contrôle TVA)</button>
+                    </form>
+
+                    <!-- Envoyer -->
+                    <form th:if="${facture.statut == 'VALIDEE'}" 
+                          th:action="@{/ventes/factures/{id}/envoyer(id=${facture.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">📤 Envoyer au client</button>
+                    </form>
+
+                    <!-- TODO.YML Ligne 29: Encaisser -->
+                    <a th:if="${!facture.estPayee && (facture.statut == 'VALIDEE' || facture.statut == 'ENVOYEE')}"
+                       th:href="@{/ventes/encaissements/nouveau/{id}(id=${facture.id})}" 
+                       class="btn btn-success">💳 Enregistrer paiement</a>
+
+                    <!-- Marquer payée -->
+                    <form th:if="${!facture.estPayee && soldeRestant.compareTo(T(java.math.BigDecimal).ZERO) == 0}" 
+                          th:action="@{/ventes/factures/{id}/marquer-payee(id=${facture.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">✅ Marquer comme payée</button>
+                    </form>
+
+                    <!-- TODO.YML Ligne 30: Créer avoir -->
+                    <a th:if="${facture.statut == 'VALIDEE' || facture.statut == 'ENVOYEE' || facture.statut == 'PAYEE'}"
+                       th:href="@{/ventes/avoirs/nouveau/{id}(id=${facture.id})}" 
+                       class="btn btn-warning">📝 Créer un avoir</a>
+
+                    <!-- Annuler -->
+                    <form th:if="${facture.statut == 'BROUILLON'}" 
+                          th:action="@{/ventes/factures/{id}/annuler(id=${facture.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Êtes-vous sûr de vouloir annuler cette facture ?')">
+                            ❌ Annuler
+                        </button>
+                    </form>
+
+                    <!-- Imprimer -->
+                    <a th:href="@{/ventes/factures/{id}/imprimer(id=${facture.id})}" 
+                       class="btn btn-secondary">🖨️ Imprimer</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

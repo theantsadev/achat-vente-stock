@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Détail Encaissement</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 29: Encaissement -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>💳 Encaissement</h1>
+                <a th:href="@{/ventes/encaissements/facture/{id}(id=${encaissement.factureClient.id})}" 
+                   class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>📋 Détails du paiement</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Facture:</strong> 
+                                <a th:href="@{/ventes/factures/{id}(id=${encaissement.factureClient.id})}"
+                                   th:text="${encaissement.factureClient.numero}">-</a>
+                            </p>
+                            <p><strong>Client:</strong> 
+                                <span th:text="${encaissement.factureClient?.client?.raisonSociale}">-</span>
+                            </p>
+                            <p><strong>Date encaissement:</strong> 
+                                <span th:text="${#temporals.format(encaissement.dateEncaissement, 'dd/MM/yyyy')}">-</span>
+                            </p>
+                            <p><strong>Montant:</strong> 
+                                <span class="h4" th:text="${#numbers.formatDecimal(encaissement.montantEncaisse, 1, 2, 'COMMA')} + ' €'">-</span>
+                            </p>
+                            <p><strong>Mode de paiement:</strong> 
+                                <span th:text="${encaissement.modePaiement}">-</span>
+                            </p>
+                            <p th:if="${encaissement.reference != null}">
+                                <strong>Référence:</strong> 
+                                <span th:text="${encaissement.reference}">-</span>
+                            </p>
+                            <p th:if="${encaissement.banque != null}">
+                                <strong>Banque:</strong> 
+                                <span th:text="${encaissement.banque}">-</span>
+                            </p>
+                            <p th:if="${encaissement.dateEcheance != null}">
+                                <strong>Date échéance effet:</strong> 
+                                <span th:text="${#temporals.format(encaissement.dateEcheance, 'dd/MM/yyyy')}">-</span>
+                            </p>
+                            <p><strong>Statut:</strong>
+                                <span th:if="${encaissement.statut == 'EN_ATTENTE'}" class="badge badge-warning">En attente</span>
+                                <span th:if="${encaissement.statut == 'VALIDE'}" class="badge badge-success">Validé</span>
+                                <span th:if="${encaissement.statut == 'REJETE'}" class="badge badge-danger">Rejeté</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>⚡ Actions</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Valider -->
+                            <form th:if="${encaissement.statut == 'EN_ATTENTE'}" 
+                                  th:action="@{/ventes/encaissements/{id}/valider(id=${encaissement.id})}" 
+                                  method="post" class="mb-2">
+                                <button type="submit" class="btn btn-success btn-block">
+                                    ✅ Valider l'encaissement
+                                </button>
+                            </form>
+
+                            <!-- Rejeter -->
+                            <form th:if="${encaissement.statut == 'EN_ATTENTE'}" 
+                                  th:action="@{/ventes/encaissements/{id}/rejeter(id=${encaissement.id})}" 
+                                  method="post">
+                                <div class="form-group">
+                                    <input type="text" name="motif" class="form-control" 
+                                           placeholder="Motif du rejet (optionnel)">
+                                </div>
+                                <button type="submit" class="btn btn-danger btn-block"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir rejeter cet encaissement ?')">
+                                    ❌ Rejeter (chèque impayé, etc.)
+                                </button>
+                            </form>
+
+                            <div th:if="${encaissement.statut == 'VALIDE'}" class="alert alert-success">
+                                Cet encaissement a été validé et comptabilisé.
+                            </div>
+
+                            <div th:if="${encaissement.statut == 'REJETE'}" class="alert alert-danger">
+                                Cet encaissement a été rejeté.
+                                <p th:if="${encaissement.commentaire != null}" class="mb-0">
+                                    <strong>Motif:</strong> <span th:text="${encaissement.commentaire}">-</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

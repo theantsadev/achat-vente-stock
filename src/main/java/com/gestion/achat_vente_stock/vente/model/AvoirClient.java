@@ -81,9 +81,27 @@ public class AvoirClient {
      */
     private String statut;
 
+    /** Créateur de l'avoir */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createur_id")
+    @ToString.Exclude
+    private Utilisateur createur;
+
     /** Valideur de l'avoir (double validation) */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "valide_by")
     @ToString.Exclude
     private Utilisateur valideBy;
+
+    /** Date de validation */
+    @Column(name = "date_validation")
+    private LocalDate dateValidation;
+
+    /** Commentaire / Justification */
+    @Column(length = 500)
+    private String commentaire;
+
+    /** Statut de rejet / refus */
+    @Column(name = "statut_rejet", length = 50)
+    private String statutRejet;
 }

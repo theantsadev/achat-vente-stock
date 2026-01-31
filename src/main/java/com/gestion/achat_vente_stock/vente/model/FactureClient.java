@@ -85,8 +85,17 @@ public class FactureClient {
      */
     private String statut;
 
+    /** Indicateur de paiement total */
+    @Column(name = "est_payee")
+    private Boolean estPayee = false;
+
     /** Lignes de la facture */
     @OneToMany(mappedBy = "factureClient", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
     private List<LigneFactureClient> lignes = new ArrayList<>();
+
+    /** Encaissements associés */
+    @OneToMany(mappedBy = "factureClient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Encaissement> encaissements = new ArrayList<>();
 }

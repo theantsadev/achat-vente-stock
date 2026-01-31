@@ -233,11 +233,11 @@
   Page: "Création devis"
   Taches: "Créer devis/pro-forma client (articles, prix, remises)"
   Type: Front
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 21
   Catégorie: Ventes
@@ -245,11 +245,11 @@
   Page: "Validation remise"
   Taches: "Valider remises > plafond par responsable ventes"
   Type: Workflow
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 22
   Catégorie: Ventes
@@ -257,11 +257,11 @@
   Page: Transformation
   Taches: "Transformer devis en commande client"
   Type: Back
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 23
   Catégorie: Ventes
@@ -269,11 +269,11 @@
   Page: "Réservation stock"
   Taches: "Réserver stock à la commande (configurable)"
   Type: Fonctionnel
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 24
   Catégorie: Ventes
@@ -281,11 +281,11 @@
   Page: Préparation
   Taches: "Préparer livraison (picking : article, qté, emplacement, lot)"
   Type: Front
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 25
   Catégorie: Ventes
@@ -293,11 +293,11 @@
   Page: Confirmation
   Taches: "Confirmer picking et générer bon de livraison"
   Type: Back
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 26
   Catégorie: Ventes
@@ -305,11 +305,11 @@
   Page: Blocage
   Taches: "Bloquer livraison si stock insuffisant"
   Type: "Règle métier"
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 27
   Catégorie: Ventes
@@ -317,11 +317,11 @@
   Page: Facturation
   Taches: "Générer facture client depuis livraison"
   Type: Back
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 28
   Catégorie: Ventes
@@ -329,11 +329,11 @@
   Page: "Contrôle TVA"
   Taches: "Contrôler TVA et conformité (Comptable)"
   Type: Fonctionnel
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 29
   Catégorie: Ventes
@@ -341,11 +341,11 @@
   Page: Paiement
   Taches: "Enregistrer encaissements clients"
   Type: Front
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 30
   Catégorie: Ventes
@@ -353,11 +353,11 @@
   Page: "Gestion avoirs"
   Taches: "Créer avoirs (retour, erreur prix, casse) avec validation"
   Type: Front
-  Qui: ""
+  Qui: "Claude"
   Estimation: ""
   "Temps passé": ""
   "Reste à faire": ""
-  Avancement: ""
+  Avancement: "100%"
 -
   Ligne: 31
   Catégorie: Stock

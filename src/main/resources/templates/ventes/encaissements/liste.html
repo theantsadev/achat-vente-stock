@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Encaissements</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 29: Encaissements -->
+        <div class="container">
+            <h1>📋 Gestion des Encaissements</h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+
+            <!-- Filtres par date -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form th:action="@{/ventes/encaissements/rapport}" method="get" class="form-inline">
+                        <label class="mr-2">Période:</label>
+                        <input type="date" name="debut" class="form-control mr-2" 
+                               th:value="${dateDebut != null ? dateDebut : ''}">
+                        <label class="mr-2">au</label>
+                        <input type="date" name="fin" class="form-control mr-2"
+                               th:value="${dateFin != null ? dateFin : ''}">
+                        <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Total période si filtré -->
+            <div th:if="${totalPeriode != null}" class="alert alert-success">
+                <strong>Total encaissé sur la période:</strong> 
+                <span th:text="${#numbers.formatDecimal(totalPeriode, 1, 2, 'COMMA')} + ' €'">-</span>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>N° Facture</th>
+                            <th>Client</th>
+                            <th>Mode paiement</th>
+                            <th>Référence</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="enc : ${encaissements}">
+                            <td th:text="${#temporals.format(enc.dateEncaissement, 'dd/MM/yyyy')}">-</td>
+                            <td>
+                                <a th:if="${enc.factureClient != null}"
+                                   th:href="@{/ventes/factures/{id}(id=${enc.factureClient.id})}"
+                                   th:text="${enc.factureClient.numero}">-</a>
+                            </td>
+                            <td th:text="${enc.factureClient?.client?.raisonSociale}">-</td>
+                            <td th:text="${enc.modePaiement}">-</td>
+                            <td th:text="${enc.reference != null ? enc.reference : '-'}">-</td>
+                            <td th:text="${#numbers.formatDecimal(enc.montantEncaisse, 1, 2, 'COMMA')} + ' €'">-</td>
+                            <td>
+                                <span th:if="${enc.statut == 'EN_ATTENTE'}" class="badge badge-warning">En attente</span>
+                                <span th:if="${enc.statut == 'VALIDE'}" class="badge badge-success">Validé</span>
+                                <span th:if="${enc.statut == 'REJETE'}" class="badge badge-danger">Rejeté</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/ventes/encaissements/{id}(id=${enc.id})}" 
+                                   class="btn btn-sm btn-info">Voir</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(encaissements)}">
+                            <td colspan="8" class="text-center">Aucun encaissement trouvé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

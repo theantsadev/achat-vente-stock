@@ -25,11 +25,10 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label for="clientId">Client *</label>
-                            <select id="clientId" name="clientId" class="form-control" required>
+                            <select id="clientId" name="client.id" class="form-control" required>
                                 <option value="">-- Sélectionner un client --</option>
-                                <option th:each="client : ${clients}" 
-                                        th:value="${client.id}" 
-                                        th:text="${client.raisonSociale}">Client</option>
+                                <option th:each="client : ${clients}" th:value="${client.id}"
+                                    th:text="${client.raisonSociale}">Client</option>
                             </select>
                         </div>
                     </div>
@@ -45,16 +44,16 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="dateValidite">Date de validité *</label>
-                                    <input type="date" id="dateValidite" name="dateValidite" 
-                                           class="form-control" required
-                                           th:value="${#temporals.format(T(java.time.LocalDate).now().plusMonths(1), 'yyyy-MM-dd')}">
+                                    <input type="date" id="dateValidite" name="dateValidite" class="form-control"
+                                        required
+                                        th:value="${#temporals.format(T(java.time.LocalDate).now().plusMonths(1), 'yyyy-MM-dd')}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="remiseGlobale">Remise globale (%)</label>
-                                    <input type="number" id="remiseGlobale" name="remiseGlobale" 
-                                           class="form-control" step="0.01" min="0" max="100" value="0">
+                                    <label for="remiseGlobalePourcent">Remise globale (%)</label>
+                                    <input type="number" id="remiseGlobalePourcent" name="remiseGlobalePourcent"
+                                        class="form-control" step="0.01" min="0" max="100" value="0">
                                     <small class="form-text text-muted">
                                         Une remise supérieure à 15% nécessite une validation
                                     </small>
@@ -106,26 +105,44 @@
 
         <!-- Script pour gestion dynamique des lignes -->
         <script th:inline="javascript">
-            const articles = /*[[${articlesJson}]]*/ [];
+            const articles = /*[[${articles}]]*/[];
+            console.log(articles);
             let ligneIndex = 0;
 
-            document.getElementById('ajouterLigne').addEventListener('click', function() {
+            // Attendre que le DOM soit chargé
+            document.addEventListener('DOMContentLoaded', function() {
+                const btnAjouter = document.getElementById('ajouterLigne');
+                if (btnAjouter) {
+                    btnAjouter.addEventListener('click', function () {
+                        ajouterLigne();
+                    });
+                }
+                
+                // Ajouter une ligne par défaut
                 ajouterLigne();
+
+                // Recalculer si remise globale change
+                const remiseInput = document.getElementById('remiseGlobalePourcent');
+                if (remiseInput) {
+                    remiseInput.addEventListener('input', calculerMontants);
+                }
             });
 
             function ajouterLigne() {
                 const tbody = document.getElementById('lignesBody');
+                if (!tbody) return;
+                
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-index', ligneIndex);
 
                 let optionsArticles = '<option value="">-- Article --</option>';
-                articles.forEach(function(art) {
-                    optionsArticles += `<option value="${art.id}" data-prix="${art.prixVente}">${art.code} - ${art.designation}</option>`;
+                articles.forEach(function (art) {
+                    optionsArticles += `<option value="${art.id}" data-prix="${art.prixVentePublic}">${art.code} - ${art.designation}</option>`;
                 });
 
                 tr.innerHTML = `
                     <td>
-                        <select name="lignes[${ligneIndex}].articleId" class="form-control article-select" required>
+                        <select name="lignes[${ligneIndex}].article" class="form-control article-select" required>
                             ${optionsArticles}
                         </select>
                     </td>
@@ -135,7 +152,7 @@
                     </td>
                     <td>
                         <input type="number" name="lignes[${ligneIndex}].prixUnitaireHt" 
-                               class="form-control prix" step="0.01" min="0" required>
+                               class="form-control prix" step="0.01" min="0" value="0" required>
                     </td>
                     <td>
                         <input type="number" name="lignes[${ligneIndex}].remisePourcent" 
@@ -150,14 +167,20 @@
                 tbody.appendChild(tr);
 
                 // Event listeners
-                tr.querySelector('.article-select').addEventListener('change', function() {
-                    const option = this.options[this.selectedIndex];
-                    const prix = option.dataset.prix || 0;
-                    tr.querySelector('.prix').value = prix;
-                    calculerMontants();
-                });
+                const selectArticle = tr.querySelector('.article-select');
+                if (selectArticle) {
+                    selectArticle.addEventListener('change', function () {
+                        const option = this.options[this.selectedIndex];
+                        const prix = option.dataset.prix || 0;
+                        const prixInput = tr.querySelector('.prix');
+                        if (prixInput) {
+                            prixInput.value = prix;
+                            calculerMontants();
+                        }
+                    });
+                }
 
-                tr.querySelectorAll('.quantite, .prix, .remise').forEach(function(input) {
+                tr.querySelectorAll('.quantite, .prix, .remise').forEach(function (input) {
                     input.addEventListener('input', calculerMontants);
                 });
 
@@ -171,27 +194,38 @@
 
             function calculerMontants() {
                 let totalHt = 0;
-                document.querySelectorAll('#lignesBody tr').forEach(function(tr) {
-                    const quantite = parseFloat(tr.querySelector('.quantite').value) || 0;
-                    const prix = parseFloat(tr.querySelector('.prix').value) || 0;
-                    const remise = parseFloat(tr.querySelector('.remise').value) || 0;
+                const lignesBody = document.getElementById('lignesBody');
+                
+                if (lignesBody) {
+                    lignesBody.querySelectorAll('tr').forEach(function (tr) {
+                        const quantiteInput = tr.querySelector('.quantite');
+                        const prixInput = tr.querySelector('.prix');
+                        const remiseInput = tr.querySelector('.remise');
+                        const montantCell = tr.querySelector('.montant-ligne');
+                        
+                        if (quantiteInput && prixInput && remiseInput && montantCell) {
+                            const quantite = parseFloat(quantiteInput.value) || 0;
+                            const prix = parseFloat(prixInput.value) || 0;
+                            const remise = parseFloat(remiseInput.value) || 0;
 
-                    const montant = quantite * prix * (1 - remise / 100);
-                    tr.querySelector('.montant-ligne').textContent = montant.toFixed(2) + ' €';
-                    totalHt += montant;
-                });
+                            const montant = quantite * prix * (1 - remise / 100);
+                            montantCell.textContent = montant.toFixed(2) + ' €';
+                            totalHt += montant;
+                        }
+                    });
+                }
 
-                const remiseGlobale = parseFloat(document.getElementById('remiseGlobale').value) || 0;
-                totalHt = totalHt * (1 - remiseGlobale / 100);
+                const remiseGlobaleInput = document.getElementById('remiseGlobalePourcent');
+                if (remiseGlobaleInput) {
+                    const remiseGlobale = parseFloat(remiseGlobaleInput.value) || 0;
+                    totalHt = totalHt * (1 - remiseGlobale / 100);
+                }
 
-                document.getElementById('totalHt').textContent = totalHt.toFixed(2) + ' €';
+                const totalCell = document.getElementById('totalHt');
+                if (totalCell) {
+                    totalCell.textContent = totalHt.toFixed(2) + ' €';
+                }
             }
-
-            // Ajouter une ligne par défaut
-            ajouterLigne();
-
-            // Recalculer si remise globale change
-            document.getElementById('remiseGlobale').addEventListener('input', calculerMontants);
         </script>
     </main>
 </body>

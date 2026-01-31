@@ -35,16 +35,16 @@ public class EncaissementService {
     // ==================== CRUD ====================
 
     /**
-     * TODO.YML Ligne 29: Enregistrer un encaissement
+     * TODO.YML Ligne 29: Enregistrer un encaissement avec tous les détails
      */
     public Encaissement enregistrerEncaissement(Long factureId, BigDecimal montant, 
-            String modePaiement, String reference, Utilisateur utilisateur) {
+            String modePaiement, String reference, String banque, LocalDate dateEcheance, Utilisateur utilisateur) {
         
         FactureClient facture = factureClientRepository.findById(factureId)
                 .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée: " + factureId));
 
         // Vérifier que la facture est validée
-        if (!"VALIDEE".equals(facture.getStatut()) && !"PAYEE_PARTIELLEMENT".equals(facture.getStatut())) {
+        if (!"VALIDEE".equals(facture.getStatut()) && !"PAYEE_PARTIELLEMENT".equals(facture.getStatut()) && !"ENVOYEE".equals(facture.getStatut())) {
             throw new IllegalStateException("La facture doit être validée pour enregistrer un encaissement");
         }
 
@@ -65,22 +65,24 @@ public class EncaissementService {
         encaissement.setMontantEncaisse(montant);
         encaissement.setModePaiement(modePaiement);
         encaissement.setReference(reference);
-        encaissement.setStatut("VALIDE");
+        encaissement.setBanque(banque);
+        encaissement.setDateEcheance(dateEcheance);
+        encaissement.setStatut("EN_ATTENTE");
 
         Encaissement saved = encaissementRepository.save(encaissement);
-
-        // Mettre à jour le statut de la facture
-        BigDecimal nouveauTotal = totalEncaisse.add(montant);
-        if (nouveauTotal.compareTo(facture.getMontantTtc()) >= 0) {
-            factureClientService.marquerPayee(factureId, utilisateur);
-        } else {
-            factureClientService.marquerPaiementPartiel(factureId, nouveauTotal);
-        }
 
         auditService.logAction(utilisateur, "encaissement", saved.getId(),
                 "CREATE", null, "Encaissement de " + montant + " € pour facture " + facture.getNumero(), null);
 
         return saved;
+    }
+
+    /**
+     * TODO.YML Ligne 29: Enregistrer un encaissement (surcharge simple)
+     */
+    public Encaissement enregistrerEncaissement(Long factureId, BigDecimal montant, 
+            String modePaiement, String reference, Utilisateur utilisateur) {
+        return enregistrerEncaissement(factureId, montant, modePaiement, reference, null, null, utilisateur);
     }
 
     /**
@@ -112,7 +114,45 @@ public class EncaissementService {
         return encaissementRepository.findByModePaiement(modePaiement);
     }
 
+    /**
+     * Récupérer les encaissements par date
+     */
+    public List<Encaissement> listerParDate(LocalDate date) {
+        return encaissementRepository.findByDateEncaissement(date);
+    }
+
+    /**
+     * Récupérer les encaissements par période
+     */
+    public List<Encaissement> listerParPeriode(LocalDate debut, LocalDate fin) {
+        return encaissementRepository.findByDateEncaissementBetween(debut, fin);
+    }
+
     // ==================== WORKFLOW ====================
+
+    /**
+     * Valider un encaissement
+     */
+    public void validerEncaissement(Long encaissementId, Utilisateur utilisateur) {
+        Encaissement encaissement = obtenirParId(encaissementId);
+
+        if (!"EN_ATTENTE".equals(encaissement.getStatut())) {
+            throw new IllegalStateException("Seuls les encaissements en attente peuvent être validés");
+        }
+
+        encaissement.setStatut("VALIDE");
+        encaissementRepository.save(encaissement);
+
+        auditService.logAction(utilisateur, "encaissement", encaissementId,
+                "VALIDATE", "EN_ATTENTE", "VALIDE", null);
+    }
+
+    /**
+     * Rejeter un encaissement (surcharge simple, sans utilisateur)
+     */
+    public void rejeterEncaissement(Long encaissementId, String motif) {
+        rejeterEncaissement(encaissementId, null, motif);
+    }
 
     /**
      * Rejeter un encaissement (chèque impayé par exemple)
@@ -120,11 +160,12 @@ public class EncaissementService {
     public void rejeterEncaissement(Long encaissementId, Utilisateur utilisateur, String motif) {
         Encaissement encaissement = obtenirParId(encaissementId);
 
-        if (!"VALIDE".equals(encaissement.getStatut())) {
-            throw new IllegalStateException("Seuls les encaissements validés peuvent être rejetés");
+        if (!"VALIDE".equals(encaissement.getStatut()) && !"EN_ATTENTE".equals(encaissement.getStatut())) {
+            throw new IllegalStateException("Seuls les encaissements validés ou en attente peuvent être rejetés");
         }
 
         encaissement.setStatut("REJETE");
+        encaissement.setCommentaire(motif);
         encaissementRepository.save(encaissement);
 
         // Recalculer le statut de la facture
@@ -133,13 +174,16 @@ public class EncaissementService {
         
         if (totalEncaisse.compareTo(BigDecimal.ZERO) <= 0) {
             facture.setStatut("VALIDEE");
+            facture.setEstPayee(false);
         } else if (totalEncaisse.compareTo(facture.getMontantTtc()) < 0) {
             facture.setStatut("PAYEE_PARTIELLEMENT");
         }
         factureClientRepository.save(facture);
 
-        auditService.logAction(utilisateur, "encaissement", encaissementId,
-                "REJECT", "VALIDE", "REJETE", motif);
+        if (utilisateur != null) {
+            auditService.logAction(utilisateur, "encaissement", encaissementId,
+                    "REJECT", "VALIDE", "REJETE", motif);
+        }
     }
 
     // ==================== UTILITAIRES ====================

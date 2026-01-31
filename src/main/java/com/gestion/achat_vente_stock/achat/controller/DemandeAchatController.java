@@ -9,6 +9,7 @@ import com.gestion.achat_vente_stock.achat.service.DemandeAchatService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.repository.ServiceRepository;
 import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.referentiel.dto.ArticleDTO;
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
@@ -65,7 +66,8 @@ public class DemandeAchatController {
                             a.getId(),
                             a.getCode(),
                             a.getDesignation(),
-                            a.getPrixAchatMoyen()))
+                            a.getPrixAchatMoyen(), 
+                            a.getPrixVentePublic()))
                     .collect(Collectors.toList());
 
             model.addAttribute("articles", articlesDTO);
@@ -197,37 +199,4 @@ public class DemandeAchatController {
         return "redirect:/achats/demandes/" + id;
     }
 
-    /**
-     * DTO pour éviter les problèmes de sérialisation avec les relations JPA
-     */
-    public static class ArticleDTO {
-        private Long id;
-        private String code;
-        private String designation;
-        private java.math.BigDecimal prixAchatMoyen;
-
-        public ArticleDTO(Long id, String code, String designation, java.math.BigDecimal prixAchatMoyen) {
-            this.id = id;
-            this.code = code;
-            this.designation = designation;
-            this.prixAchatMoyen = prixAchatMoyen;
-        }
-
-        // Getters requis pour Jackson et Thymeleaf
-        public Long getId() {
-            return id;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public String getDesignation() {
-            return designation;
-        }
-
-        public java.math.BigDecimal getPrixAchatMoyen() {
-            return prixAchatMoyen;
-        }
-    }
 }

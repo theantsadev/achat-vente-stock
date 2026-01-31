@@ -69,9 +69,6 @@
                             <p><strong>Adresse:</strong> 
                                 <span th:text="${commande.client?.adresse}">-</span>
                             </p>
-                            <p><strong>Téléphone:</strong> 
-                                <span th:text="${commande.client?.telephone}">-</span>
-                            </p>
                             <p><strong>Email:</strong> 
                                 <span th:text="${commande.client?.email}">-</span>
                             </p>
@@ -108,7 +105,7 @@
                                 <td th:text="${ligne.quantiteLivree}">0</td>
                                 <td th:text="${#numbers.formatDecimal(ligne.prixUnitaireHt, 1, 2, 'COMMA')} + ' €'">-</td>
                                 <td th:text="${ligne.remisePourcent != null ? ligne.remisePourcent + '%' : '-'}">-</td>
-                                <td th:text="${#numbers.formatDecimal(ligne.calculerMontantHt(), 1, 2, 'COMMA')} + ' €'">-</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.montantLigneHt, 1, 2, 'COMMA')} + ' €'">-</td>
                             </tr>
                         </tbody>
                         <tfoot>
@@ -118,7 +115,7 @@
                             </tr>
                             <tr>
                                 <td colspan="7" class="text-right"><strong>TVA:</strong></td>
-                                <td><strong th:text="${#numbers.formatDecimal(commande.montantTotalTva, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(commande.montantTva, 1, 2, 'COMMA')} + ' €'">-</strong></td>
                             </tr>
                             <tr>
                                 <td colspan="7" class="text-right"><strong>Total TTC:</strong></td>

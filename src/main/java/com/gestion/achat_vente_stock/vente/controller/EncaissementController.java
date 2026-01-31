@@ -142,7 +142,7 @@ public class EncaissementController {
     /**
      * Valider un encaissement
      */
-    @PostMapping("/{id}/valider")
+    @GetMapping("/{id}/valider")
     public String valider(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
@@ -159,7 +159,7 @@ public class EncaissementController {
     /**
      * Rejeter un encaissement (chèque impayé, etc.)
      */
-    @PostMapping("/{id}/rejeter")
+    @GetMapping("/{id}/rejeter")
     public String rejeter(@PathVariable Long id,
                          @RequestParam(required = false) String motif,
                          RedirectAttributes redirectAttributes) {
