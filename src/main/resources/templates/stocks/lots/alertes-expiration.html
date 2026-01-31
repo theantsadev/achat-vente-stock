@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Alertes Expiration</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-clock-history text-warning"></i> Lots bientôt expirés</h2>
+            <a th:href="@{/stocks/lots}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+
+        <!-- Filtre par jours -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/stocks/lots/alertes-expiration}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Alerter pour les lots expirant dans les X prochains jours</label>
+                        <input type="number" name="joursAvant" class="form-control" th:value="${joursAvant}" min="1" max="365">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table des lots -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>N° Lot</th>
+                                <th>Article</th>
+                                <th>DLUO</th>
+                                <th>DLC</th>
+                                <th>Jours restants</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="lot : ${lots}">
+                                <td>
+                                    <a th:href="@{/stocks/lots/{id}(id=${lot.id})}" th:text="${lot.numero}"></a>
+                                </td>
+                                <td th:text="${lot.article?.code + ' - ' + lot.article?.designation}"></td>
+                                <td th:text="${lot.dluo != null ? #temporals.format(lot.dluo, 'dd/MM/yyyy') : '-'}"></td>
+                                <td th:text="${lot.dlc != null ? #temporals.format(lot.dlc, 'dd/MM/yyyy') : '-'}"></td>
+                                <td>
+                                    <span th:if="${lot.dlc != null}" 
+                                          th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(#temporals.createToday(), lot.dlc)}"
+                                          th:classappend="${T(java.time.temporal.ChronoUnit).DAYS.between(#temporals.createToday(), lot.dlc) < 7} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:if="${lot.dlc == null and lot.dluo != null}" 
+                                          th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(#temporals.createToday(), lot.dluo)}"
+                                          th:classappend="${T(java.time.temporal.ChronoUnit).DAYS.between(#temporals.createToday(), lot.dluo) < 7} ? 'text-danger fw-bold' : ''"></span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/stocks/lots/{id}(id=${lot.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(lots)}">
+                                <td colspan="6" class="text-center text-muted">Aucun lot bientôt expiré</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

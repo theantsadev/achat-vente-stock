@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Mouvement</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-arrow-left-right"></i> Mouvement 
+                <span th:text="${mouvement.numero}"></span>
+            </h2>
+            <a th:href="@{/stocks/mouvements}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informations générales</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Numéro</th>
+                                <td th:text="${mouvement.numero}"></td>
+                            </tr>
+                            <tr>
+                                <th>Type</th>
+                                <td>
+                                    <span th:if="${mouvement.typeMouvement.startsWith('ENTREE')}" class="badge bg-success" th:text="${mouvement.typeMouvement}"></span>
+                                    <span th:if="${mouvement.typeMouvement.startsWith('SORTIE')}" class="badge bg-danger" th:text="${mouvement.typeMouvement}"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Date mouvement</th>
+                                <td th:text="${#temporals.format(mouvement.dateMouvement, 'dd/MM/yyyy')}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date création</th>
+                                <td th:text="${#temporals.format(mouvement.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            </tr>
+                            <tr>
+                                <th>Créé par</th>
+                                <td th:text="${mouvement.createdBy?.nom + ' ' + mouvement.createdBy?.prenom}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Article et Stock</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Article</th>
+                                <td th:text="${mouvement.article?.code + ' - ' + mouvement.article?.designation}"></td>
+                            </tr>
+                            <tr>
+                                <th>Dépôt</th>
+                                <td th:text="${mouvement.depot?.code + ' - ' + mouvement.depot?.libelle}"></td>
+                            </tr>
+                            <tr>
+                                <th>Emplacement</th>
+                                <td th:text="${mouvement.emplacement ?: '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>N° Lot</th>
+                                <td th:text="${mouvement.lotNumero ?: '-'}"></td>
+                            </tr>
+                            <tr th:if="${mouvement.dluo}">
+                                <th>DLUO</th>
+                                <td th:text="${#temporals.format(mouvement.dluo, 'dd/MM/yyyy')}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quantités et Valorisation</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Quantité</th>
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(mouvement.quantite, 1, 2)}"></span>
+                                    <span th:text="${mouvement.unite}"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Coût unitaire</th>
+                                <td th:text="${#numbers.formatDecimal(mouvement.coutUnitaire, 1, 4)} + ' Ar'"></td>
+                            </tr>
+                            <tr>
+                                <th>Valeur totale</th>
+                                <td class="fw-bold text-primary" th:text="${#numbers.formatDecimal(mouvement.valeurTotale, 1, 2)} + ' Ar'"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6" th:if="${mouvement.documentId}">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Document source</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Type document</th>
+                                <td th:text="${mouvement.typeDocument}"></td>
+                            </tr>
+                            <tr>
+                                <th>ID Document</th>
+                                <td th:text="${mouvement.documentId}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

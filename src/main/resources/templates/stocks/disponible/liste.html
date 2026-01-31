@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Stock Disponible</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-boxes"></i> Stock Disponible</h2>
+            <div>
+                <a th:href="@{/stocks/disponible/alertes}" class="btn btn-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Alertes
+                </a>
+                <a th:href="@{/stocks/disponible/surstocks}" class="btn btn-info">
+                    <i class="bi bi-graph-up"></i> Surstocks
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2">Valeur totale du stock</h6>
+                        <h3 class="card-title mb-0" th:text="${#numbers.formatDecimal(valeurTotale ?: 0, 1, 2)} + ' Ar'"></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/stocks/disponible}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Article</label>
+                        <select name="articleId" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="article : ${articles}" 
+                                    th:value="${article.id}" 
+                                    th:text="${article.code + ' - ' + article.designation}"
+                                    th:selected="${article.id == articleId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Dépôt</label>
+                        <select name="depotId" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="depot : ${depots}" 
+                                    th:value="${depot.id}" 
+                                    th:text="${depot.code + ' - ' + depot.libelle}"
+                                    th:selected="${depot.id == depotId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a th:href="@{/stocks/disponible}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table du stock -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Article</th>
+                                <th>Dépôt</th>
+                                <th>Emplacement</th>
+                                <th>Lot</th>
+                                <th class="text-end">Qté Physique</th>
+                                <th class="text-end">Qté Réservée</th>
+                                <th class="text-end">Qté Disponible</th>
+                                <th class="text-end">Valeur</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="stock : ${stocks}">
+                                <td th:text="${stock.article?.code + ' - ' + stock.article?.designation}"></td>
+                                <td th:text="${stock.depot?.code}"></td>
+                                <td th:text="${stock.emplacement ?: '-'}"></td>
+                                <td th:text="${stock.lotNumero ?: '-'}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(stock.quantitePhysique ?: 0, 1, 2)}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(stock.quantiteReservee ?: 0, 1, 2)}"></td>
+                                <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(stock.quantiteDisponible ?: 0, 1, 2)}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(stock.valeurStock ?: 0, 1, 2)} + ' Ar'"></td>
+                                <td>
+                                    <span th:if="${stock.quantiteDisponible != null and stock.article?.stockMinimum != null and stock.quantiteDisponible < stock.article.stockMinimum}" 
+                                          class="badge bg-danger">Alerte</span>
+                                    <span th:if="${stock.quantiteDisponible != null and stock.article?.stockMaximum != null and stock.quantiteDisponible > stock.article.stockMaximum}" 
+                                          class="badge bg-warning">Surstock</span>
+                                    <span th:if="${stock.quantiteDisponible != null and (stock.article?.stockMinimum == null or stock.quantiteDisponible >= stock.article.stockMinimum) and (stock.article?.stockMaximum == null or stock.quantiteDisponible <= stock.article.stockMaximum)}" 
+                                          class="badge bg-success">OK</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(stocks)}">
+                                <td colspan="9" class="text-center text-muted">Aucun stock trouvé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

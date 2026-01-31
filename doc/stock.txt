@@ -1,0 +1,283 @@
+================================================================================
+                        MODULE STOCK - GUIDE DE TEST
+================================================================================
+
+Application: http://localhost:8081
+Base de données: PostgreSQL localhost:5432/achat_vente_stock
+
+================================================================================
+                           LISTE DES ENDPOINTS
+================================================================================
+
+MOUVEMENTS DE STOCK
+-------------------
+GET  /stocks/mouvements              - Liste des mouvements
+GET  /stocks/mouvements/{id}         - Détail d'un mouvement
+GET  /stocks/mouvements/entree       - Formulaire entrée stock
+POST /stocks/mouvements/entree       - Créer entrée stock
+GET  /stocks/mouvements/sortie       - Formulaire sortie stock
+POST /stocks/mouvements/sortie       - Créer sortie stock
+
+STOCK DISPONIBLE
+----------------
+GET  /stocks/disponible              - Vue stock par article/dépôt
+GET  /stocks/disponible/alertes      - Alertes stock minimum
+
+GESTION DES LOTS
+----------------
+GET  /stocks/lots                    - Liste des lots
+GET  /stocks/lots/{id}               - Détail d'un lot
+GET  /stocks/lots/nouveau            - Formulaire nouveau lot
+POST /stocks/lots                    - Créer un lot
+POST /stocks/lots/{id}/bloquer       - Bloquer un lot
+POST /stocks/lots/{id}/debloquer     - Débloquer un lot
+GET  /stocks/lots/alertes            - Alertes expiration
+
+TRANSFERTS INTER-DEPOTS
+-----------------------
+GET  /stocks/transferts              - Liste des transferts
+GET  /stocks/transferts/{id}         - Détail transfert
+GET  /stocks/transferts/nouveau      - Formulaire nouveau transfert
+POST /stocks/transferts              - Créer transfert
+POST /stocks/transferts/{id}/soumettre    - Soumettre pour validation
+POST /stocks/transferts/{id}/valider      - Valider (chef magasin)
+POST /stocks/transferts/{id}/expedier     - Marquer expédié
+POST /stocks/transferts/{id}/receptionner - Réceptionner
+POST /stocks/transferts/{id}/annuler      - Annuler
+POST /stocks/transferts/{id}/lignes       - Ajouter ligne
+
+RESERVATIONS DE STOCK
+---------------------
+GET  /stocks/reservations            - Liste des réservations
+GET  /stocks/reservations/{id}       - Détail réservation
+GET  /stocks/reservations/nouveau    - Formulaire nouvelle réservation
+POST /stocks/reservations            - Créer réservation
+POST /stocks/reservations/{id}/consommer  - Marquer consommée
+POST /stocks/reservations/{id}/annuler    - Annuler
+
+================================================================================
+                         TYPES DE MOUVEMENTS
+================================================================================
+
+ENTREES (formulaire /stocks/mouvements/entree)
+----------------------------------------------
+- ENTREE_RECEPTION    : Réception d'une commande fournisseur
+- ENTREE_RETOUR_CLIENT: Retour de marchandise par un client
+- ENTREE_AJUSTEMENT   : Correction de stock (inventaire positif)
+- ENTREE_TRANSFERT    : Réception d'un transfert inter-dépôts
+
+SORTIES (formulaire /stocks/mouvements/sortie)
+----------------------------------------------
+- SORTIE_LIVRAISON    : Livraison client (commande)
+- SORTIE_RETOUR_FOURNISSEUR: Retour marchandise au fournisseur
+- SORTIE_AJUSTEMENT   : Correction de stock (inventaire négatif)
+- SORTIE_TRANSFERT    : Expédition transfert inter-dépôts
+- SORTIE_PERTE        : Perte, casse, vol
+
+================================================================================
+                          PREREQUIS AVANT TEST
+================================================================================
+
+1. Avoir des ARTICLES créés : /referentiel/articles
+2. Avoir des DEPOTS créés   : /referentiel/depots
+3. L'application doit être démarrée (mvn spring-boot:run)
+4. Les tables sont créées automatiquement par JPA (ddl-auto=update)
+
+================================================================================
+                       SCENARIOS DE TEST COMPLETS
+================================================================================
+
+------------------------------------------------------------------------------
+SCENARIO 1 : ENTREE DE STOCK (Réception fournisseur)
+------------------------------------------------------------------------------
+
+Étape 1 - Créer une entrée de stock
+   1. Aller à http://localhost:8081/stocks/mouvements/entree
+   2. Sélectionner type : ENTREE_RECEPTION
+   3. Choisir un article dans la liste
+   4. Choisir un dépôt
+   5. Saisir la quantité (ex: 100)
+   6. Saisir le coût unitaire (ex: 15.50)
+   7. Optionnel : saisir un numéro de lot
+   8. Cliquer sur "Enregistrer"
+
+Étape 2 - Vérifier le stock disponible
+   1. Aller à http://localhost:8081/stocks/disponible
+   2. Vérifier que l'article apparaît avec la quantité saisie
+   3. Vérifier la valorisation (quantité × coût unitaire)
+
+Étape 3 - Voir le mouvement créé
+   1. Aller à http://localhost:8081/stocks/mouvements
+   2. Le mouvement d'entrée doit apparaître dans la liste
+   3. Cliquer dessus pour voir le détail
+
+------------------------------------------------------------------------------
+SCENARIO 2 : SORTIE DE STOCK (Livraison client)
+------------------------------------------------------------------------------
+
+Prérequis : Avoir du stock disponible (voir Scénario 1)
+
+Étape 1 - Créer une sortie de stock
+   1. Aller à http://localhost:8081/stocks/mouvements/sortie
+   2. Sélectionner type : SORTIE_LIVRAISON
+   3. Choisir l'article qui a du stock
+   4. Choisir le dépôt
+   5. Saisir la quantité à sortir (≤ stock disponible)
+   6. Le coût est calculé automatiquement (CUMP)
+   7. Cliquer sur "Enregistrer"
+
+Étape 2 - Vérifier la diminution du stock
+   1. Aller à http://localhost:8081/stocks/disponible
+   2. La quantité doit avoir diminué
+
+------------------------------------------------------------------------------
+SCENARIO 3 : GESTION DES LOTS
+------------------------------------------------------------------------------
+
+Étape 1 - Créer un lot
+   1. Aller à http://localhost:8081/stocks/lots/nouveau
+   2. Sélectionner un article
+   3. Sélectionner un dépôt
+   4. Saisir un numéro de lot (ex: LOT-2026-001)
+   5. Saisir la date DLUO (Date Limite d'Utilisation Optimale)
+   6. Saisir la date DLC (Date Limite de Consommation)
+   7. Saisir la quantité initiale
+   8. Valider
+
+Étape 2 - Bloquer un lot (non conforme)
+   1. Aller à http://localhost:8081/stocks/lots
+   2. Cliquer sur un lot pour voir le détail
+   3. Cliquer sur "Bloquer"
+   4. Le lot passe en statut BLOQUE
+   5. Ce lot ne sera plus utilisé pour les sorties
+
+Étape 3 - Vérifier les alertes d'expiration
+   1. Aller à http://localhost:8081/stocks/lots/alertes
+   2. Les lots proches de leur date d'expiration apparaissent
+   3. Les lots expirés sont automatiquement bloqués (tâche planifiée)
+
+------------------------------------------------------------------------------
+SCENARIO 4 : TRANSFERT INTER-DEPOTS
+------------------------------------------------------------------------------
+
+Prérequis : Avoir au moins 2 dépôts et du stock dans un dépôt
+
+Étape 1 - Créer un transfert
+   1. Aller à http://localhost:8081/stocks/transferts/nouveau
+   2. Sélectionner le dépôt source (qui a du stock)
+   3. Sélectionner le dépôt destination
+   4. Cliquer sur "Créer le transfert"
+   → Le transfert est créé en statut BROUILLON
+
+Étape 2 - Ajouter des lignes
+   1. Sur la page détail du transfert
+   2. Sélectionner un article
+   3. Saisir la quantité demandée
+   4. Optionnel : saisir un numéro de lot
+   5. Cliquer sur "Ajouter"
+   6. Répéter pour d'autres articles si besoin
+
+Étape 3 - Soumettre le transfert
+   1. Cliquer sur "Soumettre"
+   → Le transfert passe en statut DEMANDE
+
+Étape 4 - Valider (chef magasin)
+   1. Cliquer sur "Valider"
+   → Le transfert passe en statut VALIDEE
+
+Étape 5 - Expédier
+   1. Cliquer sur "Expédier"
+   → Le transfert passe en statut EN_TRANSIT
+   → Le stock du dépôt source diminue
+
+Étape 6 - Réceptionner
+   1. Cliquer sur "Réceptionner"
+   → Le transfert passe en statut RECUE
+   → Le stock du dépôt destination augmente
+
+Étape 7 - Vérifier les mouvements
+   1. Aller à http://localhost:8081/stocks/mouvements
+   2. Deux mouvements ont été créés :
+      - SORTIE_TRANSFERT (dépôt source)
+      - ENTREE_TRANSFERT (dépôt destination)
+
+------------------------------------------------------------------------------
+SCENARIO 5 : RESERVATION DE STOCK
+------------------------------------------------------------------------------
+
+Prérequis : Avoir du stock disponible
+
+Étape 1 - Créer une réservation
+   1. Aller à http://localhost:8081/stocks/reservations/nouveau
+   2. Sélectionner un article
+   3. Sélectionner un dépôt
+   4. Saisir la quantité à réserver
+   5. Optionnel : saisir l'ID de la commande client
+   6. Cliquer sur "Créer la réservation"
+   → Le lot est sélectionné automatiquement (FIFO ou FEFO)
+   → La réservation est active pendant 7 jours
+
+Étape 2 - Vérifier l'impact sur le stock
+   1. Aller à http://localhost:8081/stocks/disponible
+   2. La colonne "Qté Réservée" augmente
+   3. La colonne "Qté Disponible" diminue
+
+Étape 3 - Consommer la réservation
+   1. Aller à http://localhost:8081/stocks/reservations
+   2. Cliquer sur une réservation ACTIVE
+   3. Cliquer sur "Consommer (Livraison effectuée)"
+   → La réservation passe en statut CONSOMMEE
+
+Étape 4 - Annuler une réservation
+   1. Sur une réservation ACTIVE
+   2. Cliquer sur "Annuler"
+   → La quantité réservée est libérée
+
+------------------------------------------------------------------------------
+SCENARIO 6 : ALERTES STOCK
+------------------------------------------------------------------------------
+
+Étape 1 - Vérifier les alertes de stock minimum
+   1. Aller à http://localhost:8081/stocks/disponible/alertes
+   2. Les articles dont le stock est inférieur au seuil minimum apparaissent
+   3. Ces alertes permettent de déclencher des réapprovisionnements
+
+Étape 2 - Vérifier les alertes d'expiration des lots
+   1. Aller à http://localhost:8081/stocks/lots/alertes
+   2. Les lots qui expirent dans les 30 prochains jours apparaissent
+   3. Les lots déjà expirés sont marqués comme EXPIRE ou BLOQUE
+
+================================================================================
+                       VALORISATION DU STOCK
+================================================================================
+
+METHODE CUMP (Coût Unitaire Moyen Pondéré)
+------------------------------------------
+Utilisée par défaut pour les sorties.
+Formule : (Valeur stock existant + Valeur nouvelle entrée) / Quantité totale
+
+METHODE FIFO (First In, First Out)
+----------------------------------
+Premier entré, premier sorti.
+Les sorties prennent le coût des entrées les plus anciennes.
+
+METHODE FEFO (First Expired, First Out)
+---------------------------------------
+Pour les articles périssables.
+Les lots avec la date d'expiration la plus proche sortent en premier.
+
+================================================================================
+                       TACHES PLANIFIEES (CRON)
+================================================================================
+
+1. Blocage automatique des lots expirés
+   - Exécution : tous les jours à minuit
+   - Action : passe les lots expirés en statut BLOQUE
+
+2. Expiration des réservations
+   - Exécution : tous les jours à 1h du matin
+   - Action : passe les réservations expirées en statut EXPIREE
+
+================================================================================
+                              FIN DU GUIDE
+================================================================================

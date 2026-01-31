@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Réservations de Stock</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-bookmark"></i> <span th:text="${titre ?: 'Réservations de Stock'}">Réservations de Stock</span></h2>
+            <a th:href="@{/stocks/reservations/nouveau}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouvelle Réservation
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/stocks/reservations}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}" th:selected="${s == statut}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a th:href="@{/stocks/reservations}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table des réservations -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Article</th>
+                                <th>Dépôt</th>
+                                <th>Lot</th>
+                                <th class="text-end">Qté Réservée</th>
+                                <th>Commande Client</th>
+                                <th>Date Réservation</th>
+                                <th>Date Expiration</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="res : ${reservations}">
+                                <td>
+                                    <a th:href="@{/stocks/reservations/{id}(id=${res.id})}" th:text="${res.id}"></a>
+                                </td>
+                                <td th:text="${res.article?.code + ' - ' + res.article?.designation}"></td>
+                                <td th:text="${res.depot?.code}"></td>
+                                <td th:text="${res.lotNumero ?: '-'}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(res.quantiteReservee ?: 0, 1, 2)}"></td>
+                                <td th:text="${res.commandeClientId ?: '-'}"></td>
+                                <td th:text="${#temporals.format(res.dateReservation, 'dd/MM/yyyy')}"></td>
+                                <td>
+                                    <span th:text="${res.dateExpiration != null ? #temporals.format(res.dateExpiration, 'dd/MM/yyyy') : '-'}"
+                                          th:classappend="${res.dateExpiration != null and res.dateExpiration.isBefore(#temporals.createToday())} ? 'text-danger' : ''"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${res.statut == 'ACTIVE'}" class="badge bg-success">ACTIVE</span>
+                                    <span th:if="${res.statut == 'CONSOMMEE'}" class="badge bg-primary">CONSOMMÉE</span>
+                                    <span th:if="${res.statut == 'EXPIREE'}" class="badge bg-warning">EXPIRÉE</span>
+                                    <span th:if="${res.statut == 'ANNULEE'}" class="badge bg-danger">ANNULÉE</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/stocks/reservations/{id}(id=${res.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(reservations)}">
+                                <td colspan="10" class="text-center text-muted">Aucune réservation trouvée</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Lot</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-upc-scan"></i> Lot 
+                <span th:text="${lot.numero}"></span>
+            </h2>
+            <a th:href="@{/stocks/lots}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5 class="mb-0">Informations du lot</h5>
+                        <span th:if="${lot.statut == 'ACTIF'}" class="badge bg-success">ACTIF</span>
+                        <span th:if="${lot.statut == 'BLOQUE'}" class="badge bg-warning">BLOQUÉ</span>
+                        <span th:if="${lot.statut == 'EXPIRE'}" class="badge bg-danger">EXPIRÉ</span>
+                        <span th:if="${lot.statut == 'NON_CONFORME'}" class="badge bg-dark">NON CONFORME</span>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Numéro</th>
+                                <td th:text="${lot.numero}"></td>
+                            </tr>
+                            <tr>
+                                <th>Article</th>
+                                <td th:text="${lot.article?.code + ' - ' + lot.article?.designation}"></td>
+                            </tr>
+                            <tr>
+                                <th>Fournisseur</th>
+                                <td th:text="${lot.fournisseur?.raisonSociale ?: '-'}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Dates</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Date de fabrication</th>
+                                <td th:text="${lot.dateFabrication != null ? #temporals.format(lot.dateFabrication, 'dd/MM/yyyy') : '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>DLUO</th>
+                                <td>
+                                    <span th:if="${lot.dluo}" th:text="${#temporals.format(lot.dluo, 'dd/MM/yyyy')}"
+                                          th:classappend="${lot.dluo.isBefore(#temporals.createToday())} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:unless="${lot.dluo}">-</span>
+                                    <span th:if="${lot.dluo != null and lot.dluo.isBefore(#temporals.createToday())}" class="badge bg-danger ms-2">Expiré</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>DLC</th>
+                                <td>
+                                    <span th:if="${lot.dlc}" th:text="${#temporals.format(lot.dlc, 'dd/MM/yyyy')}"
+                                          th:classappend="${lot.dlc.isBefore(#temporals.createToday())} ? 'text-danger fw-bold' : ''"></span>
+                                    <span th:unless="${lot.dlc}">-</span>
+                                    <span th:if="${lot.dlc != null and lot.dlc.isBefore(#temporals.createToday())}" class="badge bg-danger ms-2">Expiré</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocage -->
+        <div th:if="${lot.statut == 'BLOQUE' or lot.statut == 'NON_CONFORME'}" class="card mb-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Informations de blocage</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Motif :</strong> <span th:text="${lot.motifBlocage}"></span></p>
+                <p><strong>Date de blocage :</strong> <span th:text="${lot.bloqueAt != null ? #temporals.format(lot.bloqueAt, 'dd/MM/yyyy HH:mm') : '-'}"></span></p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <!-- Bloquer -->
+                    <form th:if="${lot.statut == 'ACTIF'}" th:action="@{/stocks/lots/{id}/bloquer(id=${lot.id})}" method="post" class="d-inline">
+                        <div class="input-group">
+                            <input type="text" name="motifBlocage" class="form-control" placeholder="Motif de blocage" required>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-lock"></i> Bloquer
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Débloquer -->
+                    <form th:if="${lot.statut == 'BLOQUE' or lot.statut == 'NON_CONFORME'}" th:action="@{/stocks/lots/{id}/debloquer(id=${lot.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-unlock"></i> Débloquer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
