@@ -9,6 +9,8 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.referentiel.model.Fournisseur;
@@ -89,4 +91,8 @@ public class Proforma {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "valide_by")
     private Utilisateur valideBy;
+
+    // Lignes de la proforma
+    @OneToMany(mappedBy = "proforma", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<LigneProforma> lignes = new ArrayList<>();
 }

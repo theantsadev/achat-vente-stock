@@ -17,10 +17,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/achats/bons-commande")
 @RequiredArgsConstructor
 public class BonCommandeController {
-    
+
     private final BonCommandeService bonCommandeService;
     private final UtilisateurRepository utilisateurRepository;
-    
+
     /**
      * TODO.YML Ligne 11: Liste des bons de commande
      */
@@ -29,7 +29,7 @@ public class BonCommandeController {
         model.addAttribute("bonsCommande", bonCommandeService.listerTous());
         return "achats/bons-commande/liste";
     }
-    
+
     /**
      * TODO.YML Ligne 11: Créer BC depuis Proforma
      */
@@ -37,7 +37,7 @@ public class BonCommandeController {
     public String creerDepuisProforma(@PathVariable Long proformaId, RedirectAttributes redirectAttributes) {
         Utilisateur acheteur = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
+
         try {
             BonCommande bc = bonCommandeService.creerBonCommandeDepuisProforma(proformaId, acheteur);
             redirectAttributes.addFlashAttribute("success", "Bon de commande créé depuis la Pro-forma");
@@ -47,7 +47,7 @@ public class BonCommandeController {
             return "redirect:/achats/pro-formas/" + proformaId;
         }
     }
-    
+
     /**
      * TODO.YML Ligne 11-13: Détail BC
      */
@@ -58,7 +58,7 @@ public class BonCommandeController {
         model.addAttribute("utilisateurs", utilisateurRepository.findAll());
         return "achats/bons-commande/detail";
     }
-    
+
     /**
      * TODO.YML Ligne 12: Soumettre pour validation
      */
@@ -66,54 +66,54 @@ public class BonCommandeController {
     public String soumettre(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Utilisateur acheteur = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
+
         bonCommandeService.soumettrePourValidation(id, acheteur);
         redirectAttributes.addFlashAttribute("success", "BC soumis pour validation");
         return "redirect:/achats/bons-commande/" + id;
     }
-    
+
     /**
      * TODO.YML Ligne 12: Valider BC (responsable achats)
      */
     @PostMapping("/{id}/valider")
     public String valider(@PathVariable Long id,
-                         @RequestParam Long responsableId,
-                         @RequestParam boolean approuve,
-                         @RequestParam(required = false) String commentaire,
-                         RedirectAttributes redirectAttributes) {
+            @RequestParam Long responsableId,
+            @RequestParam boolean approuve,
+            @RequestParam(required = false) String commentaire,
+            RedirectAttributes redirectAttributes) {
         Utilisateur responsable = utilisateurRepository.findById(responsableId)
                 .orElseThrow(() -> new RuntimeException("Responsable non trouvé"));
-        
+
         try {
             bonCommandeService.validerBonCommande(id, responsable, approuve, commentaire);
             redirectAttributes.addFlashAttribute("success", "BC validé");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        
+
         return "redirect:/achats/bons-commande/" + id;
     }
-    
+
     /**
      * TODO.YML Ligne 13: Approuver pour signature (DG/DAF)
      */
     @PostMapping("/{id}/approuver")
     public String approuver(@PathVariable Long id,
-                           @RequestParam Long approbateurId,
-                           RedirectAttributes redirectAttributes) {
+            @RequestParam Long approbateurId,
+            RedirectAttributes redirectAttributes) {
         Utilisateur approbateur = utilisateurRepository.findById(approbateurId)
                 .orElseThrow(() -> new RuntimeException("Approbateur non trouvé"));
-        
+
         try {
             bonCommandeService.approuverPourSignature(id, approbateur);
             redirectAttributes.addFlashAttribute("success", "BC approuvé pour signature");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        
+
         return "redirect:/achats/bons-commande/" + id;
     }
-    
+
     /**
      * Envoyer au fournisseur
      */
@@ -121,14 +121,14 @@ public class BonCommandeController {
     public String envoyer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Utilisateur acheteur = utilisateurRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        
+
         try {
             bonCommandeService.envoyerBonCommande(id, acheteur);
             redirectAttributes.addFlashAttribute("success", "BC envoyé au fournisseur");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        
+
         return "redirect:/achats/bons-commande/" + id;
     }
 }

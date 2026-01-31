@@ -1,49 +1,52 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
 <head>
     <title>Réceptions</title>
 </head>
+
 <body>
-<main>
-    <div class="container">
-        <h1>📦 Réceptions de Marchandises</h1>
-        
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Numéro</th>
-                    <th>Bon Commande</th>
-                    <th>Magasinier</th>
-                    <th>Date Réception</th>
-                    <th>BL Fournisseur</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="br : ${receptions}">
-                    <td th:text="${br.numero}">BR001</td>
-                    <td th:text="${br.bonCommande?.numero}">BC001</td>
-                    <td th:text="${br.magasinier?.nom}">Durand</td>
-                    <td th:text="${#temporals.format(br.dateReception, 'dd/MM/yyyy')}">01/01/2026</td>
-                    <td th:text="${br.numeroBlFournisseur}">BL-F-001</td>
-                    <td>
-                        <span th:class="${'badge badge-' + 
+    <main>
+        <div class="container">
+            <h1>📦 Réceptions de Marchandises</h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Bon Commande</th>
+                        <th>Magasinier</th>
+                        <th>Date Réception</th>
+                        <th>BL Fournisseur</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="br : ${receptions}">
+                        <td th:text="${br.numero}">BR001</td>
+                        <td th:text="${br.bonCommande?.numero}">BC001</td>
+                        <td th:text="${br.magasinier?.nom}">Durand</td>
+                        <td th:text="${#temporals.format(br.dateReception, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td th:text="${br.numeroBlFournisseur}">BL-F-001</td>
+                        <td>
+                            <span th:class="${'badge badge-' + 
                             (br.statut == 'PARTIELLE' ? 'warning' : 
                              br.statut == 'COMPLETE' ? 'success' : 
                              br.statut == 'AVEC_ECART' ? 'danger' : 'secondary')}"
-                              th:text="${br.statut}">PARTIELLE</span>
-                    </td>
-                    <td>
-                        <a th:href="@{/achats/receptions/{id}(id=${br.id})}" class="btn btn-sm">👁️ Voir</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</main>
+                                th:text="${br.statut}">PARTIELLE</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/achats/receptions/{id}(id=${br.id})}" class="btn btn-sm">👁️ Voir</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
 </body>
+
 </html>

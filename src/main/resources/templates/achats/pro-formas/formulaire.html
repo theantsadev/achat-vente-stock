@@ -36,14 +36,41 @@
             </div>
 
             <form th:action="${proforma?.id} ? @{/achats/pro-formas/{id}(id=${proforma.id})} : @{/achats/pro-formas}"
-                th:method="post"
-                th:object="${proforma}">
+                th:method="post" th:object="${proforma}" id="proforma-form">
 
                 <input type="hidden" th:field="*{demandeAchat.id}" />
                 <input type="hidden" th:field="*{numero}" />
                 <input type="hidden" th:field="*{statut}" />
                 <input type="hidden" th:field="*{dateCreation}" />
                 <input type="hidden" th:field="*{createur.id}" />
+                <input type="hidden" id="lignes-modifiees" name="lignesModifiees" value="" />
+
+                <!-- Lignes de la Pro-forma -->
+                <div class="form-group">
+                    <h3>📦 Articles Pro-forma</h3>
+                    <table style="margin-top: 1rem; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">Article</th>
+                                <th style="width: 12%;">Quantité</th>
+                                <th style="width: 15%;">Prix Unitaire HT</th>
+                                <th style="width: 12%;">Remise %</th>
+                                <th style="width: 18%;">Total HT</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lignes-proforma-body">
+                            <!-- Les lignes seront ajoutées depuis la DA -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align: right; font-weight: bold;">Total HT:</td>
+                                <td id="total-ligne-ht" style="font-weight: bold;">0.00 €</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
                 <div class="form-group">
                     <label>Fournisseur:</label>
@@ -82,7 +109,8 @@
 
                 <div class="form-group">
                     <label>Conditions commerciales:</label>
-                    <textarea th:field="*{conditionsCommerciales}" rows="4" placeholder="Saisir les conditions..."></textarea>
+                    <textarea th:field="*{conditionsCommerciales}" rows="4"
+                        placeholder="Saisir les conditions..."></textarea>
                 </div>
 
                 <div class="form-group">
@@ -91,33 +119,233 @@
                 </div>
 
                 <div class="actions">
-                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                    <button type="submit" class="btn btn-primary" onclick="sauvegarderLignes(event)">💾 Enregistrer</button>
                     <a th:href="${proforma?.id} ? @{/achats/pro-formas/{id}(id=${proforma.id})} : @{/achats/pro-formas}"
                         class="btn">Annuler</a>
                 </div>
             </form>
+
+            <!-- Données des lignes PF stockées dans un attribut data -->
+            <div id="lignes-pf-data" style="display:none;" th:attr="data-lignes=${lignesPFJson}"></div>
+
         </div>
+
+        <script th:inline="javascript">
+            (function () {
+                'use strict';
+
+                console.log('🔄 Script IIFE démarré');
+
+                // Récupérer l'ID de la proforma du formulaire
+                const proformaId = /*[[${proforma.id}]]*/ null;
+                console.log('📝 ProformaId:', proformaId);
+
+                // Initialiser les lignes vides au démarrage
+                let lignesProformaData = [];
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    console.log('🔄 DOMContentLoaded - Initialisation du formulaire Pro-forma');
+
+                    // Si c'est une modification (proforma.id exists), charger les lignes via fetch
+                    if (proformaId) {
+                        console.log('📡 Chargement des lignes via fetch...');
+                        fetch('/achats/pro-formas/api/' + proformaId + '/lignes')
+                            .then(response => {
+                                console.log('✅ Réponse reçue:', response.status);
+                                if (!response.ok) {
+                                    throw new Error('Erreur ' + response.status);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('✅ Lignes chargées:', data);
+                                lignesProformaData = data;
+                                afficherLignes();
+                            })
+                            .catch(error => {
+                                console.error('❌ Erreur fetch:', error);
+                            });
+                    } else {
+                        console.log('➕ Nouvelle pro-forma - aucune ligne à charger');
+                        afficherLignes();
+                    }
+
+                    function afficherLignes() {
+                        console.log('📦 Affichage des lignes:', lignesProformaData.length);
+
+                        // Ajouter les lignes
+                        const tbody = document.getElementById('lignes-proforma-body');
+                        if (tbody && lignesProformaData.length > 0) {
+                            lignesProformaData.forEach(function (ligne, index) {
+                                ajouterLigneProforma(ligne, index);
+                            });
+                        } else {
+                            console.warn('⚠️ Aucune ligne à afficher');
+                        }
+                    }
+
+                    // Event listener sur le champ montantTotalHt
+                    const montantHtInput = document.querySelector('input[name="montantTotalHt"]');
+                    const montantTvaInput = document.querySelector('input[name="montantTva"]');
+                    const montantTtcInput = document.querySelector('input[name="montantTotalTtc"]');
+
+                    function calculateTotals() {
+                        const ht = parseFloat(montantHtInput.value) || 0;
+                        const tva = ht * 0.20;
+                        const ttc = ht + tva;
+
+                        montantTvaInput.value = tva.toFixed(2);
+                        montantTtcInput.value = ttc.toFixed(2);
+                    }
+
+                    if (montantHtInput) {
+                        montantHtInput.addEventListener('change', calculateTotals);
+                        montantHtInput.addEventListener('input', calculateTotals);
+                        calculateTotals();
+                    }
+
+                    function ajouterLigneProforma(ligne, index) {
+                        const tbody = document.getElementById('lignes-proforma-body');
+                        if (!tbody) return;
+
+                        const tr = document.createElement('tr');
+                        tr.id = 'ligne-pf-' + index;
+                        tr.className = 'ligne-proforma-row';
+
+                        const designation = (ligne.article?.designation || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                        const code = (ligne.article?.code || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                        const quantite = parseFloat(ligne.quantite) || 0;
+                        const prixUnitaire = parseFloat(ligne.prixUnitaireHt || ligne.prixEstimeHt) || 0;
+                        const remisePourcent = parseFloat(ligne.remisePourcent || 0) || 0;
+
+                        tr.innerHTML =
+                            '<td>' +
+                            '<input type="hidden" class="ligne-article-id" value="' + (ligne.article?.id || '') + '" />' +
+                            '<span class="ligne-article-code">' + code + '</span><br/>' +
+                            '<span class="ligne-article-designation">' + designation + '</span>' +
+                            '</td>' +
+                            '<td>' +
+                            '<input type="number" class="ligne-quantite" min="0.01" step="0.01" ' +
+                            'value="' + quantite.toFixed(2) + '" />' +
+                            '</td>' +
+                            '<td>' +
+                            '<input type="number" class="ligne-prix-unitaire" min="0" step="0.01" ' +
+                            'value="' + prixUnitaire.toFixed(2) + '" />' +
+                            '</td>' +
+                            '<td>' +
+                            '<input type="number" class="ligne-remise-pourcent" min="0" step="0.01" ' +
+                            'value="' + remisePourcent.toFixed(2) + '" />' +
+                            '</td>' +
+                            '<td>' +
+                            '<span id="total-pf-' + index + '" class="ligne-total-pf">0.00 €</span>' +
+                            '</td>' +
+                            '<td>' +
+                            '<button type="button" class="btn btn-danger btn-sm" data-ligne="' + index + '">🗑️</button>' +
+                            '</td>';
+
+                        tbody.appendChild(tr);
+
+                        const inputQuantite = tr.querySelector('.ligne-quantite');
+                        const inputPrix = tr.querySelector('.ligne-prix-unitaire');
+                        const inputRemise = tr.querySelector('.ligne-remise-pourcent');
+                        const btnSupprimer = tr.querySelector('.btn-danger');
+
+                        function calculerTotalLigne() {
+                            const q = parseFloat(inputQuantite.value) || 0;
+                            const p = parseFloat(inputPrix.value) || 0;
+                            const r = parseFloat(inputRemise.value) || 0;
+                            let total = q * p;
+                            // Appliquer la remise
+                            if (r > 0) {
+                                total = total * (1 - r / 100);
+                            }
+                            const totalSpan = document.getElementById('total-pf-' + index);
+                            if (totalSpan) {
+                                totalSpan.textContent = total.toFixed(2) + ' €';
+                            }
+                            calculerTotalGeneral();
+                        }
+
+                        if (inputQuantite) {
+                            inputQuantite.addEventListener('change', calculerTotalLigne);
+                            inputQuantite.addEventListener('input', calculerTotalLigne);
+                        }
+
+                        if (inputPrix) {
+                            inputPrix.addEventListener('change', calculerTotalLigne);
+                            inputPrix.addEventListener('input', calculerTotalLigne);
+                        }
+
+                        if (inputRemise) {
+                            inputRemise.addEventListener('change', calculerTotalLigne);
+                            inputRemise.addEventListener('input', calculerTotalLigne);
+                        }
+
+                        if (btnSupprimer) {
+                            btnSupprimer.addEventListener('click', function () {
+                                supprimerLigneProforma(index);
+                            });
+                        }
+
+                        calculerTotalLigne();
+                    }
+
+                    function supprimerLigneProforma(index) {
+                        const ligne = document.getElementById('ligne-pf-' + index);
+                        if (ligne) {
+                            ligne.remove();
+                            calculerTotalGeneral();
+                        }
+                    }
+
+                    function calculerTotalGeneral() {
+                        let total = 0;
+                        document.querySelectorAll('.ligne-total-pf').forEach(function (el) {
+                            const value = parseFloat(el.textContent.replace(' €', '').replace(',', '.'));
+                            if (!isNaN(value)) {
+                                total += value;
+                            }
+                        });
+
+                        const totalLigneHtEl = document.getElementById('total-ligne-ht');
+                        if (totalLigneHtEl) {
+                            totalLigneHtEl.textContent = total.toFixed(2) + ' €';
+                        }
+
+                        // Mettre à jour le montant total du formulaire
+                        if (montantHtInput) {
+                            montantHtInput.value = total.toFixed(2);
+                            calculateTotals();
+                        }
+                    }
+
+                    // Fonction globale pour sauvegarder les lignes modifiées
+                    window.sauvegarderLignes = function(event) {
+                        const lignesData = [];
+                        const rows = document.querySelectorAll('.ligne-proforma-row');
+
+                        rows.forEach(function(row) {
+                            const quantite = parseFloat(row.querySelector('.ligne-quantite').value) || 0;
+                            const prix = parseFloat(row.querySelector('.ligne-prix-unitaire').value) || 0;
+                            const remise = parseFloat(row.querySelector('.ligne-remise-pourcent').value) || 0;
+                            const articleId = row.querySelector('.ligne-article-id').value;
+
+                            lignesData.push({
+                                articleId: articleId,
+                                quantite: quantite,
+                                prixUnitaireHt: prix,
+                                remisePourcent: remise
+                            });
+                        });
+
+                        // Stocker les lignes modifiées dans le champ hidden
+                        document.getElementById('lignes-modifiees').value = JSON.stringify(lignesData);
+                        console.log('📦 Lignes à sauvegarder:', lignesData);
+                    };
+                });
+            })();
+        </script>
     </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const montantHtInput = document.querySelector('input[name="montantTotalHt"]');
-            const montantTvaInput = document.querySelector('input[name="montantTva"]');
-            const montantTtcInput = document.querySelector('input[name="montantTotalTtc"]');
-
-            function calculateTotals() {
-                const ht = parseFloat(montantHtInput.value) || 0;
-                const tva = ht * 0.20;
-                const ttc = ht + tva;
-
-                montantTvaInput.value = tva.toFixed(2);
-                montantTtcInput.value = ttc.toFixed(2);
-            }
-
-            montantHtInput.addEventListener('change', calculateTotals);
-            calculateTotals();
-        });
-    </script>
 </body>
 
 </html>
