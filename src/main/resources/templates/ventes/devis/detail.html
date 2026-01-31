@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Détail Devis</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 20-21: Devis avec remises et validation -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📄 Devis <span th:text="${devis.numero}">DEV001</span></h1>
+                <a th:href="@{/ventes/devis}" class="btn btn-secondary">← Retour à la liste</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+
+            <!-- Informations générales -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>📋 Informations du devis</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Numéro:</strong> <span th:text="${devis.numero}">-</span></p>
+                            <p><strong>Date création:</strong> 
+                                <span th:text="${#temporals.format(devis.dateCreation, 'dd/MM/yyyy HH:mm')}">-</span>
+                            </p>
+                            <p><strong>Date validité:</strong> 
+                                <span th:text="${#temporals.format(devis.dateValidite, 'dd/MM/yyyy')}">-</span>
+                            </p>
+                            <p><strong>Statut:</strong> 
+                                <span th:if="${devis.statut == 'BROUILLON'}" class="badge badge-secondary">Brouillon</span>
+                                <span th:if="${devis.statut == 'EN_ATTENTE_VALIDATION'}" class="badge badge-warning">Attente validation</span>
+                                <span th:if="${devis.statut == 'VALIDE'}" class="badge badge-info">Validé</span>
+                                <span th:if="${devis.statut == 'ACCEPTE'}" class="badge badge-success">Accepté</span>
+                                <span th:if="${devis.statut == 'REFUSE'}" class="badge badge-danger">Refusé</span>
+                                <span th:if="${devis.statut == 'EXPIRE'}" class="badge badge-dark">Expiré</span>
+                                <span th:if="${devis.statut == 'TRANSFORME_EN_COMMANDE'}" class="badge badge-primary">Transformé en commande</span>
+                            </p>
+                            <p th:if="${devis.remiseGlobalePourcent != null && devis.remiseGlobalePourcent > 0}">
+                                <strong>Remise globale:</strong> 
+                                <span th:text="${devis.remiseGlobalePourcent} + '%'">-</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>👤 Client</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Raison sociale:</strong> 
+                                <span th:text="${devis.client?.raisonSociale}">-</span>
+                            </p>
+                            <p><strong>Adresse:</strong> 
+                                <span th:text="${devis.client?.adresse}">-</span>
+                            </p>
+                            <p><strong>Téléphone:</strong> 
+                                <span th:text="${devis.client?.telephone}">-</span>
+                            </p>
+                            <p><strong>Email:</strong> 
+                                <span th:text="${devis.client?.email}">-</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lignes du devis -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>📦 Articles</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Désignation</th>
+                                <th>Quantité</th>
+                                <th>Prix unitaire HT</th>
+                                <th>Remise (%)</th>
+                                <th>Montant HT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${devis.lignes}">
+                                <td th:text="${ligne.article?.code}">-</td>
+                                <td th:text="${ligne.article?.designation}">-</td>
+                                <td th:text="${ligne.quantite}">0</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.prixUnitaireHt, 1, 2, 'COMMA')} + ' €'">-</td>
+                                <td th:text="${ligne.remisePourcent != null ? ligne.remisePourcent + '%' : '-'}">-</td>
+                                <td th:text="${#numbers.formatDecimal(ligne.calculerMontantHt(), 1, 2, 'COMMA')} + ' €'">-</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>Total HT:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(devis.montantTotalHt, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>TVA:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(devis.montantTotalTva, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>Total TTC:</strong></td>
+                                <td><strong th:text="${#numbers.formatDecimal(devis.montantTotalTtc, 1, 2, 'COMMA')} + ' €'">-</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions selon le statut -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚡ Actions</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Brouillon: soumettre -->
+                    <form th:if="${devis.statut == 'BROUILLON'}" 
+                          th:action="@{/ventes/devis/{id}/soumettre(id=${devis.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">📤 Soumettre pour validation</button>
+                    </form>
+
+                    <!-- TODO.YML Ligne 21: En attente validation: valider (responsable) -->
+                    <form th:if="${devis.statut == 'EN_ATTENTE_VALIDATION'}" 
+                          th:action="@{/ventes/devis/{id}/valider(id=${devis.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">✅ Valider</button>
+                    </form>
+
+                    <!-- Validé: accepter ou refuser par le client -->
+                    <div th:if="${devis.statut == 'VALIDE'}">
+                        <form th:action="@{/ventes/devis/{id}/accepter(id=${devis.id})}" 
+                              method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-success">👍 Client accepte</button>
+                        </form>
+                        <form th:action="@{/ventes/devis/{id}/refuser(id=${devis.id})}" 
+                              method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">👎 Client refuse</button>
+                        </form>
+                    </div>
+
+                    <!-- TODO.YML Ligne 22: Accepté: transformer en commande -->
+                    <form th:if="${devis.statut == 'ACCEPTE'}" 
+                          th:action="@{/ventes/commandes/depuis-devis/{id}(id=${devis.id})}" 
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">🔄 Transformer en commande</button>
+                    </form>
+
+                    <!-- Imprimer -->
+                    <a th:href="@{/ventes/devis/{id}/imprimer(id=${devis.id})}" 
+                       class="btn btn-secondary">🖨️ Imprimer</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

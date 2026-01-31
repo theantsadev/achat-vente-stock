@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Nouveau Devis</title>
+</head>
+
+<body>
+    <main>
+        <!-- TODO.YML Ligne 20: Créer devis/pro-forma client -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>➕ Nouveau Devis</h1>
+                <a th:href="@{/ventes/devis}" class="btn btn-secondary">← Retour</a>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <form th:action="@{/ventes/devis}" method="post">
+                <!-- Informations client -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3>👤 Client</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="clientId">Client *</label>
+                            <select id="clientId" name="clientId" class="form-control" required>
+                                <option value="">-- Sélectionner un client --</option>
+                                <option th:each="client : ${clients}" 
+                                        th:value="${client.id}" 
+                                        th:text="${client.raisonSociale}">Client</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paramètres du devis -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3>📋 Paramètres du devis</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dateValidite">Date de validité *</label>
+                                    <input type="date" id="dateValidite" name="dateValidite" 
+                                           class="form-control" required
+                                           th:value="${#temporals.format(T(java.time.LocalDate).now().plusMonths(1), 'yyyy-MM-dd')}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="remiseGlobale">Remise globale (%)</label>
+                                    <input type="number" id="remiseGlobale" name="remiseGlobale" 
+                                           class="form-control" step="0.01" min="0" max="100" value="0">
+                                    <small class="form-text text-muted">
+                                        Une remise supérieure à 15% nécessite une validation
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Articles du devis -->
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>📦 Articles</h3>
+                        <button type="button" id="ajouterLigne" class="btn btn-sm btn-success">
+                            ➕ Ajouter article
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table" id="tableLignes">
+                            <thead>
+                                <tr>
+                                    <th>Article</th>
+                                    <th>Quantité</th>
+                                    <th>Prix unitaire HT</th>
+                                    <th>Remise (%)</th>
+                                    <th>Montant HT</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lignesBody">
+                                <!-- Lignes ajoutées dynamiquement -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-right"><strong>Total HT:</strong></td>
+                                    <td id="totalHt">0,00 €</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer le devis</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Script pour gestion dynamique des lignes -->
+        <script th:inline="javascript">
+            const articles = /*[[${articlesJson}]]*/ [];
+            let ligneIndex = 0;
+
+            document.getElementById('ajouterLigne').addEventListener('click', function() {
+                ajouterLigne();
+            });
+
+            function ajouterLigne() {
+                const tbody = document.getElementById('lignesBody');
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-index', ligneIndex);
+
+                let optionsArticles = '<option value="">-- Article --</option>';
+                articles.forEach(function(art) {
+                    optionsArticles += `<option value="${art.id}" data-prix="${art.prixVente}">${art.code} - ${art.designation}</option>`;
+                });
+
+                tr.innerHTML = `
+                    <td>
+                        <select name="lignes[${ligneIndex}].articleId" class="form-control article-select" required>
+                            ${optionsArticles}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="lignes[${ligneIndex}].quantite" 
+                               class="form-control quantite" min="1" value="1" required>
+                    </td>
+                    <td>
+                        <input type="number" name="lignes[${ligneIndex}].prixUnitaireHt" 
+                               class="form-control prix" step="0.01" min="0" required>
+                    </td>
+                    <td>
+                        <input type="number" name="lignes[${ligneIndex}].remisePourcent" 
+                               class="form-control remise" step="0.01" min="0" max="100" value="0">
+                    </td>
+                    <td class="montant-ligne">0,00 €</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigne(this)">🗑️</button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+
+                // Event listeners
+                tr.querySelector('.article-select').addEventListener('change', function() {
+                    const option = this.options[this.selectedIndex];
+                    const prix = option.dataset.prix || 0;
+                    tr.querySelector('.prix').value = prix;
+                    calculerMontants();
+                });
+
+                tr.querySelectorAll('.quantite, .prix, .remise').forEach(function(input) {
+                    input.addEventListener('input', calculerMontants);
+                });
+
+                ligneIndex++;
+            }
+
+            function supprimerLigne(btn) {
+                btn.closest('tr').remove();
+                calculerMontants();
+            }
+
+            function calculerMontants() {
+                let totalHt = 0;
+                document.querySelectorAll('#lignesBody tr').forEach(function(tr) {
+                    const quantite = parseFloat(tr.querySelector('.quantite').value) || 0;
+                    const prix = parseFloat(tr.querySelector('.prix').value) || 0;
+                    const remise = parseFloat(tr.querySelector('.remise').value) || 0;
+
+                    const montant = quantite * prix * (1 - remise / 100);
+                    tr.querySelector('.montant-ligne').textContent = montant.toFixed(2) + ' €';
+                    totalHt += montant;
+                });
+
+                const remiseGlobale = parseFloat(document.getElementById('remiseGlobale').value) || 0;
+                totalHt = totalHt * (1 - remiseGlobale / 100);
+
+                document.getElementById('totalHt').textContent = totalHt.toFixed(2) + ' €';
+            }
+
+            // Ajouter une ligne par défaut
+            ajouterLigne();
+
+            // Recalculer si remise globale change
+            document.getElementById('remiseGlobale').addEventListener('input', calculerMontants);
+        </script>
+    </main>
+</body>
+
+</html>
