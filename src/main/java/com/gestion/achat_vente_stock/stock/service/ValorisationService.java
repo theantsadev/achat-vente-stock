@@ -35,7 +35,7 @@ public class ValorisationService {
      */
     public BigDecimal getCoutSortie(Article article, Depot depot, BigDecimal quantiteDemandee) {
         String methode = article.getMethodeValorisation();
-        
+
         if ("FIFO".equals(methode)) {
             return getCoutFIFO(article, depot, quantiteDemandee);
         } else if ("CUMP".equals(methode)) {
@@ -52,7 +52,7 @@ public class ValorisationService {
      */
     private BigDecimal getCoutFIFO(Article article, Depot depot, BigDecimal quantiteDemandee) {
         List<MouvementStock> entrees = mouvementStockRepository.findEntreesFIFO(article.getId(), depot.getId());
-        
+
         if (entrees.isEmpty()) {
             return article.getPrixAchatMoyen() != null ? article.getPrixAchatMoyen() : BigDecimal.ZERO;
         }
@@ -91,7 +91,8 @@ public class ValorisationService {
 
     /**
      * TODO.YML Ligne 39: Recalculer le CUMP après une entrée
-     * CUMP = (Valeur stock existant + Valeur nouvelle entrée) / (Qté existante + Qté entrée)
+     * CUMP = (Valeur stock existant + Valeur nouvelle entrée) / (Qté existante +
+     * Qté entrée)
      */
     public void recalculerCUMP(Long articleId) {
         Article article = articleRepository.findById(articleId)
@@ -99,13 +100,14 @@ public class ValorisationService {
 
         // Somme des valeurs et quantités de tout le stock
         List<StockDisponible> stocks = stockDisponibleRepository.findByArticleId(articleId);
-        
+
         BigDecimal valeurTotale = BigDecimal.ZERO;
         BigDecimal quantiteTotale = BigDecimal.ZERO;
 
         for (StockDisponible stock : stocks) {
             if (stock.getQuantitePhysique() != null && stock.getQuantitePhysique().compareTo(BigDecimal.ZERO) > 0) {
-                valeurTotale = valeurTotale.add(stock.getValeurStock() != null ? stock.getValeurStock() : BigDecimal.ZERO);
+                valeurTotale = valeurTotale
+                        .add(stock.getValeurStock() != null ? stock.getValeurStock() : BigDecimal.ZERO);
                 quantiteTotale = quantiteTotale.add(stock.getQuantitePhysique());
             }
         }
