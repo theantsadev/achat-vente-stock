@@ -275,4 +275,15 @@ public class MouvementStockService {
     public List<MouvementStock> getMouvementsRetrodates(LocalDate dateCloture) {
         return mouvementStockRepository.findMouvementsRetrodates(dateCloture);
     }
+
+    /**
+     * Récupère la quantité disponible pour un article dans un dépôt
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal getStockDisponible(Long articleId, Long depotId) {
+        return stockDisponibleRepository.findByArticleIdAndDepotId(articleId, depotId)
+                .stream()
+                .map(sd -> sd.getQuantitePhysique() != null ? sd.getQuantitePhysique() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

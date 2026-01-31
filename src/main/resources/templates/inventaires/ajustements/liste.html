@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Ajustements de Stock</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-sliders"></i> <span th:text="${titre ?: 'Ajustements de Stock'}">Ajustements de Stock</span></h2>
+            <a th:href="@{/inventaires/ajustements/nouveau}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouvel Ajustement
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Info seuil validation -->
+        <div th:if="${seuilValidation}" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            Seuil de validation automatique : <strong th:text="${#numbers.formatDecimal(seuilValidation, 1, 2)} + ' Ar'"></strong>. 
+            Les ajustements supérieurs nécessitent une validation chef magasin.
+        </div>
+
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/inventaires/ajustements}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}" th:selected="${s.name() == statut}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a th:href="@{/inventaires/ajustements}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table des ajustements -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Article</th>
+                                <th>Dépôt</th>
+                                <th>Motif</th>
+                                <th class="text-end">Écart</th>
+                                <th class="text-end">Valeur</th>
+                                <th>Demandé par</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ajust : ${ajustements}">
+                                <td>
+                                    <a th:href="@{/inventaires/ajustements/{id}(id=${ajust.id})}" th:text="${ajust.numero}"></a>
+                                </td>
+                                <td th:text="${ajust.article?.code + ' - ' + ajust.article?.designation}"></td>
+                                <td th:text="${ajust.depot?.code}"></td>
+                                <td>
+                                    <span th:text="${ajust.motif}"></span>
+                                </td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(ajust.ecart ?: 0, 1, 2)}"
+                                    th:classappend="${ajust.ecart != null and ajust.ecart < 0} ? 'text-danger' : 'text-success'"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(ajust.valeurAjustement ?: 0, 1, 2)} + ' Ar'"></td>
+                                <td th:text="${ajust.demandeBy?.nom}"></td>
+                                <td>
+                                    <span th:if="${ajust.statut.name() == 'EN_ATTENTE'}" class="badge bg-warning">EN ATTENTE</span>
+                                    <span th:if="${ajust.statut.name() == 'VALIDE'}" class="badge bg-info">VALIDÉ</span>
+                                    <span th:if="${ajust.statut.name() == 'APPLIQUE'}" class="badge bg-success">APPLIQUÉ</span>
+                                    <span th:if="${ajust.statut.name() == 'REFUSE'}" class="badge bg-danger">REFUSÉ</span>
+                                    <span th:if="${ajust.statut.name() == 'ANNULE'}" class="badge bg-secondary">ANNULÉ</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/inventaires/ajustements/{id}(id=${ajust.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(ajustements)}">
+                                <td colspan="9" class="text-center text-muted">Aucun ajustement trouvé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

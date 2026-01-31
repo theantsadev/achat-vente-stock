@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Nouvel Ajustement</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-sliders"></i> Nouvel Ajustement Manuel</h2>
+            <a th:href="@{/inventaires/ajustements}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/inventaires/ajustements}" method="post">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Article *</label>
+                                <select name="articleId" class="form-select" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option th:each="article : ${articles}" 
+                                            th:value="${article.id}" 
+                                            th:text="${article.code + ' - ' + article.designation}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Dépôt *</label>
+                                <select name="depotId" class="form-select" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option th:each="depot : ${depots}" 
+                                            th:value="${depot.id}" 
+                                            th:text="${depot.code + ' - ' + depot.libelle}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Nouvelle quantité *</label>
+                                <input type="number" name="quantiteApres" class="form-control" step="0.01" min="0" required>
+                                <div class="form-text">Quantité physique réelle constatée</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Motif *</label>
+                                <select name="motif" class="form-select" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option th:each="m : ${motifs}" th:value="${m}" th:text="${m}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">N° Lot (optionnel)</label>
+                                <input type="text" name="lotNumero" class="form-control" placeholder="Numéro de lot">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Justification *</label>
+                        <textarea name="justification" class="form-control" rows="3" required 
+                                  placeholder="Expliquez la raison de cet ajustement..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>Attention :</strong> Cet ajustement sera soumis à validation avant d'être appliqué au stock.
+                        Les ajustements d'une valeur supérieure au seuil nécessitent une validation par le chef magasin.
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a th:href="@{/inventaires/ajustements}" class="btn btn-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Créer l'ajustement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
