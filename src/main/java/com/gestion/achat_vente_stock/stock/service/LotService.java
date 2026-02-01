@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -39,10 +40,10 @@ public class LotService {
     /**
      * TODO.YML Ligne 37: Créer un nouveau lot
      */
-    public Lot creerLot(Article article, Fournisseur fournisseur, 
-                        LocalDate dateFabrication, LocalDate dluo, LocalDate dlc,
-                        Utilisateur utilisateur) {
-        
+    public Lot creerLot(Article article, Fournisseur fournisseur,
+            LocalDate dateFabrication, LocalDate dluo, LocalDate dlc,
+            Utilisateur utilisateur) {
+
         // Vérifier si traçabilité lot obligatoire pour cet article
         if (Boolean.TRUE.equals(article.getTracabiliteLot())) {
             validateDates(dateFabrication, dluo, dlc);
@@ -91,7 +92,7 @@ public class LotService {
      */
     public Lot debloquerLot(Long lotId, Utilisateur utilisateur) {
         Lot lot = trouverParId(lotId);
-        
+
         // Vérifier si le lot n'est pas expiré avant de débloquer
         if (lot.isExpire()) {
             throw new RuntimeException("Impossible de débloquer un lot expiré");
@@ -115,16 +116,16 @@ public class LotService {
      * TODO.YML Ligne 38: Vérifier et bloquer automatiquement les lots expirés
      * Tâche planifiée qui s'exécute tous les jours à minuit
      */
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 10 22 * * *", zone = "Indian/Antananarivo")
     public void bloquerLotsExpires() {
-        LocalDate today = LocalDate.now();
-        
+        LocalDate today = LocalDate.now(ZoneId.of("Indian/Antananarivo"));
+
         // Bloquer les lots dont la DLC est dépassée
         List<Lot> lotsExpiresDLC = lotRepository.findLotsExpiresDLC(today);
         for (Lot lot : lotsExpiresDLC) {
             lot.setStatut(STATUT_EXPIRE);
             lot.setMotifBlocage("DLC dépassée le " + lot.getDlc());
-            lot.setBloqueAt(LocalDateTime.now());
+            lot.setBloqueAt(LocalDateTime.now(ZoneId.of("Indian/Antananarivo")));
             lotRepository.save(lot);
         }
 
@@ -133,7 +134,7 @@ public class LotService {
         for (Lot lot : lotsExpiresDLUO) {
             lot.setStatut(STATUT_EXPIRE);
             lot.setMotifBlocage("DLUO dépassée le " + lot.getDluo());
-            lot.setBloqueAt(LocalDateTime.now());
+            lot.setBloqueAt(LocalDateTime.now(ZoneId.of("Indian/Antananarivo")));
             lotRepository.save(lot);
         }
     }
@@ -145,10 +146,10 @@ public class LotService {
     public List<Lot> getLotsBientotExpires(int joursAvantExpiration) {
         LocalDate today = LocalDate.now();
         LocalDate dateAlerte = today.plusDays(joursAvantExpiration);
-        
+
         List<Lot> lotsDLC = lotRepository.findLotsBientotExpiresDLC(today, dateAlerte);
         List<Lot> lotsDLUO = lotRepository.findLotsBientotExpiresDLUO(today, dateAlerte);
-        
+
         lotsDLC.addAll(lotsDLUO);
         return lotsDLC;
     }
@@ -165,30 +166,31 @@ public class LotService {
      * Générer un numéro de lot unique
      */
     private String genererNumeroLot(String codeArticle) {
-        String prefix = "LOT-" + codeArticle + "-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "-";
+        String prefix = "LOT-" + codeArticle + "-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + "-";
         Optional<String> lastNumero = lotRepository.findLastNumeroByPrefix(prefix);
-        
+
         int sequence = 1;
         if (lastNumero.isPresent()) {
             String last = lastNumero.get();
             String seqStr = last.substring(last.lastIndexOf("-") + 1);
             sequence = Integer.parseInt(seqStr) + 1;
         }
-        
+
         return prefix + String.format("%04d", sequence);
     }
 
     private void validateDates(LocalDate dateFabrication, LocalDate dluo, LocalDate dlc) {
         LocalDate today = LocalDate.now();
-        
+
         if (dateFabrication != null && dateFabrication.isAfter(today)) {
             throw new RuntimeException("La date de fabrication ne peut pas être dans le futur");
         }
-        
+
         if (dlc != null && dlc.isBefore(today)) {
             throw new RuntimeException("La DLC est déjà dépassée");
         }
-        
+
         if (dluo != null && dlc != null && dluo.isAfter(dlc)) {
             throw new RuntimeException("La DLUO ne peut pas être après la DLC");
         }
