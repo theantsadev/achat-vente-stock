@@ -69,7 +69,7 @@ public class LigneInventaireController {
                                   RedirectAttributes redirectAttributes) {
         try {
             // TODO: Récupérer l'utilisateur connecté
-            Utilisateur compteur = utilisateurRepository.findAll().stream().findFirst().orElse(null);
+            Utilisateur compteur = utilisateurRepository.findAll().get(1);
             
             ligneInventaireService.saisirComptage2(ligneId, quantite, compteur);
             redirectAttributes.addFlashAttribute("success", "Comptage 2 enregistré");

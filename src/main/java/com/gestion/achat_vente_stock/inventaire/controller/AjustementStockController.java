@@ -37,7 +37,7 @@ public class AjustementStockController {
     @GetMapping
     public String liste(Model model, @RequestParam(required = false) String statut) {
         List<AjustementStock> ajustements;
-        
+
         if (statut != null && !statut.isEmpty()) {
             ajustements = ajustementStockService.findByStatut(StatutAjustement.valueOf(statut));
         } else {
@@ -78,22 +78,22 @@ public class AjustementStockController {
      */
     @PostMapping
     public String creer(@RequestParam Long articleId,
-                       @RequestParam Long depotId,
-                       @RequestParam BigDecimal quantiteApres,
-                       @RequestParam String motif,
-                       @RequestParam String justification,
-                       @RequestParam(required = false) String lotNumero,
-                       RedirectAttributes redirectAttributes) {
+            @RequestParam Long depotId,
+            @RequestParam BigDecimal quantiteApres,
+            @RequestParam String motif,
+            @RequestParam String justification,
+            @RequestParam(required = false) String lotNumero,
+            RedirectAttributes redirectAttributes) {
         try {
             Utilisateur demandeur = utilisateurRepository.findAll().stream().findFirst().orElse(null);
-            
+
             AjustementStock ajustement = ajustementStockService.creerManuel(
                     articleId, depotId, quantiteApres,
                     MotifAjustement.valueOf(motif), justification,
-                    lotNumero, demandeur
-            );
-            
-            redirectAttributes.addFlashAttribute("success", "Ajustement " + ajustement.getNumero() + " créé - En attente de validation");
+                    lotNumero, demandeur);
+
+            redirectAttributes.addFlashAttribute("success",
+                    "Ajustement " + ajustement.getNumero() + " créé - En attente de validation");
             return "redirect:/inventaires/ajustements/" + ajustement.getId();
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -119,7 +119,7 @@ public class AjustementStockController {
     @PostMapping("/{id}/valider")
     public String valider(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur valideur = utilisateurRepository.findAll().stream().findFirst().orElse(null);
+            Utilisateur valideur = utilisateurRepository.findAll().get(1);
             ajustementStockService.valider(id, valideur);
             redirectAttributes.addFlashAttribute("success", "Ajustement validé");
         } catch (Exception e) {
@@ -132,9 +132,9 @@ public class AjustementStockController {
      * Refuser un ajustement
      */
     @PostMapping("/{id}/refuser")
-    public String refuser(@PathVariable Long id, 
-                         @RequestParam String motifRefus,
-                         RedirectAttributes redirectAttributes) {
+    public String refuser(@PathVariable Long id,
+            @RequestParam String motifRefus,
+            RedirectAttributes redirectAttributes) {
         try {
             Utilisateur valideur = utilisateurRepository.findAll().stream().findFirst().orElse(null);
             ajustementStockService.refuser(id, valideur, motifRefus);

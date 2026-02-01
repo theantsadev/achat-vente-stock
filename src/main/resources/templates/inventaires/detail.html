@@ -208,10 +208,10 @@
                                 <td class="text-end fw-bold" th:text="${ligne.quantiteRetenue != null ? #numbers.formatDecimal(ligne.quantiteRetenue, 1, 2) : '-'}"></td>
                                 <td class="text-end" 
                                     th:text="${ligne.ecartQuantite != null ? #numbers.formatDecimal(ligne.ecartQuantite, 1, 2) : '-'}"
-                                    th:classappend="${ligne.ecartQuantite != null and ligne.ecartQuantite < 0} ? 'text-danger fw-bold' : (ligne.ecartQuantite != null and ligne.ecartQuantite > 0 ? 'text-success fw-bold' : '')"></td>
+                                    th:classappend="${(ligne.ecartQuantite != null and ligne.ecartQuantite.compareTo(T(java.math.BigDecimal).ZERO) < 0) ? 'text-danger fw-bold' : (ligne.ecartQuantite != null and ligne.ecartQuantite.compareTo(T(java.math.BigDecimal).ZERO) > 0) ? 'text-success fw-bold' : ''}"></td>
                                 <td class="text-end" 
                                     th:text="${ligne.ecartValeur != null ? #numbers.formatDecimal(ligne.ecartValeur, 1, 2) + ' Ar' : '-'}"
-                                    th:classappend="${ligne.ecartValeur != null and ligne.ecartValeur < 0} ? 'text-danger' : ''"></td>
+                                    th:classappend="${ligne.ecartValeur != null and ligne.ecartValeur.compareTo(T(java.math.BigDecimal).ZERO) < 0} ? 'text-danger' : ''"></td>
                                 <td>
                                     <!-- Boutons de saisie comptage (si en mode comptage) -->
                                     <div th:if="${inventaire.statut.name() == 'EN_COMPTAGE' or inventaire.statut.name() == 'OUVERT'}" class="btn-group btn-group-sm">

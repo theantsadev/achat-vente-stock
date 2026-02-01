@@ -15,6 +15,8 @@ import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.DepotRepository;
 import com.gestion.achat_vente_stock.stock.model.MouvementStock;
 import com.gestion.achat_vente_stock.stock.service.MouvementStockService;
+import com.gestion.achat_vente_stock.stock.service.StockDisponibleService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,7 @@ public class AjustementStockService {
     private final ArticleRepository articleRepository;
     private final DepotRepository depotRepository;
     private final MouvementStockService mouvementStockService;
+    private final StockDisponibleService stockDisponibleService;
 
     // Seuil de validation chef magasin (en valeur absolue)
     private static final BigDecimal SEUIL_VALIDATION = new BigDecimal("1000.00");
@@ -61,7 +64,8 @@ public class AjustementStockService {
     /**
      * Crée un ajustement à partir d'une ligne d'inventaire
      */
-    public AjustementStock creerDepuisLigneInventaire(Long ligneInventaireId, Utilisateur demandeur, String justification) {
+    public AjustementStock creerDepuisLigneInventaire(Long ligneInventaireId, Utilisateur demandeur,
+            String justification) {
         LigneInventaire ligne = ligneInventaireRepository.findById(ligneInventaireId)
                 .orElseThrow(() -> new IllegalArgumentException("Ligne inventaire non trouvée: " + ligneInventaireId));
 
@@ -101,9 +105,9 @@ public class AjustementStockService {
     /**
      * Crée un ajustement manuel (hors inventaire)
      */
-    public AjustementStock creerManuel(Long articleId, Long depotId, BigDecimal quantiteApres, 
-                                       MotifAjustement motif, String justification, 
-                                       String lotNumero, Utilisateur demandeur) {
+    public AjustementStock creerManuel(Long articleId, Long depotId, BigDecimal quantiteApres,
+            MotifAjustement motif, String justification,
+            String lotNumero, Utilisateur demandeur) {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new IllegalArgumentException("Article non trouvé: " + articleId));
         Depot depot = depotRepository.findById(depotId)
@@ -137,8 +141,8 @@ public class AjustementStockService {
         AjustementStock ajustement = ajustementStockRepository.findById(ajustementId)
                 .orElseThrow(() -> new IllegalArgumentException("Ajustement non trouvé: " + ajustementId));
 
-        if (ajustement.getStatut() != StatutAjustement.EN_ATTENTE && 
-            ajustement.getStatut() != StatutAjustement.VALIDE) {
+        if (ajustement.getStatut() != StatutAjustement.EN_ATTENTE &&
+                ajustement.getStatut() != StatutAjustement.VALIDE) {
             throw new IllegalStateException("L'ajustement ne peut pas être validé dans son état actuel");
         }
 
@@ -147,14 +151,16 @@ public class AjustementStockService {
             throw new IllegalStateException("Le valideur ne peut pas être la même personne que le demandeur");
         }
 
-        // Si c'est un ajustement d'inventaire, vérifier que le valideur n'est pas un compteur
+        // Si c'est un ajustement d'inventaire, vérifier que le valideur n'est pas un
+        // compteur
         if (ajustement.getInventaire() != null) {
             List<LigneInventaire> lignesComptees = ligneInventaireRepository
-                    .findByInventaireIdAndArticleId(ajustement.getInventaire().getId(), ajustement.getArticle().getId());
-            
+                    .findByInventaireIdAndArticleId(ajustement.getInventaire().getId(),
+                            ajustement.getArticle().getId());
+
             for (LigneInventaire ligne : lignesComptees) {
                 if ((ligne.getCompteur1() != null && ligne.getCompteur1().getId().equals(valideur.getId())) ||
-                    (ligne.getCompteur2() != null && ligne.getCompteur2().getId().equals(valideur.getId()))) {
+                        (ligne.getCompteur2() != null && ligne.getCompteur2().getId().equals(valideur.getId()))) {
                     throw new IllegalStateException("Le valideur ne peut pas être un des compteurs de cette ligne");
                 }
             }
@@ -165,7 +171,7 @@ public class AjustementStockService {
         ajustement.setValideAt(LocalDateTime.now());
 
         log.info("Ajustement {} validé par {}", ajustement.getNumero(), valideur.getLogin());
-        
+
         return ajustementStockRepository.save(ajustement);
     }
 
@@ -189,7 +195,7 @@ public class AjustementStockService {
             BigDecimal coutUnitaire = ajustement.getValeurAjustement() != null && ecart.compareTo(BigDecimal.ZERO) != 0
                     ? ajustement.getValeurAjustement().divide(ecart, 4, BigDecimal.ROUND_HALF_UP).abs()
                     : BigDecimal.ZERO;
-            
+
             mouvement = mouvementStockService.creerMouvementEntree(
                     ajustement.getArticle(),
                     ajustement.getDepot(),
@@ -201,8 +207,7 @@ public class AjustementStockService {
                     null, // dluo
                     ajustement.getId(), // documentId
                     "AJUSTEMENT", // typeDocument
-                    utilisateur
-            );
+                    utilisateur);
         } else {
             // Écart négatif = sortie
             mouvement = mouvementStockService.creerMouvementSortie(
@@ -214,15 +219,14 @@ public class AjustementStockService {
                     ajustement.getLotNumero(),
                     ajustement.getId(), // documentId
                     "AJUSTEMENT", // typeDocument
-                    utilisateur
-            );
+                    utilisateur);
         }
 
         ajustement.setStatut(StatutAjustement.APPLIQUE);
         ajustement = ajustementStockRepository.save(ajustement);
 
         log.info("Ajustement {} appliqué: mouvement {} créé", ajustement.getNumero(), mouvement.getNumero());
-        
+
         return ajustement;
     }
 
@@ -243,7 +247,7 @@ public class AjustementStockService {
         ajustement.setJustification(ajustement.getJustification() + " | REFUS: " + motifRefus);
 
         log.info("Ajustement {} refusé par {}: {}", ajustement.getNumero(), valideur.getLogin(), motifRefus);
-        
+
         return ajustementStockRepository.save(ajustement);
     }
 
@@ -257,7 +261,8 @@ public class AjustementStockService {
         List<LigneInventaire> lignesAvecEcart = ligneInventaireRepository.findLignesAvecEcart(inventaireId);
 
         return lignesAvecEcart.stream()
-                .map(ligne -> creerDepuisLigneInventaire(ligne.getId(), demandeur, "Écart inventaire " + inventaire.getNumero()))
+                .map(ligne -> creerDepuisLigneInventaire(ligne.getId(), demandeur,
+                        "Écart inventaire " + inventaire.getNumero()))
                 .toList();
     }
 
