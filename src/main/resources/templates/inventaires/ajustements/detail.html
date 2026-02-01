@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Ajustement</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-sliders"></i> Ajustement 
+                <span th:text="${ajustement.numero}"></span>
+            </h2>
+            <a th:href="@{/inventaires/ajustements}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statut et Actions -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>Statut : 
+                            <span th:if="${ajustement.statut.name() == 'EN_ATTENTE'}" class="badge bg-warning">EN ATTENTE</span>
+                            <span th:if="${ajustement.statut.name() == 'VALIDE'}" class="badge bg-info">VALIDÉ</span>
+                            <span th:if="${ajustement.statut.name() == 'APPLIQUE'}" class="badge bg-success">APPLIQUÉ</span>
+                            <span th:if="${ajustement.statut.name() == 'REFUSE'}" class="badge bg-danger">REFUSÉ</span>
+                            <span th:if="${ajustement.statut.name() == 'ANNULE'}" class="badge bg-secondary">ANNULÉ</span>
+                        </h5>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <!-- Actions selon le statut -->
+                        <form th:if="${ajustement.statut.name() == 'EN_ATTENTE'}" th:action="@{/inventaires/ajustements/{id}/valider(id=${ajustement.id})}" method="post">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Valider
+                            </button>
+                        </form>
+                        
+                        <button th:if="${ajustement.statut.name() == 'EN_ATTENTE'}" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRefus">
+                            <i class="bi bi-x-circle"></i> Refuser
+                        </button>
+                        
+                        <form th:if="${ajustement.statut.name() == 'VALIDE'}" th:action="@{/inventaires/ajustements/{id}/appliquer(id=${ajustement.id})}" method="post">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-all"></i> Appliquer au stock
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informations article</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Article</th>
+                                <td th:text="${ajustement.article?.code + ' - ' + ajustement.article?.designation}"></td>
+                            </tr>
+                            <tr>
+                                <th>Dépôt</th>
+                                <td th:text="${ajustement.depot?.code + ' - ' + ajustement.depot?.libelle}"></td>
+                            </tr>
+                            <tr>
+                                <th>Lot</th>
+                                <td th:text="${ajustement.lotNumero ?: '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>Motif</th>
+                                <td><span class="badge bg-info" th:text="${ajustement.motif}"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quantités et Valeur</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Quantité avant</th>
+                                <td th:text="${#numbers.formatDecimal(ajustement.quantiteAvant ?: 0, 1, 2)}"></td>
+                            </tr>
+                            <tr>
+                                <th>Quantité après</th>
+                                <td th:text="${#numbers.formatDecimal(ajustement.quantiteApres ?: 0, 1, 2)}"></td>
+                            </tr>
+                            <tr class="table-active">
+                                <th>Écart</th>
+                                <td class="fw-bold" th:text="${#numbers.formatDecimal(ajustement.ecart ?: 0, 1, 2)}"
+                                    th:classappend="${ajustement.ecart != null and ajustement.ecart < 0} ? 'text-danger' : 'text-success'"></td>
+                            </tr>
+                            <tr class="table-active">
+                                <th>Valeur ajustement</th>
+                                <td class="fw-bold" th:text="${#numbers.formatDecimal(ajustement.valeurAjustement ?: 0, 1, 2)} + ' Ar'"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Demande</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Demandé par</th>
+                                <td th:text="${ajustement.demandeBy?.nom + ' ' + ajustement.demandeBy?.prenom}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date demande</th>
+                                <td th:text="${ajustement.demandeAt != null ? #temporals.format(ajustement.demandeAt, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                            </tr>
+                            <tr th:if="${ajustement.inventaire}">
+                                <th>Inventaire</th>
+                                <td>
+                                    <a th:href="@{/inventaires/{id}(id=${ajustement.inventaire.id})}" th:text="${ajustement.inventaire.numero}"></a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Validation</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Validé par</th>
+                                <td th:text="${ajustement.valideBy != null ? ajustement.valideBy.nom + ' ' + ajustement.valideBy.prenom : '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date validation</th>
+                                <td th:text="${ajustement.valideAt != null ? #temporals.format(ajustement.valideAt, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Justification -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Justification</h5>
+            </div>
+            <div class="card-body">
+                <p th:text="${ajustement.justification ?: 'Aucune justification fournie'}" class="mb-0"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Refus -->
+    <div class="modal fade" id="modalRefus" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/inventaires/ajustements/{id}/refuser(id=${ajustement.id})}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Refuser l'ajustement</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Motif du refus *</label>
+                            <textarea name="motifRefus" class="form-control" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">Refuser</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

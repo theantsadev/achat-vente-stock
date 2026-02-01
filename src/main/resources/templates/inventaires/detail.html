@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Inventaire</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-clipboard-check"></i> Inventaire 
+                <span th:text="${inventaire.numero}"></span>
+            </h2>
+            <a th:href="@{/inventaires}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statut et Actions Workflow -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>Statut : 
+                            <span th:if="${inventaire.statut.name() == 'BROUILLON'}" class="badge bg-secondary">BROUILLON</span>
+                            <span th:if="${inventaire.statut.name() == 'OUVERT'}" class="badge bg-info">OUVERT</span>
+                            <span th:if="${inventaire.statut.name() == 'EN_COMPTAGE'}" class="badge bg-warning">EN COMPTAGE</span>
+                            <span th:if="${inventaire.statut.name() == 'EN_VALIDATION'}" class="badge bg-primary">EN VALIDATION</span>
+                            <span th:if="${inventaire.statut.name() == 'CLOTURE'}" class="badge bg-success">CLÔTURÉ</span>
+                            <span th:if="${inventaire.statut.name() == 'ANNULE'}" class="badge bg-danger">ANNULÉ</span>
+                        </h5>
+                        <span th:if="${inventaire.bloqueMouvements}" class="text-danger">
+                            <i class="bi bi-lock-fill"></i> Mouvements bloqués
+                        </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <!-- Actions selon le statut -->
+                        <form th:if="${inventaire.statut.name() == 'BROUILLON'}" th:action="@{/inventaires/{id}/ouvrir(id=${inventaire.id})}" method="post">
+                            <button type="submit" class="btn btn-info">
+                                <i class="bi bi-box-arrow-right"></i> Ouvrir (Capturer stock)
+                            </button>
+                        </form>
+                        
+                        <form th:if="${inventaire.statut.name() == 'OUVERT'}" th:action="@{/inventaires/{id}/demarrer-comptage(id=${inventaire.id})}" method="post">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-123"></i> Démarrer comptage
+                            </button>
+                        </form>
+                        
+                        <form th:if="${inventaire.statut.name() == 'EN_COMPTAGE'}" th:action="@{/inventaires/{id}/terminer-comptage(id=${inventaire.id})}" method="post">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Terminer comptage
+                            </button>
+                        </form>
+                        
+                        <form th:if="${inventaire.statut.name() == 'EN_VALIDATION'}" th:action="@{/inventaires/{id}/generer-ajustements(id=${inventaire.id})}" method="post">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-gear"></i> Générer ajustements
+                            </button>
+                        </form>
+                        
+                        <form th:if="${inventaire.statut.name() == 'EN_VALIDATION'}" th:action="@{/inventaires/{id}/cloturer(id=${inventaire.id})}" method="post">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-all"></i> Clôturer
+                            </button>
+                        </form>
+                        
+                        <form th:if="${inventaire.statut.name() != 'CLOTURE' and inventaire.statut.name() != 'ANNULE'}" 
+                              th:action="@{/inventaires/{id}/annuler(id=${inventaire.id})}" method="post">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Confirmer l\'annulation ?')">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Informations générales -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informations générales</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Numéro</th>
+                                <td th:text="${inventaire.numero}"></td>
+                            </tr>
+                            <tr>
+                                <th>Dépôt</th>
+                                <td th:text="${inventaire.depot?.code + ' - ' + inventaire.depot?.libelle}"></td>
+                            </tr>
+                            <tr>
+                                <th>Type</th>
+                                <td th:text="${inventaire.type}"></td>
+                            </tr>
+                            <tr>
+                                <th>Responsable</th>
+                                <td th:text="${inventaire.responsable?.nom + ' ' + inventaire.responsable?.prenom}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date début</th>
+                                <td th:text="${inventaire.dateDebut != null ? #temporals.format(inventaire.dateDebut, 'dd/MM/yyyy') : '-'}"></td>
+                            </tr>
+                            <tr>
+                                <th>Date fin</th>
+                                <td th:text="${inventaire.dateFin != null ? #temporals.format(inventaire.dateFin, 'dd/MM/yyyy') : '-'}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques comptage -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Progression du comptage</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h3 th:text="${statsComptage['nonComptees']}">0</h3>
+                                        <small class="text-muted">Non comptées</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-warning text-dark">
+                                    <div class="card-body">
+                                        <h3 th:text="${statsComptage['comptage1Fait']}">0</h3>
+                                        <small>Comptage 1</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h3 th:text="${statsComptage['comptage2Fait']}">0</h3>
+                                        <small>Comptage 2</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="text-center">
+                            <strong>Somme des écarts valorisés :</strong>
+                            <span th:text="${#numbers.formatDecimal(sommeEcarts ?: 0, 1, 2)} + ' Ar'"
+                                  th:classappend="${sommeEcarts != null and sommeEcarts < 0} ? 'text-danger' : 'text-success'"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lignes de l'inventaire -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Lignes d'inventaire</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Article</th>
+                                <th>Emplacement</th>
+                                <th>Lot</th>
+                                <th class="text-end">Qté Théorique</th>
+                                <th class="text-end">Comptage 1</th>
+                                <th class="text-end">Comptage 2</th>
+                                <th class="text-end">Qté Retenue</th>
+                                <th class="text-end">Écart</th>
+                                <th class="text-end">Valeur Écart</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ligne : ${lignes}" 
+                                th:classappend="${ligne.ecartQuantite != null and ligne.ecartQuantite != 0} ? 'table-warning' : ''">
+                                <td th:text="${ligne.article?.code + ' - ' + ligne.article?.designation}"></td>
+                                <td th:text="${ligne.emplacement ?: '-'}"></td>
+                                <td th:text="${ligne.lotNumero ?: '-'}"></td>
+                                <td class="text-end" th:text="${ligne.quantiteTheorique != null ? #numbers.formatDecimal(ligne.quantiteTheorique, 1, 2) : '-'}"></td>
+                                <td class="text-end">
+                                    <span th:if="${ligne.quantiteComptee1 != null}" th:text="${#numbers.formatDecimal(ligne.quantiteComptee1, 1, 2)}"></span>
+                                    <span th:unless="${ligne.quantiteComptee1 != null}" class="text-muted">-</span>
+                                </td>
+                                <td class="text-end">
+                                    <span th:if="${ligne.quantiteComptee2 != null}" th:text="${#numbers.formatDecimal(ligne.quantiteComptee2, 1, 2)}"></span>
+                                    <span th:unless="${ligne.quantiteComptee2 != null}" class="text-muted">-</span>
+                                </td>
+                                <td class="text-end fw-bold" th:text="${ligne.quantiteRetenue != null ? #numbers.formatDecimal(ligne.quantiteRetenue, 1, 2) : '-'}"></td>
+                                <td class="text-end" 
+                                    th:text="${ligne.ecartQuantite != null ? #numbers.formatDecimal(ligne.ecartQuantite, 1, 2) : '-'}"
+                                    th:classappend="${ligne.ecartQuantite != null and ligne.ecartQuantite < 0} ? 'text-danger fw-bold' : (ligne.ecartQuantite != null and ligne.ecartQuantite > 0 ? 'text-success fw-bold' : '')"></td>
+                                <td class="text-end" 
+                                    th:text="${ligne.ecartValeur != null ? #numbers.formatDecimal(ligne.ecartValeur, 1, 2) + ' Ar' : '-'}"
+                                    th:classappend="${ligne.ecartValeur != null and ligne.ecartValeur < 0} ? 'text-danger' : ''"></td>
+                                <td>
+                                    <!-- Boutons de saisie comptage (si en mode comptage) -->
+                                    <div th:if="${inventaire.statut.name() == 'EN_COMPTAGE' or inventaire.statut.name() == 'OUVERT'}" class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary" 
+                                                data-bs-toggle="modal" 
+                                                th:data-bs-target="'#modalComptage1-' + ${ligne.id}"
+                                                th:disabled="${ligne.quantiteComptee1 != null}">
+                                            C1
+                                        </button>
+                                        <button type="button" class="btn btn-outline-success" 
+                                                data-bs-toggle="modal" 
+                                                th:data-bs-target="'#modalComptage2-' + ${ligne.id}"
+                                                th:disabled="${ligne.quantiteComptee1 == null or ligne.quantiteComptee2 != null}">
+                                            C2
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(lignes)}">
+                                <td colspan="10" class="text-center text-muted">
+                                    <span th:if="${inventaire.statut.name() == 'BROUILLON'}">
+                                        Ouvrez l'inventaire pour générer les lignes à partir du stock
+                                    </span>
+                                    <span th:unless="${inventaire.statut.name() == 'BROUILLON'}">
+                                        Aucune ligne
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ajustements générés -->
+        <div th:if="${not #lists.isEmpty(ajustements)}" class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Ajustements</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Article</th>
+                                <th class="text-end">Écart</th>
+                                <th class="text-end">Valeur</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ajust : ${ajustements}">
+                                <td th:text="${ajust.numero}"></td>
+                                <td th:text="${ajust.article?.code}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(ajust.ecart, 1, 2)}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(ajust.valeurAjustement ?: 0, 1, 2)} + ' Ar'"></td>
+                                <td>
+                                    <span th:if="${ajust.statut.name() == 'EN_ATTENTE'}" class="badge bg-warning">EN ATTENTE</span>
+                                    <span th:if="${ajust.statut.name() == 'VALIDE'}" class="badge bg-info">VALIDÉ</span>
+                                    <span th:if="${ajust.statut.name() == 'APPLIQUE'}" class="badge bg-success">APPLIQUÉ</span>
+                                    <span th:if="${ajust.statut.name() == 'REFUSE'}" class="badge bg-danger">REFUSÉ</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/inventaires/ajustements/{id}(id=${ajust.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals pour la saisie des comptages -->
+    <div th:each="ligne : ${lignes}">
+        <!-- Modal Comptage 1 -->
+        <div class="modal fade" th:id="'modalComptage1-' + ${ligne.id}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form th:action="@{/inventaires/{invId}/lignes/{ligneId}/comptage1(invId=${inventaire.id}, ligneId=${ligne.id})}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Comptage 1 - <span th:text="${ligne.article?.code}"></span></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Quantité théorique : <strong th:text="${#numbers.formatDecimal(ligne.quantiteTheorique ?: 0, 1, 2)}"></strong></p>
+                            <div class="mb-3">
+                                <label class="form-label">Quantité comptée *</label>
+                                <input type="number" name="quantite" class="form-control" step="0.01" min="0" required autofocus>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Comptage 2 -->
+        <div class="modal fade" th:id="'modalComptage2-' + ${ligne.id}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form th:action="@{/inventaires/{invId}/lignes/{ligneId}/comptage2(invId=${inventaire.id}, ligneId=${ligne.id})}" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Comptage 2 - <span th:text="${ligne.article?.code}"></span></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Comptage 1 : <strong th:text="${ligne.quantiteComptee1 != null ? #numbers.formatDecimal(ligne.quantiteComptee1, 1, 2) : '-'}"></strong></p>
+                            <div class="mb-3">
+                                <label class="form-label">Quantité comptée (2ème comptage) *</label>
+                                <input type="number" name="quantite" class="form-control" step="0.01" min="0" required autofocus>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-success">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

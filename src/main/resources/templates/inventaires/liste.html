@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Inventaires</title>
+</head>
+<body>
+<main>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-clipboard-check"></i> Inventaires</h2>
+            <a th:href="@{/inventaires/nouveau}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouvel Inventaire
+            </a>
+        </div>
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/inventaires}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="">-- Tous --</option>
+                            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}" th:selected="${s.name() == statut}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filtrer
+                        </button>
+                        <a th:href="@{/inventaires}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table des inventaires -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Dépôt</th>
+                                <th>Type</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Responsable</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="inv : ${inventaires}">
+                                <td>
+                                    <a th:href="@{/inventaires/{id}(id=${inv.id})}" th:text="${inv.numero}"></a>
+                                </td>
+                                <td th:text="${inv.depot?.code + ' - ' + inv.depot?.libelle}"></td>
+                                <td>
+                                    <span th:if="${inv.type.name() == 'TOURNANT'}" class="badge bg-info">TOURNANT</span>
+                                    <span th:if="${inv.type.name() == 'ANNUEL'}" class="badge bg-primary">ANNUEL</span>
+                                    <span th:if="${inv.type.name() == 'EXCEPTIONNEL'}" class="badge bg-warning">EXCEPTIONNEL</span>
+                                </td>
+                                <td th:text="${inv.dateDebut != null ? #temporals.format(inv.dateDebut, 'dd/MM/yyyy') : '-'}"></td>
+                                <td th:text="${inv.dateFin != null ? #temporals.format(inv.dateFin, 'dd/MM/yyyy') : '-'}"></td>
+                                <td th:text="${inv.responsable?.nom + ' ' + inv.responsable?.prenom}"></td>
+                                <td>
+                                    <span th:if="${inv.statut.name() == 'BROUILLON'}" class="badge bg-secondary">BROUILLON</span>
+                                    <span th:if="${inv.statut.name() == 'OUVERT'}" class="badge bg-info">OUVERT</span>
+                                    <span th:if="${inv.statut.name() == 'EN_COMPTAGE'}" class="badge bg-warning">EN COMPTAGE</span>
+                                    <span th:if="${inv.statut.name() == 'EN_VALIDATION'}" class="badge bg-primary">EN VALIDATION</span>
+                                    <span th:if="${inv.statut.name() == 'CLOTURE'}" class="badge bg-success">CLÔTURÉ</span>
+                                    <span th:if="${inv.statut.name() == 'ANNULE'}" class="badge bg-danger">ANNULÉ</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/inventaires/{id}(id=${inv.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(inventaires)}">
+                                <td colspan="8" class="text-center text-muted">Aucun inventaire trouvé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,375 @@
+================================================================================
+                      MODULE INVENTAIRE - GUIDE DE TEST
+================================================================================
+
+Application: http://localhost:8081
+Base de données: PostgreSQL localhost:5432/achat_vente_stock
+
+================================================================================
+                           LISTE DES ENDPOINTS
+================================================================================
+
+INVENTAIRES
+-----------
+GET  /inventaires                           - Liste des inventaires
+GET  /inventaires/nouveau                   - Formulaire création
+POST /inventaires                           - Créer un inventaire
+GET  /inventaires/{id}                      - Détail d'un inventaire
+POST /inventaires/{id}/ouvrir               - Ouvrir (capturer stock théorique)
+POST /inventaires/{id}/demarrer-comptage    - Démarrer le comptage
+POST /inventaires/{id}/terminer-comptage    - Terminer le comptage
+POST /inventaires/{id}/generer-ajustements  - Générer les ajustements
+POST /inventaires/{id}/cloturer             - Clôturer l'inventaire
+POST /inventaires/{id}/annuler              - Annuler l'inventaire
+
+LIGNES D'INVENTAIRE (COMPTAGE)
+------------------------------
+GET  /inventaires/{invId}/lignes/{ligneId}           - Page de comptage
+POST /inventaires/{invId}/lignes/{ligneId}/comptage1 - Saisir comptage 1
+POST /inventaires/{invId}/lignes/{ligneId}/comptage2 - Saisir comptage 2
+POST /inventaires/{invId}/lignes/{ligneId}/valider-quantite - Valider quantité
+
+AJUSTEMENTS DE STOCK
+--------------------
+GET  /inventaires/ajustements                - Liste des ajustements
+GET  /inventaires/ajustements/en-attente     - Ajustements à valider
+GET  /inventaires/ajustements/nouveau        - Formulaire ajustement manuel
+POST /inventaires/ajustements                - Créer un ajustement
+GET  /inventaires/ajustements/{id}           - Détail d'un ajustement
+POST /inventaires/ajustements/{id}/valider   - Valider l'ajustement
+POST /inventaires/ajustements/{id}/refuser   - Refuser l'ajustement
+POST /inventaires/ajustements/{id}/appliquer - Appliquer au stock
+
+================================================================================
+                         TYPES D'INVENTAIRE
+================================================================================
+
+TOURNANT
+--------
+- Inventaire partiel sur une rotation d'articles
+- Réalisé périodiquement (hebdomadaire, mensuel)
+- Couvre une partie du stock (famille d'articles, zone)
+
+ANNUEL
+------
+- Inventaire complet obligatoire
+- Réalisé une fois par an (clôture comptable)
+- Couvre l'intégralité du stock
+
+EXCEPTIONNEL
+------------
+- Inventaire suite à anomalie
+- Déclenché après un vol, une erreur, un sinistre
+- Ciblé sur les articles concernés
+
+================================================================================
+                         WORKFLOW DE L'INVENTAIRE
+================================================================================
+
+          ┌─────────────┐
+          │  BROUILLON  │  Création de l'inventaire
+          └──────┬──────┘
+                 │ Ouvrir (capture snapshot)
+                 ▼
+          ┌─────────────┐
+          │   OUVERT    │  Stock théorique capturé
+          └──────┬──────┘  Mouvements BLOQUES
+                 │ Démarrer comptage
+                 ▼
+          ┌─────────────┐
+          │ EN_COMPTAGE │  Saisie des quantités physiques
+          └──────┬──────┘  Comptage 1 et/ou Comptage 2
+                 │ Terminer comptage
+                 ▼
+          ┌─────────────┐
+          │EN_VALIDATION│  Écarts calculés
+          └──────┬──────┘  Génération des ajustements
+                 │ Clôturer
+                 ▼
+          ┌─────────────┐
+          │   CLOTURE   │  Ajustements appliqués
+          └─────────────┘  Mouvements DEBLOQUES
+
+          À tout moment (sauf CLOTURE):
+          ┌─────────────┐
+          │   ANNULE    │
+          └─────────────┘
+
+================================================================================
+                         MOTIFS D'AJUSTEMENT
+================================================================================
+
+INVENTAIRE        - Écart constaté lors de l'inventaire
+CASSE             - Marchandise cassée ou endommagée
+VOL               - Vol constaté
+PEREMPTION        - Produit périmé
+ERREUR_SAISIE     - Correction d'erreur de saisie
+AUTRE             - Autre motif (à justifier)
+
+================================================================================
+                         STATUTS D'AJUSTEMENT
+================================================================================
+
+EN_ATTENTE  - Créé, en attente de validation
+VALIDE      - Validé par le chef magasin
+APPLIQUE    - Appliqué au stock (mouvement créé)
+REFUSE      - Refusé par le valideur
+ANNULE      - Annulé
+
+================================================================================
+                          PREREQUIS AVANT TEST
+================================================================================
+
+1. Avoir des ARTICLES créés : /referentiel/articles
+2. Avoir des DEPOTS créés   : /referentiel/depots
+3. Avoir du STOCK disponible: /stocks/disponible (via entrées de stock)
+4. L'application doit être démarrée (mvn spring-boot:run)
+5. Les tables sont créées automatiquement par JPA (ddl-auto=update)
+
+================================================================================
+                       SCENARIOS DE TEST COMPLETS
+================================================================================
+
+------------------------------------------------------------------------------
+SCENARIO 1 : INVENTAIRE COMPLET (workflow principal)
+------------------------------------------------------------------------------
+
+ÉTAPE 1 - Créer l'inventaire
+   1. Aller à http://localhost:8081/inventaires/nouveau
+   2. Sélectionner le dépôt à inventorier
+   3. Choisir le type d'inventaire (ex: ANNUEL)
+   4. Cliquer sur "Créer l'inventaire"
+   → L'inventaire est créé en statut BROUILLON
+
+ÉTAPE 2 - Ouvrir l'inventaire (capturer le stock)
+   1. Sur la page détail de l'inventaire
+   2. Cliquer sur "Ouvrir (Capturer stock)"
+   → Le stock théorique est capturé (snapshot)
+   → Les lignes d'inventaire sont générées
+   → Les mouvements de stock sont BLOQUES pour ce dépôt
+   → Statut passe à OUVERT
+
+ÉTAPE 3 - Démarrer le comptage
+   1. Cliquer sur "Démarrer comptage"
+   → Statut passe à EN_COMPTAGE
+
+ÉTAPE 4 - Saisir les comptages
+   Pour chaque ligne d'inventaire :
+   1. Cliquer sur le bouton "C1" (Comptage 1)
+   2. Saisir la quantité physique comptée
+   3. Valider
+   → L'écart est calculé automatiquement
+
+   Optionnel - Double comptage :
+   1. Cliquer sur le bouton "C2" (Comptage 2)
+   2. Saisir la quantité (par un autre compteur)
+   3. La quantité retenue = moyenne si écart
+
+ÉTAPE 5 - Terminer le comptage
+   1. Vérifier que toutes les lignes sont comptées
+   2. Cliquer sur "Terminer comptage"
+   → Statut passe à EN_VALIDATION
+
+ÉTAPE 6 - Générer les ajustements
+   1. Cliquer sur "Générer ajustements"
+   → Un ajustement est créé pour chaque ligne avec écart
+   → Les petits écarts sont validés automatiquement
+   → Les gros écarts (> 1000 Ar) sont EN_ATTENTE
+
+ÉTAPE 7 - Valider et appliquer les ajustements
+   Pour chaque ajustement en attente :
+   1. Aller à /inventaires/ajustements
+   2. Valider chaque ajustement (bouton "Valider")
+   3. Appliquer au stock (bouton "Appliquer au stock")
+   → Un mouvement de stock est créé (ENTREE ou SORTIE)
+
+ÉTAPE 8 - Clôturer l'inventaire
+   1. Retourner sur le détail de l'inventaire
+   2. Cliquer sur "Clôturer"
+   → Statut passe à CLOTURE
+   → Les mouvements sont DEBLOQUES
+
+------------------------------------------------------------------------------
+SCENARIO 2 : AJUSTEMENT MANUEL (hors inventaire)
+------------------------------------------------------------------------------
+
+ÉTAPE 1 - Créer l'ajustement
+   1. Aller à http://localhost:8081/inventaires/ajustements/nouveau
+   2. Sélectionner l'article
+   3. Sélectionner le dépôt
+   4. Saisir la nouvelle quantité (quantité réelle)
+   5. Choisir le motif (CASSE, VOL, etc.)
+   6. Saisir une justification détaillée
+   7. Cliquer sur "Créer l'ajustement"
+   → L'ajustement est créé en statut EN_ATTENTE
+
+ÉTAPE 2 - Valider l'ajustement
+   1. Aller sur le détail de l'ajustement
+   2. Cliquer sur "Valider"
+   → Statut passe à VALIDE
+
+ÉTAPE 3 - Appliquer au stock
+   1. Cliquer sur "Appliquer au stock"
+   → Un mouvement de stock est créé
+   → Statut passe à APPLIQUE
+
+ÉTAPE 4 - Vérifier le stock
+   1. Aller à http://localhost:8081/stocks/disponible
+   2. Vérifier que la quantité a été ajustée
+   3. Aller à http://localhost:8081/stocks/mouvements
+   4. Vérifier le mouvement d'ajustement créé
+
+------------------------------------------------------------------------------
+SCENARIO 3 : INVENTAIRE TOURNANT
+------------------------------------------------------------------------------
+
+Un inventaire tournant permet de compter une partie du stock régulièrement.
+
+ÉTAPE 1 - Préparer le stock
+   1. S'assurer d'avoir plusieurs articles en stock
+   2. Noter les quantités théoriques
+
+ÉTAPE 2 - Créer l'inventaire tournant
+   1. Aller à http://localhost:8081/inventaires/nouveau
+   2. Sélectionner le dépôt
+   3. Choisir le type : TOURNANT
+   4. Créer l'inventaire
+
+ÉTAPE 3 - Suivre le workflow complet
+   → Voir Scénario 1 pour les étapes détaillées
+
+------------------------------------------------------------------------------
+SCENARIO 4 : REFUS D'AJUSTEMENT
+------------------------------------------------------------------------------
+
+ÉTAPE 1 - Avoir un ajustement en attente
+   1. Suivre le Scénario 1 jusqu'à l'étape 6
+   2. Ou créer un ajustement manuel (Scénario 2)
+
+ÉTAPE 2 - Refuser l'ajustement
+   1. Aller sur le détail de l'ajustement
+   2. Cliquer sur "Refuser"
+   3. Saisir le motif du refus
+   4. Valider
+   → Statut passe à REFUSE
+   → Aucun mouvement n'est créé
+
+------------------------------------------------------------------------------
+SCENARIO 5 : ANNULATION D'INVENTAIRE
+------------------------------------------------------------------------------
+
+ÉTAPE 1 - Avoir un inventaire en cours
+   1. Créer un inventaire (BROUILLON, OUVERT ou EN_COMPTAGE)
+
+ÉTAPE 2 - Annuler l'inventaire
+   1. Sur la page détail
+   2. Cliquer sur "Annuler"
+   3. Confirmer
+   → Statut passe à ANNULE
+   → Les mouvements sont débloqués si nécessaire
+
+================================================================================
+                       REGLES METIER IMPLEMENTEES
+================================================================================
+
+TODO.YML Ligne 42 - Types d'inventaire
+--------------------------------------
+- TOURNANT, ANNUEL, EXCEPTIONNEL supportés
+- Sélection lors de la création
+
+TODO.YML Ligne 43 - Familles soumises à inventaire
+--------------------------------------------------
+- Tous les articles du dépôt sont inclus dans le snapshot
+- (Extension possible: filtrage par famille)
+
+TODO.YML Ligne 44 - Seuils d'écarts
+-----------------------------------
+- Seuil de validation automatique : 1000 Ar
+- Écarts <= seuil : validation automatique
+- Écarts > seuil : nécessite validation chef magasin
+
+TODO.YML Ligne 45 - Écran création inventaire
+---------------------------------------------
+- Sélection site/dépôt/type/date
+- Numérotation automatique (INV-YYYYMMDD-XXX)
+
+TODO.YML Ligne 46 - Snapshot stock théorique
+--------------------------------------------
+- Capture du stock disponible à l'ouverture
+- Lignes créées avec quantité théorique
+
+TODO.YML Ligne 47 - Gel des mouvements
+--------------------------------------
+- Flag bloque_mouvements = true à l'ouverture
+- Déblocage à la clôture ou annulation
+
+TODO.YML Ligne 48 - Liste articles par emplacement
+--------------------------------------------------
+- Affichage des lignes triées par emplacement
+- Code article, lot, quantité théorique
+
+TODO.YML Ligne 49 - Saisie quantités physiques
+----------------------------------------------
+- Comptage 1 obligatoire
+- Comptage 2 optionnel (double comptage)
+- Saisie manuelle (extension scan possible)
+
+TODO.YML Ligne 50 - Calcul écarts en temps réel
+-----------------------------------------------
+- Écart quantité = retenue - théorique
+- Calcul à chaque saisie de comptage
+
+TODO.YML Ligne 51 - Écarts valorisés
+------------------------------------
+- Valeur écart = écart × coût unitaire moyen
+- Affichage par ligne et total inventaire
+
+TODO.YML Ligne 52 - Validation ajustements
+------------------------------------------
+- Ajustements créés depuis écarts inventaire
+- Validation automatique si < seuil
+- Validation manuelle par chef si > seuil
+
+TODO.YML Ligne 53 - Application ajustements
+-------------------------------------------
+- Création mouvement stock (ENTREE ou SORTIE_AJUSTEMENT)
+- Journalisation complète
+
+TODO.YML Ligne 54 - Séparation des tâches
+-----------------------------------------
+- Le valideur ne peut pas être le demandeur
+- Le valideur ne peut pas être un des compteurs
+- Vérification à la validation
+
+================================================================================
+                           CONSEILS DE TEST
+================================================================================
+
+1. TOUJOURS AVOIR DU STOCK AVANT L'INVENTAIRE
+   - Créer des entrées via /stocks/mouvements/entree
+   - Vérifier le stock via /stocks/disponible
+
+2. VERIFIER LES ECARTS
+   - Saisir des quantités différentes du théorique
+   - Observer le calcul automatique des écarts
+
+3. TESTER LE DOUBLE COMPTAGE
+   - Saisir des quantités différentes en C1 et C2
+   - Observer la moyenne calculée
+
+4. TESTER LES SEUILS
+   - Créer des écarts < 1000 Ar → validation auto
+   - Créer des écarts > 1000 Ar → validation manuelle
+
+5. TESTER LA SEPARATION DES TACHES
+   - Essayer de valider un ajustement avec le même utilisateur
+   - Observer le message d'erreur
+
+6. VERIFIER LES MOUVEMENTS GENERES
+   - Après application d'un ajustement
+   - Aller dans /stocks/mouvements
+   - Observer les mouvements ENTREE/SORTIE_AJUSTEMENT
+
+================================================================================
+                              FIN DU GUIDE
+================================================================================
