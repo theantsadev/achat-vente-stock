@@ -1,7 +1,7 @@
 package com.gestion.achat_vente_stock.vente.controller;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.model.Depot;
 import com.gestion.achat_vente_stock.referentiel.repository.DepotRepository;
 import com.gestion.achat_vente_stock.vente.model.BonLivraison;
@@ -10,6 +10,7 @@ import com.gestion.achat_vente_stock.vente.service.BonLivraisonService;
 import com.gestion.achat_vente_stock.vente.service.CommandeClientService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,16 +30,19 @@ import java.util.Map;
  * - Ligne 26: Bloquer livraison si stock insuffisant
  * 
  * Contrôleur web pour la gestion des bons de livraison
+ * 
+ * Rôles autorisés: ROLE-MAGASINIER-SORT, ROLE-CHEF-MAGASIN, ROLE-ADMIN
  */
 @Controller
 @RequestMapping("/ventes/livraisons")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-COMMERCIAL', 'ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
 public class BonLivraisonController {
 
     private final BonLivraisonService bonLivraisonService;
     private final CommandeClientService commandeClientService;
     private final DepotRepository depotRepository;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     // ==================== LISTE ====================
 
@@ -58,6 +62,7 @@ public class BonLivraisonController {
      * TODO.YML Ligne 24: Créer un BL depuis une commande
      */
     @PostMapping("/depuis-commande/{commandeId}")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String creerDepuisCommande(@PathVariable Long commandeId,
             @RequestParam Long depotId,
             RedirectAttributes redirectAttributes) {
@@ -70,7 +75,7 @@ public class BonLivraisonController {
                 return "redirect:/ventes/commandes/" + commandeId;
             }
 
-            Utilisateur magasinier = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur magasinier = sessionService.getUtilisateurConnecte();
             Depot depot = depotRepository.findById(depotId).orElse(null);
 
             BonLivraison bl = bonLivraisonService.creerBonLivraison(commandeId, depot, magasinier);
@@ -121,6 +126,7 @@ public class BonLivraisonController {
      * TODO.YML Ligne 24: Mettre à jour une ligne de picking
      */
     @PostMapping("/{id}/picking/{ligneId}")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String mettreAJourLignePicking(@PathVariable Long id,
             @PathVariable Long ligneId,
             @RequestParam BigDecimal quantitePreparee,
@@ -128,7 +134,7 @@ public class BonLivraisonController {
             @RequestParam(required = false) String dluo,
             RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur magasinier = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur magasinier = sessionService.getUtilisateurConnecte();
             LocalDate dluoDate = dluo != null && !dluo.isEmpty() ? LocalDate.parse(dluo) : null;
 
             bonLivraisonService.mettreAJourLignePicking(ligneId, quantitePreparee, lotNumero, dluoDate, magasinier);
@@ -143,9 +149,10 @@ public class BonLivraisonController {
      * TODO.YML Ligne 25: Confirmer le picking
      */
     @PostMapping("/{id}/confirmer-picking")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String confirmerPicking(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur magasinier = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur magasinier = sessionService.getUtilisateurConnecte();
             bonLivraisonService.confirmerPicking(id, magasinier);
             redirectAttributes.addFlashAttribute("success", "Picking confirmé - BL prêt pour expédition");
         } catch (Exception e) {
@@ -160,9 +167,10 @@ public class BonLivraisonController {
      * TODO.YML Ligne 25: Expédier le BL
      */
     @PostMapping("/{id}/expedier")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String expedier(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur magasinier = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur magasinier = sessionService.getUtilisateurConnecte();
             bonLivraisonService.expedierBL(id, magasinier);
             redirectAttributes.addFlashAttribute("success", "Bon de livraison expédié");
         } catch (Exception e) {
@@ -177,7 +185,7 @@ public class BonLivraisonController {
     @PostMapping("/{id}/confirmer-livraison")
     public String confirmerLivraison(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             bonLivraisonService.confirmerLivraison(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Livraison confirmée");
         } catch (Exception e) {

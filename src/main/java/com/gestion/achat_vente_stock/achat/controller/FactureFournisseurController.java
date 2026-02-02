@@ -8,6 +8,7 @@ import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 @Controller
 @RequestMapping("/achats/factures")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-FOUR', 'ROLE-DAF', 'ROLE-ADMIN')")
 public class FactureFournisseurController {
 
     private final FactureFournisseurService factureFournisseurService;
@@ -102,6 +104,7 @@ public class FactureFournisseurController {
      * TODO.YML Ligne 58: Valider facture (séparation des tâches)
      */
     @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-FOUR', 'ROLE-DAF', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id,
             @RequestParam Long valideurId,
             RedirectAttributes redirectAttributes) {
@@ -122,6 +125,7 @@ public class FactureFournisseurController {
      * TODO.YML Ligne 18: Débloquer facture
      */
     @PostMapping("/{id}/debloquer")
+    @PreAuthorize("hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')")
     public String debloquer(@PathVariable Long id,
             @RequestParam String justification,
             @RequestParam Long valideurId,

@@ -1,5 +1,7 @@
 package com.gestion.achat_vente_stock.stock.controller;
 
+import com.gestion.achat_vente_stock.admin.model.Utilisateur;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 import com.gestion.achat_vente_stock.referentiel.model.Depot;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
@@ -8,6 +10,7 @@ import com.gestion.achat_vente_stock.stock.model.MouvementStock;
 import com.gestion.achat_vente_stock.stock.service.MouvementStockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,24 +27,26 @@ import java.util.List;
 @Controller
 @RequestMapping("/stocks/mouvements")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-MAGASINIER-REC', 'ROLE-MAGASINIER-SORT', 'ROLE-ADMIN')")
 public class MouvementStockController {
 
     private final MouvementStockService mouvementStockService;
     private final ArticleRepository articleRepository;
     private final DepotRepository depotRepository;
+    private final SessionService sessionService;
 
     /**
      * Liste des mouvements de stock
      */
     @GetMapping
     public String liste(Model model,
-                        @RequestParam(required = false) Long articleId,
-                        @RequestParam(required = false) Long depotId,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
-                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin) {
-        
+            @RequestParam(required = false) Long articleId,
+            @RequestParam(required = false) Long depotId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin) {
+
         List<MouvementStock> mouvements;
-        
+
         if (dateDebut != null && dateFin != null) {
             mouvements = mouvementStockService.listerParPeriode(dateDebut, dateFin);
         } else if (articleId != null) {
@@ -51,7 +56,7 @@ public class MouvementStockController {
         } else {
             mouvements = mouvementStockService.listerTous();
         }
-        
+
         model.addAttribute("mouvements", mouvements);
         model.addAttribute("articles", articleRepository.findAll());
         model.addAttribute("depots", depotRepository.findAll());
@@ -59,7 +64,7 @@ public class MouvementStockController {
         model.addAttribute("depotId", depotId);
         model.addAttribute("dateDebut", dateDebut);
         model.addAttribute("dateFin", dateFin);
-        
+
         return "stocks/mouvements/liste";
     }
 
@@ -88,27 +93,28 @@ public class MouvementStockController {
      * Créer une entrée de stock
      */
     @PostMapping("/entree")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-REC', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String creerEntree(@RequestParam Long articleId,
-                              @RequestParam Long depotId,
-                              @RequestParam String typeMouvement,
-                              @RequestParam BigDecimal quantite,
-                              @RequestParam BigDecimal coutUnitaire,
-                              @RequestParam(required = false) String emplacement,
-                              @RequestParam(required = false) String lotNumero,
-                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dluo,
-                              RedirectAttributes redirectAttributes) {
+            @RequestParam Long depotId,
+            @RequestParam String typeMouvement,
+            @RequestParam BigDecimal quantite,
+            @RequestParam BigDecimal coutUnitaire,
+            @RequestParam(required = false) String emplacement,
+            @RequestParam(required = false) String lotNumero,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dluo,
+            RedirectAttributes redirectAttributes) {
         try {
             Article article = articleRepository.findById(articleId)
                     .orElseThrow(() -> new RuntimeException("Article non trouvé"));
             Depot depot = depotRepository.findById(depotId)
                     .orElseThrow(() -> new RuntimeException("Dépôt non trouvé"));
 
-            // TODO: Récupérer l'utilisateur connecté
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             MouvementStock mouvement = mouvementStockService.creerMouvementEntree(
                     article, depot, typeMouvement, quantite, coutUnitaire,
-                    emplacement, lotNumero, dluo, null, null, null);
+                    emplacement, lotNumero, dluo, null, null, utilisateur);
 
-            redirectAttributes.addFlashAttribute("success", 
+            redirectAttributes.addFlashAttribute("success",
                     "Mouvement d'entrée créé: " + mouvement.getNumero());
             return "redirect:/stocks/mouvements/" + mouvement.getId();
         } catch (Exception e) {
@@ -131,26 +137,26 @@ public class MouvementStockController {
     /**
      * Créer une sortie de stock
      */
-    @PostMapping("/sortie")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String creerSortie(@RequestParam Long articleId,
-                              @RequestParam Long depotId,
-                              @RequestParam String typeMouvement,
-                              @RequestParam BigDecimal quantite,
-                              @RequestParam(required = false) String emplacement,
-                              @RequestParam(required = false) String lotNumero,
-                              RedirectAttributes redirectAttributes) {
+            @RequestParam Long depotId,
+            @RequestParam String typeMouvement,
+            @RequestParam BigDecimal quantite,
+            @RequestParam(required = false) String emplacement,
+            @RequestParam(required = false) String lotNumero,
+            RedirectAttributes redirectAttributes) {
         try {
             Article article = articleRepository.findById(articleId)
                     .orElseThrow(() -> new RuntimeException("Article non trouvé"));
             Depot depot = depotRepository.findById(depotId)
                     .orElseThrow(() -> new RuntimeException("Dépôt non trouvé"));
 
-            // TODO: Récupérer l'utilisateur connecté
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             MouvementStock mouvement = mouvementStockService.creerMouvementSortie(
                     article, depot, typeMouvement, quantite,
-                    emplacement, lotNumero, null, null, null);
+                    emplacement, lotNumero, null, null, utilisateur);
 
-            redirectAttributes.addFlashAttribute("success", 
+            redirectAttributes.addFlashAttribute("success",
                     "Mouvement de sortie créé: " + mouvement.getNumero());
             return "redirect:/stocks/mouvements/" + mouvement.getId();
         } catch (Exception e) {
@@ -164,8 +170,7 @@ public class MouvementStockController {
                 MouvementStockService.ENTREE_RECEPTION,
                 MouvementStockService.ENTREE_RETOUR_CLIENT,
                 MouvementStockService.ENTREE_AJUSTEMENT,
-                MouvementStockService.ENTREE_TRANSFERT
-        );
+                MouvementStockService.ENTREE_TRANSFERT);
     }
 
     private List<String> getTypesSortie() {
@@ -174,7 +179,6 @@ public class MouvementStockController {
                 MouvementStockService.SORTIE_CONSOMMATION,
                 MouvementStockService.SORTIE_REBUT,
                 MouvementStockService.SORTIE_AJUSTEMENT,
-                MouvementStockService.SORTIE_TRANSFERT
-        );
+                MouvementStockService.SORTIE_TRANSFERT);
     }
 }

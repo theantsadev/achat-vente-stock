@@ -4,7 +4,9 @@ import com.gestion.achat_vente_stock.achat.model.BonCommande;
 import com.gestion.achat_vente_stock.achat.service.BonCommandeService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +18,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/achats/bons-commande")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-RESP-ACHATS', 'ROLE-DAF', 'ROLE-ADMIN')")
 public class BonCommandeController {
 
     private final BonCommandeService bonCommandeService;
     private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     /**
      * TODO.YML Ligne 11: Liste des bons de commande
@@ -34,9 +38,9 @@ public class BonCommandeController {
      * TODO.YML Ligne 11: Créer BC depuis Proforma
      */
     @PostMapping("/depuis-proforma/{proformaId}")
+    @PreAuthorize("hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
     public String creerDepuisProforma(@PathVariable Long proformaId, RedirectAttributes redirectAttributes) {
-        Utilisateur acheteur = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur acheteur = sessionService.getUtilisateurConnecte();
 
         try {
             BonCommande bc = bonCommandeService.creerBonCommandeDepuisProforma(proformaId, acheteur);
@@ -63,9 +67,9 @@ public class BonCommandeController {
      * TODO.YML Ligne 12: Soumettre pour validation
      */
     @PostMapping("/{id}/soumettre")
+    @PreAuthorize("hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-ADMIN')")
     public String soumettre(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Utilisateur acheteur = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur acheteur = sessionService.getUtilisateurConnecte();
 
         bonCommandeService.soumettrePourValidation(id, acheteur);
         redirectAttributes.addFlashAttribute("success", "BC soumis pour validation");
@@ -76,6 +80,7 @@ public class BonCommandeController {
      * TODO.YML Ligne 12: Valider BC (responsable achats)
      */
     @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id,
             @RequestParam Long responsableId,
             @RequestParam boolean approuve,
@@ -98,6 +103,7 @@ public class BonCommandeController {
      * TODO.YML Ligne 13: Approuver pour signature (DG/DAF)
      */
     @PostMapping("/{id}/approuver")
+    @PreAuthorize("hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')")
     public String approuver(@PathVariable Long id,
             @RequestParam Long approbateurId,
             RedirectAttributes redirectAttributes) {
@@ -118,9 +124,9 @@ public class BonCommandeController {
      * Envoyer au fournisseur
      */
     @PostMapping("/{id}/envoyer")
+    @PreAuthorize("hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
     public String envoyer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Utilisateur acheteur = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur acheteur = sessionService.getUtilisateurConnecte();
 
         try {
             bonCommandeService.envoyerBonCommande(id, acheteur);

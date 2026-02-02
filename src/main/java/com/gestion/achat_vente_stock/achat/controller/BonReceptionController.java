@@ -4,8 +4,9 @@ import com.gestion.achat_vente_stock.achat.model.BonReception;
 import com.gestion.achat_vente_stock.achat.service.BonCommandeService;
 import com.gestion.achat_vente_stock.achat.service.BonReceptionService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +20,12 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/achats/receptions")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-REC', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
 public class BonReceptionController {
     
     private final BonReceptionService bonReceptionService;
     private final BonCommandeService bonCommandeService;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
     
     /**
      * TODO.YML Ligne 14: Liste des réceptions
@@ -48,12 +50,12 @@ public class BonReceptionController {
      * TODO.YML Ligne 14-15: Créer bon de réception
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-REC', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String creer(@RequestParam Long bcId,
                        @RequestParam String numeroBlFournisseur,
                        @RequestParam String dateBlFournisseur,
                        RedirectAttributes redirectAttributes) {
-        Utilisateur magasinier = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur magasinier = sessionService.getUtilisateurConnecte();
         
         LocalDate dateBl = LocalDate.parse(dateBlFournisseur);
         
@@ -77,11 +79,11 @@ public class BonReceptionController {
      * TODO.YML Ligne 16: Finaliser réception
      */
     @PostMapping("/{id}/finaliser")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-REC', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String finaliser(@PathVariable Long id,
                            @RequestParam(required = false) String observations,
                            RedirectAttributes redirectAttributes) {
-        Utilisateur magasinier = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur magasinier = sessionService.getUtilisateurConnecte();
         
         bonReceptionService.finaliserReception(id, observations, magasinier);
         redirectAttributes.addFlashAttribute("success", "Réception finalisée");

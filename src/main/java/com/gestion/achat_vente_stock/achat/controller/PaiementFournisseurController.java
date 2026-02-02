@@ -4,8 +4,9 @@ import com.gestion.achat_vente_stock.achat.model.PaiementFournisseur;
 import com.gestion.achat_vente_stock.achat.service.FactureFournisseurService;
 import com.gestion.achat_vente_stock.achat.service.PaiementFournisseurService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +18,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/achats/paiements")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-FOUR', 'ROLE-DAF', 'ROLE-ADMIN')")
 public class PaiementFournisseurController {
 
     private final PaiementFournisseurService paiementFournisseurService;
     private final FactureFournisseurService factureFournisseurService;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     /**
      * TODO.YML Ligne 19: Liste des paiements
@@ -52,10 +54,10 @@ public class PaiementFournisseurController {
      * TODO.YML Ligne 18-19: Créer paiement (vérifie blocage)
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-FOUR', 'ROLE-DAF', 'ROLE-ADMIN')")
     public String creer(@ModelAttribute PaiementFournisseur paiement,
             RedirectAttributes redirectAttributes) {
-        Utilisateur tresorier = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur tresorier = sessionService.getUtilisateurConnecte();
 
         try {
             PaiementFournisseur created = paiementFournisseurService.creerPaiement(paiement, tresorier);
@@ -80,9 +82,9 @@ public class PaiementFournisseurController {
      * TODO.YML Ligne 19: Exécuter paiement
      */
     @PostMapping("/{id}/executer")
+    @PreAuthorize("hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')")
     public String executer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Utilisateur tresorier = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur tresorier = sessionService.getUtilisateurConnecte();
 
         try {
             paiementFournisseurService.executerPaiement(id, tresorier);
@@ -98,11 +100,11 @@ public class PaiementFournisseurController {
      * Annuler paiement
      */
     @PostMapping("/{id}/annuler")
+    @PreAuthorize("hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')")
     public String annuler(@PathVariable Long id,
             @RequestParam String motif,
             RedirectAttributes redirectAttributes) {
-        Utilisateur tresorier = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur tresorier = sessionService.getUtilisateurConnecte();
 
         try {
             paiementFournisseurService.annulerPaiement(id, motif, tresorier);

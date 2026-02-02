@@ -2,7 +2,7 @@ package com.gestion.achat_vente_stock.vente.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.ClientRepository;
 import com.gestion.achat_vente_stock.vente.model.CommandeClient;
@@ -10,6 +10,7 @@ import com.gestion.achat_vente_stock.vente.model.LigneCommandeClient;
 import com.gestion.achat_vente_stock.vente.service.CommandeClientService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,16 +27,19 @@ import java.util.Map;
  * - Ligne 23: Réserver stock à la commande (configurable)
  * 
  * Contrôleur web pour la gestion des commandes clients
+ * 
+ * Rôles autorisés: ROLE-COMMERCIAL, ROLE-MANAGER-VENTES, ROLE-ADMIN
  */
 @Controller
 @RequestMapping("/ventes/commandes")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMMERCIAL', 'ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
 public class CommandeClientController {
 
     private final CommandeClientService commandeClientService;
     private final ClientRepository clientRepository;
     private final ArticleRepository articleRepository;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
     private final ObjectMapper objectMapper;
 
     // ==================== LISTE ====================
@@ -71,7 +75,7 @@ public class CommandeClientController {
     @PostMapping("/depuis-devis/{devisId}")
     public String transformerDevis(@PathVariable Long devisId, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur commercial = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur commercial = sessionService.getUtilisateurConnecte();
             CommandeClient commande = commandeClientService.transformerDevisEnCommande(devisId, commercial);
             redirectAttributes.addFlashAttribute("success", "Commande créée depuis le devis: " + commande.getNumero());
             return "redirect:/ventes/commandes/" + commande.getId();
@@ -89,7 +93,7 @@ public class CommandeClientController {
                               @RequestParam(required = false) String lignesModifiees,
                               RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur commercial = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur commercial = sessionService.getUtilisateurConnecte();
             CommandeClient saved = commandeClientService.enregistrer(commande);
             
             redirectAttributes.addFlashAttribute("success", "Commande créée: " + saved.getNumero());
@@ -156,7 +160,7 @@ public class CommandeClientController {
     @PostMapping("/{id}/confirmer")
     public String confirmer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             commandeClientService.confirmerCommande(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Commande confirmée");
         } catch (Exception e) {
@@ -171,7 +175,7 @@ public class CommandeClientController {
     @PostMapping("/{id}/reserver-stock")
     public String reserverStock(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             commandeClientService.reserverStock(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Stock réservé pour la commande");
         } catch (Exception e) {
@@ -186,7 +190,7 @@ public class CommandeClientController {
     @PostMapping("/{id}/liberer-stock")
     public String libererStock(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             commandeClientService.libererStock(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Stock libéré");
         } catch (Exception e) {
@@ -199,9 +203,10 @@ public class CommandeClientController {
      * Démarrer la préparation
      */
     @PostMapping("/{id}/demarrer-preparation")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String demarrerPreparation(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             commandeClientService.demarrerPreparation(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Préparation démarrée");
         } catch (Exception e) {
@@ -218,7 +223,7 @@ public class CommandeClientController {
                           @RequestParam(required = false) String motif,
                           RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             commandeClientService.annulerCommande(id, utilisateur, motif);
             redirectAttributes.addFlashAttribute("success", "Commande annulée");
         } catch (Exception e) {

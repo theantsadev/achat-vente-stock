@@ -9,12 +9,14 @@ import com.gestion.achat_vente_stock.achat.service.DemandeAchatService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.repository.ServiceRepository;
 import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.dto.ArticleDTO;
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/achats/demandes")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-DEMANDEUR', 'ROLE-ACHETEUR', 'ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
 public class DemandeAchatController {
 
     private final DemandeAchatService demandeAchatService;
@@ -37,6 +40,7 @@ public class DemandeAchatController {
     private final FournisseurRepository fournisseurRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ServiceRepository serviceRepository;
+    private final SessionService sessionService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -94,14 +98,13 @@ public class DemandeAchatController {
      * TODO.YML Ligne 7: Créer demande d'achat
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE-DEMANDEUR', 'ROLE-ACHETEUR', 'ROLE-ADMIN')")
     public String creer(@ModelAttribute DemandeAchat demande,
             @RequestParam(required = false) List<Long> articleIds,
             @RequestParam(required = false) List<java.math.BigDecimal> quantites,
             @RequestParam(required = false) List<java.math.BigDecimal> prix,
             RedirectAttributes redirectAttributes) {
-        // TODO: Récupérer l'utilisateur authentifié (session Spring Security)
-        Utilisateur demandeur = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur demandeur = sessionService.getUtilisateurConnecte();
 
         // Créer les lignes à partir des paramètres
         List<LigneDA> lignes = new ArrayList<>();
@@ -145,9 +148,9 @@ public class DemandeAchatController {
      * TODO.YML Ligne 8: Soumettre DA pour approbation
      */
     @PostMapping("/{id}/soumettre")
+    @PreAuthorize("hasAnyAuthority('ROLE-DEMANDEUR', 'ROLE-ACHETEUR', 'ROLE-ADMIN')")
     public String soumettre(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Utilisateur demandeur = utilisateurRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        Utilisateur demandeur = sessionService.getUtilisateurConnecte();
 
         demandeAchatService.soumettrePourApprobation(id, demandeur);
         redirectAttributes.addFlashAttribute("success", "Demande soumise pour approbation");
@@ -158,6 +161,7 @@ public class DemandeAchatController {
      * TODO.YML Ligne 8-9: Valider/Approuver une DA
      */
     @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-RESP-ACHATS', 'ROLE-DAF', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id,
             @RequestParam Long valideurId,
             @RequestParam Integer niveau,

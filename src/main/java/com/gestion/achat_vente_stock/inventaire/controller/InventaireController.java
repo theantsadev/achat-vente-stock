@@ -1,7 +1,7 @@
 package com.gestion.achat_vente_stock.inventaire.controller;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.inventaire.model.Inventaire;
 import com.gestion.achat_vente_stock.inventaire.model.Inventaire.StatutInventaire;
 import com.gestion.achat_vente_stock.inventaire.model.Inventaire.TypeInventaire;
@@ -11,6 +11,7 @@ import com.gestion.achat_vente_stock.inventaire.service.InventaireService;
 import com.gestion.achat_vente_stock.inventaire.service.LigneInventaireService;
 import com.gestion.achat_vente_stock.referentiel.repository.DepotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +28,14 @@ import java.util.Map;
 @Controller
 @RequestMapping("/inventaires")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-AUDITEUR', 'ROLE-ADMIN')")
 public class InventaireController {
 
     private final InventaireService inventaireService;
     private final LigneInventaireService ligneInventaireService;
     private final AjustementStockService ajustementStockService;
     private final DepotRepository depotRepository;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     /**
      * Liste des inventaires
@@ -68,12 +70,12 @@ public class InventaireController {
      * Création d'un inventaire
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String creer(@RequestParam Long depotId,
                        @RequestParam String type,
                        RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            Utilisateur responsable = utilisateurRepository.findAll().stream().findFirst().orElse(null);
+            Utilisateur responsable = sessionService.getUtilisateurConnecte();
             
             Inventaire inventaire = inventaireService.creer(depotId, TypeInventaire.valueOf(type), responsable);
             redirectAttributes.addFlashAttribute("success", "Inventaire " + inventaire.getNumero() + " créé avec succès");
@@ -179,9 +181,10 @@ public class InventaireController {
      * Générer les ajustements à partir des écarts
      */
     @PostMapping("/{id}/generer-ajustements")
+    @PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String genererAjustements(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findAll().stream().findFirst().orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             var ajustements = ajustementStockService.genererAjustementsInventaire(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", ajustements.size() + " ajustement(s) créé(s)");
         } catch (Exception e) {

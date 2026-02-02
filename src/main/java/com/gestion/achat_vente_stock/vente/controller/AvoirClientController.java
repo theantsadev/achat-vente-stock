@@ -1,13 +1,14 @@
 package com.gestion.achat_vente_stock.vente.controller;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.vente.model.AvoirClient;
 import com.gestion.achat_vente_stock.vente.model.FactureClient;
 import com.gestion.achat_vente_stock.vente.service.AvoirClientService;
 import com.gestion.achat_vente_stock.vente.service.FactureClientService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,11 +27,12 @@ import java.util.List;
 @Controller
 @RequestMapping("/ventes/avoirs")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
 public class AvoirClientController {
 
     private final AvoirClientService avoirClientService;
     private final FactureClientService factureClientService;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     // ==================== LISTE ====================
 
@@ -97,13 +99,14 @@ public class AvoirClientController {
      * TODO.YML Ligne 30: Créer un avoir
      */
     @PostMapping("/facture/{factureId}")
+    @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-ADMIN')")
     public String creer(@PathVariable Long factureId,
             @RequestParam String motif,
             @RequestParam BigDecimal montantHt,
             @RequestParam(required = false) String commentaire,
             RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur createur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur createur = sessionService.getUtilisateurConnecte();
 
             AvoirClient avoir = avoirClientService.creerAvoir(
                     factureId, motif, montantHt, commentaire, createur);
@@ -142,9 +145,10 @@ public class AvoirClientController {
      * TODO.YML Ligne 30: Valider un avoir (double validation au-dessus du seuil)
      */
     @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur valideur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur valideur = sessionService.getUtilisateurConnecte();
             avoirClientService.validerAvoir(id, valideur);
             redirectAttributes.addFlashAttribute("success", "Avoir validé avec succès");
         } catch (Exception e) {

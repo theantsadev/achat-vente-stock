@@ -6,6 +6,7 @@ import com.gestion.achat_vente_stock.stock.service.ValorisationService;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.DepotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/stocks/disponible")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-MAGASINIER-REC', 'ROLE-MAGASINIER-SORT', 'ROLE-COMMERCIAL', 'ROLE-ACHETEUR', 'ROLE-ADMIN')")
 public class StockDisponibleController {
 
     private final StockDisponibleService stockDisponibleService;

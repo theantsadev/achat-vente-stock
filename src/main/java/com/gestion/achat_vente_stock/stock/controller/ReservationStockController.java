@@ -1,10 +1,13 @@
 package com.gestion.achat_vente_stock.stock.controller;
 
+import com.gestion.achat_vente_stock.admin.model.Utilisateur;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.stock.model.ReservationStock;
 import com.gestion.achat_vente_stock.stock.service.ReservationStockService;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.DepotRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +23,13 @@ import java.util.List;
 @Controller
 @RequestMapping("/stocks/reservations")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMMERCIAL', 'ROLE-MANAGER-VENTES', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
 public class ReservationStockController {
 
     private final ReservationStockService reservationStockService;
     private final ArticleRepository articleRepository;
     private final DepotRepository depotRepository;
+    private final SessionService sessionService;
 
     /**
      * Liste des réservations
@@ -83,9 +88,9 @@ public class ReservationStockController {
             var depot = depotRepository.findById(depotId)
                     .orElseThrow(() -> new RuntimeException("Dépôt non trouvé"));
 
-            // TODO: Récupérer l'utilisateur connecté
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             ReservationStock reservation = reservationStockService.creerReservation(
-                    article, depot, quantite, commandeClientId, null);
+                    article, depot, quantite, commandeClientId, utilisateur);
 
             redirectAttributes.addFlashAttribute("success", "Réservation créée");
             return "redirect:/stocks/reservations/" + reservation.getId();
@@ -99,10 +104,11 @@ public class ReservationStockController {
      * Consommer une réservation (lors de la livraison)
      */
     @PostMapping("/{id}/consommer")
+    @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String consommer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            reservationStockService.consommerReservation(id, null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
+            reservationStockService.consommerReservation(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Réservation consommée");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -116,8 +122,8 @@ public class ReservationStockController {
     @PostMapping("/{id}/annuler")
     public String annuler(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            reservationStockService.annulerReservation(id, null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
+            reservationStockService.annulerReservation(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Réservation annulée");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

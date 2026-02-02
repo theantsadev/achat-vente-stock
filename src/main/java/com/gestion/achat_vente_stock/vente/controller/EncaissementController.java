@@ -1,13 +1,14 @@
 package com.gestion.achat_vente_stock.vente.controller;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.vente.model.Encaissement;
 import com.gestion.achat_vente_stock.vente.model.FactureClient;
 import com.gestion.achat_vente_stock.vente.service.EncaissementService;
 import com.gestion.achat_vente_stock.vente.service.FactureClientService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +28,12 @@ import java.util.List;
 @Controller
 @RequestMapping("/ventes/encaissements")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
 public class EncaissementController {
 
     private final EncaissementService encaissementService;
     private final FactureClientService factureClientService;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     // ==================== LISTE ====================
 
@@ -93,6 +95,7 @@ public class EncaissementController {
      * TODO.YML Ligne 29: Enregistrer un encaissement
      */
     @PostMapping("/facture/{factureId}")
+    @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-ADMIN')")
     public String enregistrer(@PathVariable Long factureId,
                              @RequestParam BigDecimal montant,
                              @RequestParam String modePaiement,
@@ -102,7 +105,7 @@ public class EncaissementController {
                              @RequestParam(required = false) String commentaire,
                              RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             LocalDate echeance = dateEcheance != null && !dateEcheance.isEmpty() 
                 ? LocalDate.parse(dateEcheance) : null;
             
@@ -143,9 +146,10 @@ public class EncaissementController {
      * Valider un encaissement
      */
     @GetMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             encaissementService.validerEncaissement(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Encaissement validé");
         } catch (Exception e) {

@@ -8,10 +8,11 @@ import com.gestion.achat_vente_stock.achat.model.Proforma;
 import com.gestion.achat_vente_stock.achat.service.DemandeAchatService;
 import com.gestion.achat_vente_stock.achat.service.ProformaService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +32,13 @@ import java.util.Map;
 @Controller
 @RequestMapping("/achats/pro-formas")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
 public class ProformaController {
 
     private final ProformaService proformaService;
     private final DemandeAchatService demandeAchatService;
     private final FournisseurRepository fournisseurRepository;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -73,7 +75,7 @@ public class ProformaController {
             }
 
             // Générer pro-forma brouillon
-            Utilisateur createur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur createur = sessionService.getUtilisateurConnecte();
             Proforma proforma = proformaService.genererDepuisDA(demandeAchat, createur);
 
             // Convertir les lignes DA en JSON pour le formulaire
@@ -181,9 +183,10 @@ public class ProformaController {
      * Accepter une pro-forma
      */
     @PostMapping("/{id}/accepter")
+    @PreAuthorize("hasAnyAuthority('ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
     public String accepter(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur valideur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur valideur = sessionService.getUtilisateurConnecte();
             proformaService.accepter(id, valideur);
             redirectAttributes.addFlashAttribute("success", "Pro-forma acceptée");
             return "redirect:/achats/pro-formas/" + id;
@@ -197,11 +200,12 @@ public class ProformaController {
      * Rejeter une pro-forma
      */
     @PostMapping("/{id}/rejeter")
+    @PreAuthorize("hasAnyAuthority('ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
     public String rejeter(@PathVariable Long id,
             @RequestParam String motif,
             RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur valideur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur valideur = sessionService.getUtilisateurConnecte();
             proformaService.rejeter(id, valideur, motif);
             redirectAttributes.addFlashAttribute("success", "Pro-forma rejetée");
             return "redirect:/achats/pro-formas/" + id;

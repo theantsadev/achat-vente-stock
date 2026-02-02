@@ -1,5 +1,7 @@
 package com.gestion.achat_vente_stock.stock.controller;
 
+import com.gestion.achat_vente_stock.admin.model.Utilisateur;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 import com.gestion.achat_vente_stock.referentiel.model.Fournisseur;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
@@ -8,6 +10,7 @@ import com.gestion.achat_vente_stock.stock.model.Lot;
 import com.gestion.achat_vente_stock.stock.service.LotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +26,13 @@ import java.util.List;
 @Controller
 @RequestMapping("/stocks/lots")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-MAGASINIER-REC', 'ROLE-ADMIN')")
 public class LotController {
 
     private final LotService lotService;
     private final ArticleRepository articleRepository;
     private final FournisseurRepository fournisseurRepository;
+    private final SessionService sessionService;
 
     /**
      * Liste des lots
@@ -94,8 +99,8 @@ public class LotController {
                 fournisseur = fournisseurRepository.findById(fournisseurId).orElse(null);
             }
 
-            // TODO: Récupérer l'utilisateur connecté
-            Lot lot = lotService.creerLot(article, fournisseur, dateFabrication, dluo, dlc, null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
+            Lot lot = lotService.creerLot(article, fournisseur, dateFabrication, dluo, dlc, utilisateur);
 
             redirectAttributes.addFlashAttribute("success", "Lot créé: " + lot.getNumero());
             return "redirect:/stocks/lots/" + lot.getId();
@@ -109,12 +114,13 @@ public class LotController {
      * Bloquer un lot
      */
     @PostMapping("/{id}/bloquer")
+    @PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String bloquer(@PathVariable Long id,
                           @RequestParam String motifBlocage,
                           RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            lotService.bloquerLot(id, motifBlocage, null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
+            lotService.bloquerLot(id, motifBlocage, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Lot bloqué avec succès");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -126,11 +132,12 @@ public class LotController {
      * Débloquer un lot
      */
     @PostMapping("/{id}/debloquer")
+    @PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String debloquer(@PathVariable Long id,
                             RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            lotService.debloquerLot(id, null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
+            lotService.debloquerLot(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Lot débloqué avec succès");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

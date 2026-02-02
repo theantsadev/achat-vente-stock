@@ -1,13 +1,14 @@
 package com.gestion.achat_vente_stock.vente.controller;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.vente.model.FactureClient;
 import com.gestion.achat_vente_stock.vente.model.LigneFactureClient;
 import com.gestion.achat_vente_stock.vente.service.BonLivraisonService;
 import com.gestion.achat_vente_stock.vente.service.FactureClientService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,11 +30,12 @@ import java.util.Map;
 @Controller
 @RequestMapping("/ventes/factures")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-COMMERCIAL', 'ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
 public class FactureClientController {
 
     private final FactureClientService factureClientService;
     private final BonLivraisonService bonLivraisonService;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     // ==================== LISTE ====================
 
@@ -118,9 +120,10 @@ public class FactureClientController {
      * TODO.YML Ligne 28: Valider une facture (contrôle TVA)
      */
     @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-CLI', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             factureClientService.validerFacture(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Facture validée avec succès");
         } catch (Exception e) {

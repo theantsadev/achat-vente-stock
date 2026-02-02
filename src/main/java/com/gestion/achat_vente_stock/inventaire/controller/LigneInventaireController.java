@@ -1,10 +1,11 @@
 package com.gestion.achat_vente_stock.inventaire.controller;
 
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.inventaire.model.LigneInventaire;
 import com.gestion.achat_vente_stock.inventaire.service.LigneInventaireService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,11 @@ import java.math.BigDecimal;
 @Controller
 @RequestMapping("/inventaires/{inventaireId}/lignes")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-CHEF-MAGASIN', 'ROLE-MAGASINIER-REC', 'ROLE-MAGASINIER-SORT', 'ROLE-ADMIN')")
 public class LigneInventaireController {
 
     private final LigneInventaireService ligneInventaireService;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     /**
      * Page de comptage d'une ligne
@@ -48,8 +50,7 @@ public class LigneInventaireController {
                                   @RequestParam BigDecimal quantite,
                                   RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            Utilisateur compteur = utilisateurRepository.findAll().stream().findFirst().orElse(null);
+            Utilisateur compteur = sessionService.getUtilisateurConnecte();
             
             ligneInventaireService.saisirComptage1(ligneId, quantite, compteur);
             redirectAttributes.addFlashAttribute("success", "Comptage 1 enregistré");
@@ -68,8 +69,7 @@ public class LigneInventaireController {
                                   @RequestParam BigDecimal quantite,
                                   RedirectAttributes redirectAttributes) {
         try {
-            // TODO: Récupérer l'utilisateur connecté
-            Utilisateur compteur = utilisateurRepository.findAll().get(1);
+            Utilisateur compteur = sessionService.getUtilisateurConnecte();
             
             ligneInventaireService.saisirComptage2(ligneId, quantite, compteur);
             redirectAttributes.addFlashAttribute("success", "Comptage 2 enregistré");

@@ -3,17 +3,17 @@ package com.gestion.achat_vente_stock.vente.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
-import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.dto.ArticleDTO;
 import com.gestion.achat_vente_stock.referentiel.model.Article;
 import com.gestion.achat_vente_stock.referentiel.repository.ArticleRepository;
 import com.gestion.achat_vente_stock.referentiel.repository.ClientRepository;
 import com.gestion.achat_vente_stock.vente.model.Devis;
 import com.gestion.achat_vente_stock.vente.model.LigneDevis;
-import com.gestion.achat_vente_stock.vente.repository.LigneDevisRepository;
 import com.gestion.achat_vente_stock.vente.service.DevisService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,16 +32,19 @@ import java.util.stream.Collectors;
  * - Ligne 21: Valider remises > plafond par responsable ventes
  * 
  * Contrôleur web pour la gestion des devis clients
+ * 
+ * Rôles autorisés: ROLE-COMMERCIAL, ROLE-MANAGER-VENTES, ROLE-ADMIN
  */
 @Controller
 @RequestMapping("/ventes/devis")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyAuthority('ROLE-COMMERCIAL', 'ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
 public class DevisController {
 
     private final DevisService devisService;
     private final ClientRepository clientRepository;
     private final ArticleRepository articleRepository;
-    private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
     private final ObjectMapper objectMapper;
 
     // ==================== LISTE ====================
@@ -95,11 +98,13 @@ public class DevisController {
             @RequestParam Map<String, String> params,
             RedirectAttributes redirectAttributes) {
         try {
-            // Récupérer le commercial (utilisateur connecté - pour l'instant utilisateur 1)
-            Utilisateur commercial = utilisateurRepository.findById(1L).orElse(null);
-            if (commercial != null) {
-                devis.setCommercial(commercial);
+            // Récupérer le commercial (utilisateur connecté)
+            Utilisateur commercial = sessionService.getUtilisateurConnecte();
+            if (commercial == null) {
+                redirectAttributes.addFlashAttribute("error", "Utilisateur non connecté");
+                return "redirect:/ventes/devis";
             }
+            devis.setCommercial(commercial);
 
             Devis saved = devisService.creerDevis(devis, commercial);
          
@@ -168,7 +173,7 @@ public class DevisController {
     @PostMapping("/{id}/soumettre")
     public String soumettre(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur commercial = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur commercial = sessionService.getUtilisateurConnecte();
             devisService.soumettreDevis(id, commercial);
             redirectAttributes.addFlashAttribute("success", "Devis soumis avec succès");
         } catch (Exception e) {
@@ -181,12 +186,13 @@ public class DevisController {
      * TODO.YML Ligne 21: Valider le devis (responsable ventes)
      */
     @PostMapping("/{id}/valider")
+    @PreAuthorize("hasAnyAuthority('ROLE-MANAGER-VENTES', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id,
             @RequestParam boolean approuve,
             @RequestParam(required = false) String commentaire,
             RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur responsable = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur responsable = sessionService.getUtilisateurConnecte();
             devisService.validerDevis(id, responsable, approuve, commentaire);
             redirectAttributes.addFlashAttribute("success", approuve ? "Devis validé" : "Devis renvoyé pour révision");
         } catch (Exception e) {
@@ -201,7 +207,7 @@ public class DevisController {
     @PostMapping("/{id}/accepter")
     public String accepter(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             devisService.accepterDevis(id, utilisateur);
             redirectAttributes.addFlashAttribute("success", "Devis accepté par le client");
         } catch (Exception e) {
@@ -218,7 +224,7 @@ public class DevisController {
             @RequestParam(required = false) String motif,
             RedirectAttributes redirectAttributes) {
         try {
-            Utilisateur utilisateur = utilisateurRepository.findById(1L).orElse(null);
+            Utilisateur utilisateur = sessionService.getUtilisateurConnecte();
             devisService.refuserDevis(id, utilisateur, motif);
             redirectAttributes.addFlashAttribute("success", "Devis refusé");
         } catch (Exception e) {
