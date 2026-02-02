@@ -7,6 +7,49 @@
     <main>
         <h2>Bienvenue dans le Système de Gestion Achat-Vente-Stock</h2>
         
+        <!-- Dashboard Chiffre d'Affaires -->
+        <div class="ca-dashboard" style="margin: 2rem 0; padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+            <h3 style="margin-bottom: 1.5rem; font-size: 1.3rem;">📊 Tableau de Bord - Chiffre d'Affaires</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                <!-- CA Total TTC -->
+                <div style="background: rgba(255,255,255,0.15); padding: 1.25rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">💰 CA Total TTC</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;" th:text="${#numbers.formatDecimal(caTotal, 1, 2) + ' €'}">0.00 €</div>
+                </div>
+                
+                <!-- CA Année -->
+                <div style="background: rgba(255,255,255,0.15); padding: 1.25rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">📅 CA Année 2026</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;" th:text="${#numbers.formatDecimal(caAnneeCourante, 1, 2) + ' €'}">0.00 €</div>
+                </div>
+                
+                <!-- CA Mois -->
+                <div style="background: rgba(255,255,255,0.15); padding: 1.25rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">📆 CA Mois Courant</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;" th:text="${#numbers.formatDecimal(caMoisCourant, 1, 2) + ' €'}">0.00 €</div>
+                </div>
+                
+                <!-- Nb Factures -->
+                <div style="background: rgba(255,255,255,0.15); padding: 1.25rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">📄 Factures Validées</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;" th:text="${nbFactures}">0</div>
+                </div>
+                
+                <!-- Impayés -->
+                <div style="background: rgba(255,100,100,0.3); padding: 1.25rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">⚠️ Impayés</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;" th:text="${#numbers.formatDecimal(montantImpayes, 1, 2) + ' €'}">0.00 €</div>
+                </div>
+                
+                <!-- CA HT -->
+                <div style="background: rgba(255,255,255,0.15); padding: 1.25rem; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">📋 CA Total HT</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;" th:text="${#numbers.formatDecimal(caHtTotal, 1, 2) + ' €'}">0.00 €</div>
+                </div>
+            </div>
+        </div>
+        
         <div style="margin-top: 2rem;">
             <h3 style="color: #34495e; margin-bottom: 1rem;">Modules Disponibles</h3>
             

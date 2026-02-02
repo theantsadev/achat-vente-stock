@@ -5,6 +5,7 @@ import com.gestion.achat_vente_stock.achat.service.BonCommandeService;
 import com.gestion.achat_vente_stock.achat.service.FactureFournisseurService;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.repository.UtilisateurRepository;
+import com.gestion.achat_vente_stock.config.security.SessionService;
 import com.gestion.achat_vente_stock.referentiel.repository.FournisseurRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class FactureFournisseurController {
     private final BonCommandeService bonCommandeService;
     private final FournisseurRepository fournisseurRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final SessionService sessionService;
 
     /**
      * TODO.YML Ligne 17: Liste des factures
@@ -106,10 +108,9 @@ public class FactureFournisseurController {
     @PostMapping("/{id}/valider")
     @PreAuthorize("hasAnyAuthority('ROLE-COMPTABLE-FOUR', 'ROLE-DAF', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id,
-            @RequestParam Long valideurId,
             RedirectAttributes redirectAttributes) {
-        Utilisateur valideur = utilisateurRepository.findById(valideurId)
-                .orElseThrow(() -> new RuntimeException("Valideur non trouvé"));
+        // Utiliser l'utilisateur connecté comme valideur
+        Utilisateur valideur = sessionService.getUtilisateurConnecte();
 
         try {
             factureFournisseurService.validerFacture(id, valideur);
@@ -128,10 +129,9 @@ public class FactureFournisseurController {
     @PreAuthorize("hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')")
     public String debloquer(@PathVariable Long id,
             @RequestParam String justification,
-            @RequestParam Long valideurId,
             RedirectAttributes redirectAttributes) {
-        Utilisateur valideur = utilisateurRepository.findById(valideurId)
-                .orElseThrow(() -> new RuntimeException("Valideur non trouvé"));
+        // Utiliser l'utilisateur connecté pour le déblocage
+        Utilisateur valideur = sessionService.getUtilisateurConnecte();
 
         try {
             factureFournisseurService.debloquerFacture(id, justification, valideur);

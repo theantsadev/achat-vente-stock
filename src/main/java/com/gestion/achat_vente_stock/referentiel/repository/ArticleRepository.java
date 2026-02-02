@@ -17,6 +17,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     
     Optional<Article> findByCode(String code);
     
+    // TODO.YML Ligne 15: Recherche par code-barres pour scan réception
+    Optional<Article> findByCodeBarre(String codeBarre);
+    
     List<Article> findByFamilleId(Long familleId);
     
     List<Article> findByStatut(String statut);

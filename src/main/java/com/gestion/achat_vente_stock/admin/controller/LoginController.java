@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -54,8 +55,10 @@ public class LoginController {
 
     /**
      * Page d'accès refusé (403)
+     * Utilise @RequestMapping pour accepter toutes les méthodes HTTP (GET, POST, etc.)
+     * car Spring Security forward la requête originale vers cette page
      */
-    @GetMapping("/error/403")
+    @RequestMapping("/error/403")
     public String accessDenied(Model model) {
         model.addAttribute("errorMessage", "Accès refusé. Vous n'avez pas les droits nécessaires pour accéder à cette page.");
         return "error/403";

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
 <head>
     <title>Détail Facture</title>
 </head>
@@ -70,46 +72,41 @@
         </div>
         
         <!-- TODO.YML Ligne 58: Validation (séparation des tâches) -->
-        <div class="card" th:if="${facture.statut == 'EN_ATTENTE' and facture.threeWayMatchOk}">
-            <h2>Valider la Facture</h2>
-            <p class="info">⚠️ Le valideur ne doit pas être le réceptionnaire (séparation des tâches)</p>
+        <div class="card" th:if="${facture.statut == 'EN_ATTENTE' and facture.threeWayMatchOk}"
+             sec:authorize="hasAnyAuthority('ROLE-COMPTABLE-FOUR', 'ROLE-DAF', 'ROLE-ADMIN')">
+            <h2>✅ Valider la Facture</h2>
+            <div class="info-box">
+                <span>⚠️</span>
+                <span>La validation sera effectuée par l'utilisateur connecté (séparation des tâches avec le réceptionnaire)</span>
+            </div>
             <form th:action="@{/achats/factures/{id}/valider(id=${facture.id})}" method="post">
-                <div class="form-group">
-                    <label>Valideur:</label>
-                    <select name="valideurId" required>
-                        <option th:each="user : ${utilisateurs}" 
-                                th:value="${user.id}" 
-                                th:text="${user.nom}">Utilisateur</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn btn-success">✅ Valider Facture</button>
+                <button type="submit" class="btn btn-success"
+                        onclick="return confirm('Confirmer la validation de cette facture ?')">
+                    ✅ Valider la Facture
+                </button>
             </form>
         </div>
         
         <!-- TODO.YML Ligne 18: Débloquer facture -->
-        <div class="card alert-danger" th:if="${facture.statut == 'BLOQUEE'}">
+        <div class="card alert-danger" th:if="${facture.statut == 'BLOQUEE'}"
+             sec:authorize="hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')">
             <h2>⚠️ Facture Bloquée</h2>
-            <p>Cette facture est bloquée en raison d'écarts détectés lors du 3-way match.</p>
-            <p>Le paiement est impossible tant que les écarts ne sont pas résolus ou justifiés.</p>
+            <div class="info-box info-danger">
+                <span>🚫</span>
+                <span>Cette facture est bloquée en raison d'écarts détectés lors du 3-way match. Le paiement est impossible sans déblocage.</span>
+            </div>
             
             <form th:action="@{/achats/factures/{id}/debloquer(id=${facture.id})}" method="post">
                 <div class="form-group">
-                    <label>Valideur:</label>
-                    <select name="valideurId" required>
-                        <option th:each="user : ${utilisateurs}" 
-                                th:value="${user.id}" 
-                                th:text="${user.nom}">Utilisateur</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Justification du déblocage:</label>
-                    <textarea name="justification" rows="4" required 
+                    <label for="justification">Justification du déblocage : <span class="required">*</span></label>
+                    <textarea id="justification" name="justification" rows="4" required 
                               placeholder="Expliquer pourquoi la facture peut être débloquée malgré les écarts..."></textarea>
                 </div>
                 
-                <button type="submit" class="btn btn-warning">🔓 Débloquer Facture</button>
+                <button type="submit" class="btn btn-warning"
+                        onclick="return confirm('Confirmer le déblocage de cette facture ?')">
+                    🔓 Débloquer la Facture
+                </button>
             </form>
         </div>
         

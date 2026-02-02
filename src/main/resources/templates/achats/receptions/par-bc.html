@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Réceptions par BC</title>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <h1>📦 Suivi des Réceptions - BC <span th:text="${bonCommande.numero}">BC001</span></h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <!-- Informations du BC -->
+            <div class="card">
+                <h2>📄 Bon de Commande</h2>
+                <dl>
+                    <dt>Numéro:</dt>
+                    <dd>
+                        <a th:href="@{/achats/bons-commande/{id}(id=${bonCommande.id})}"
+                            th:text="${bonCommande.numero}">BC001</a>
+                    </dd>
+
+                    <dt>Fournisseur:</dt>
+                    <dd th:text="${bonCommande.fournisseur?.raisonSociale}">Fournisseur</dd>
+
+                    <dt>Date Commande:</dt>
+                    <dd th:text="${#temporals.format(bonCommande.dateCommande, 'dd/MM/yyyy')}">01/01/2026</dd>
+
+                    <dt>Statut:</dt>
+                    <dd>
+                        <span class="badge" th:text="${bonCommande.statut}">ENVOYEE</span>
+                    </dd>
+                </dl>
+            </div>
+
+            <!-- TODO.YML Ligne 16: Affichage du reliquat -->
+            <div class="card" th:classappend="${reliquat > 0 ? 'alert-warning' : 'alert-success'}">
+                <h2>📊 État des Réceptions</h2>
+                <div th:if="${reliquat > 0}">
+                    <p class="text-warning">
+                        ⚠️ <strong>Reliquat à recevoir:</strong> <span th:text="${reliquat}">0</span> unités
+                    </p>
+                    <a th:href="@{/achats/receptions/nouveau(bcId=${bonCommande.id})}" class="btn btn-primary">
+                        📦 Créer une nouvelle réception
+                    </a>
+                </div>
+                <div th:unless="${reliquat > 0}">
+                    <p class="text-success">
+                        ✅ Toutes les marchandises ont été reçues
+                    </p>
+                </div>
+            </div>
+
+            <!-- Liste des réceptions pour ce BC -->
+            <div class="card">
+                <h2>📋 Historique des Réceptions</h2>
+                <table th:if="${!#lists.isEmpty(receptions)}">
+                    <thead>
+                        <tr>
+                            <th>Numéro BR</th>
+                            <th>Date Réception</th>
+                            <th>Magasinier</th>
+                            <th>BL Fournisseur</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="br : ${receptions}">
+                            <td th:text="${br.numero}">BR001</td>
+                            <td th:text="${#temporals.format(br.dateReception, 'dd/MM/yyyy')}">01/01/2026</td>
+                            <td th:text="${br.magasinier?.nom}">Durand</td>
+                            <td th:text="${br.numeroBlFournisseur}">BL-F-001</td>
+                            <td>
+                                <span th:class="${'badge badge-' + 
+                                (br.statut == 'EN_COURS' ? 'info' :
+                                 br.statut == 'PARTIELLE' ? 'warning' : 
+                                 br.statut == 'COMPLETE' ? 'success' : 
+                                 br.statut == 'AVEC_ECART' ? 'danger' : 'secondary')}"
+                                    th:text="${br.statut}">PARTIELLE</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/achats/receptions/{id}(id=${br.id})}" class="btn btn-sm">
+                                    <span th:if="${br.statut == 'EN_COURS'}">✏️ Continuer</span>
+                                    <span th:unless="${br.statut == 'EN_COURS'}">👁️ Voir</span>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p th:if="${#lists.isEmpty(receptions)}" class="text-center">
+                    Aucune réception enregistrée pour ce bon de commande.
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <a th:href="@{/achats/bons-commande/{id}(id=${bonCommande.id})}" class="btn">
+                    ← Retour au Bon de Commande
+                </a>
+                <a th:href="@{/achats/receptions}" class="btn">
+                    📋 Toutes les réceptions
+                </a>
+            </div>
+        </div>
+
+        <style>
+            .text-warning {
+                color: #856404;
+            }
+
+            .text-success {
+                color: #155724;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            .alert-warning {
+                background-color: #fff3cd;
+                border: 1px solid #ffc107;
+            }
+
+            .alert-success {
+                background-color: #d4edda;
+                border: 1px solid #28a745;
+            }
+        </style>
+    </main>
+</body>
+
+</html>

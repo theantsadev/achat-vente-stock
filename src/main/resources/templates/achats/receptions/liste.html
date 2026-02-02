@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
 
 <head>
     <title>Réceptions</title>
@@ -11,13 +13,30 @@
             <h1>📦 Réceptions de Marchandises</h1>
 
             <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
 
-            <table>
+            <!-- Filtres -->
+            <div class="card">
+                <form method="get" class="form-inline">
+                    <label for="statutFiltre">Filtrer par statut:</label>
+                    <select id="statutFiltre" onchange="filtrerParStatut(this.value)">
+                        <option value="">Tous</option>
+                        <option value="EN_COURS">En cours</option>
+                        <option value="PARTIELLE">Partielles</option>
+                        <option value="COMPLETE">Complètes</option>
+                        <option value="AVEC_ECART">Avec écarts</option>
+                    </select>
+                </form>
+            </div>
+
+            <!-- TODO.YML Ligne 14-16: Liste des réceptions -->
+            <table id="tableReceptions">
                 <thead>
                     <tr>
                         <th>Numéro</th>
                         <th>Bon Commande</th>
+                        <th>Fournisseur</th>
                         <th>Magasinier</th>
                         <th>Date Réception</th>
                         <th>BL Fournisseur</th>
@@ -26,26 +45,68 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="br : ${receptions}">
+                    <tr th:each="br : ${receptions}" th:data-statut="${br.statut}">
                         <td th:text="${br.numero}">BR001</td>
-                        <td th:text="${br.bonCommande?.numero}">BC001</td>
+                        <td>
+                            <a th:href="@{/achats/bons-commande/{id}(id=${br.bonCommande?.id})}"
+                               th:text="${br.bonCommande?.numero}">BC001</a>
+                        </td>
+                        <td th:text="${br.bonCommande?.fournisseur?.raisonSociale}">Fournisseur</td>
                         <td th:text="${br.magasinier?.nom}">Durand</td>
                         <td th:text="${#temporals.format(br.dateReception, 'dd/MM/yyyy')}">01/01/2026</td>
                         <td th:text="${br.numeroBlFournisseur}">BL-F-001</td>
                         <td>
                             <span th:class="${'badge badge-' + 
-                            (br.statut == 'PARTIELLE' ? 'warning' : 
+                            (br.statut == 'EN_COURS' ? 'info' :
+                             br.statut == 'PARTIELLE' ? 'warning' : 
                              br.statut == 'COMPLETE' ? 'success' : 
                              br.statut == 'AVEC_ECART' ? 'danger' : 'secondary')}"
-                                th:text="${br.statut}">PARTIELLE</span>
+                                th:text="${br.statut}">EN_COURS</span>
                         </td>
                         <td>
-                            <a th:href="@{/achats/receptions/{id}(id=${br.id})}" class="btn btn-sm">👁️ Voir</a>
+                            <a th:href="@{/achats/receptions/{id}(id=${br.id})}" class="btn btn-sm">
+                                <span th:if="${br.statut == 'EN_COURS'}">✏️ Continuer</span>
+                                <span th:unless="${br.statut == 'EN_COURS'}">👁️ Voir</span>
+                            </a>
                         </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(receptions)}">
+                        <td colspan="8" class="text-center">Aucune réception enregistrée</td>
                     </tr>
                 </tbody>
             </table>
+            
+            <!-- Légende des statuts -->
+            <div class="card">
+                <h3>Légende des statuts</h3>
+                <ul class="legend">
+                    <li><span class="badge badge-info">EN_COURS</span> Réception en cours de saisie</li>
+                    <li><span class="badge badge-success">COMPLETE</span> Toutes les quantités commandées ont été reçues et conformes</li>
+                    <li><span class="badge badge-warning">PARTIELLE</span> Quantités reçues inférieures aux quantités commandées (reliquat)</li>
+                    <li><span class="badge badge-danger">AVEC_ECART</span> Des non-conformités ont été détectées</li>
+                </ul>
+            </div>
         </div>
+        
+        <script>
+            function filtrerParStatut(statut) {
+                const rows = document.querySelectorAll('#tableReceptions tbody tr');
+                rows.forEach(row => {
+                    if (!statut || row.dataset.statut === statut) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        </script>
+        
+        <style>
+            .legend { list-style: none; padding: 0; }
+            .legend li { margin: 0.5rem 0; }
+            .form-inline { display: flex; gap: 1rem; align-items: center; }
+            .text-center { text-align: center; }
+        </style>
     </main>
 </body>
 

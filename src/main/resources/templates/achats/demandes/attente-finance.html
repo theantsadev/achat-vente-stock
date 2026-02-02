@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>DA - Attente Validation Finance</title>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <h1>💰 Demandes en Attente de Validation Finance</h1>
+
+            <div class="info-box" style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <p style="margin: 0;">
+                    <strong>ℹ️ Information :</strong> Ces demandes d'achat ont été approuvées par la hiérarchie 
+                    et nécessitent votre validation concernant la disponibilité des fonds budgétaires.
+                </p>
+            </div>
+
+            <div class="actions" style="margin-bottom: 1rem;">
+                <a th:href="@{/achats/demandes}" class="btn">← Retour à la liste</a>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <div th:if="${#lists.isEmpty(demandes)}" class="alert alert-info">
+                ✅ Aucune demande en attente de validation finance.
+            </div>
+
+            <table th:if="${!#lists.isEmpty(demandes)}">
+                <thead>
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Demandeur</th>
+                        <th>Service</th>
+                        <th>Date Besoin</th>
+                        <th>Montant HT Estimé</th>
+                        <th>Date Soumission</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="da : ${demandes}">
+                        <td th:text="${da.numero}">DA001</td>
+                        <td th:text="${da.demandeur?.nom}">Dupont</td>
+                        <td th:text="${da.service?.libelle}">Informatique</td>
+                        <td th:text="${#temporals.format(da.dateBesoin, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td>
+                            <strong th:text="${#numbers.formatDecimal(da.montantEstimeHt, 1, 2) + ' €'}">1000.00 €</strong>
+                        </td>
+                        <td th:text="${da.dateSoumission != null ? #temporals.format(da.dateSoumission, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                        <td>
+                            <a th:href="@{/achats/demandes/{id}(id=${da.id})}" class="btn btn-sm btn-primary">
+                                💰 Valider
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div th:if="${!#lists.isEmpty(demandes)}" class="summary-box" 
+                 style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                <strong>Total en attente :</strong> 
+                <span th:text="${#lists.size(demandes)}">0</span> demande(s) - 
+                <strong>Montant total :</strong> 
+                <span th:text="${#numbers.formatDecimal(#aggregates.sum(demandes.![montantEstimeHt]), 1, 2) + ' €'}">0 €</span>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

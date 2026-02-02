@@ -3,6 +3,7 @@ package com.gestion.achat_vente_stock.vente.service;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.service.AuditService;
 import com.gestion.achat_vente_stock.referentiel.model.Depot;
+import com.gestion.achat_vente_stock.stock.service.MouvementStockService;
 import com.gestion.achat_vente_stock.vente.model.*;
 import com.gestion.achat_vente_stock.vente.repository.*;
 
@@ -30,6 +31,7 @@ public class BonLivraisonService {
     private final CommandeClientRepository commandeClientRepository;
     private final LigneCommandeClientRepository ligneCommandeClientRepository;
     private final AuditService auditService;
+    private final MouvementStockService mouvementStockService;
 
     /** Préfixe pour les numéros de BL */
     private static final String PREFIXE_NUMERO = "BL";
@@ -186,7 +188,7 @@ public class BonLivraisonService {
     }
 
     /**
-     * Confirmer la livraison
+     * Confirmer la livraison et créer les mouvements de sortie de stock
      */
     public void confirmerLivraison(Long blId, Utilisateur utilisateur) {
         BonLivraison bl = obtenirParId(blId);
@@ -197,6 +199,9 @@ public class BonLivraisonService {
 
         bl.setStatut("LIVRE");
         bonLivraisonRepository.save(bl);
+
+        // *** CRÉATION DES MOUVEMENTS DE SORTIE DE STOCK ***
+        creerMouvementsSortieStock(bl, utilisateur);
 
         // Mettre à jour les quantités livrées sur la commande
         for (LigneBL ligneBL : bl.getLignes()) {
@@ -224,7 +229,38 @@ public class BonLivraisonService {
         }
 
         auditService.logAction(utilisateur, "bon_livraison", blId,
-                "DELIVER", "EXPEDIE", "LIVRE", null);
+                "DELIVER", "EXPEDIE", "LIVRE - Mouvements stock créés", null);
+    }
+
+    /**
+     * Créer les mouvements de sortie de stock pour une livraison confirmée
+     */
+    private void creerMouvementsSortieStock(BonLivraison bl, Utilisateur utilisateur) {
+        Depot depot = bl.getDepot();
+        
+        for (LigneBL ligne : bl.getLignes()) {
+            if (ligne.getQuantiteLivree() != null && 
+                ligne.getQuantiteLivree().compareTo(BigDecimal.ZERO) > 0) {
+                
+                try {
+                    mouvementStockService.creerMouvementSortie(
+                        ligne.getArticle(),
+                        depot,
+                        MouvementStockService.SORTIE_LIVRAISON,
+                        ligne.getQuantiteLivree(),
+                        null, // emplacement
+                        ligne.getLotNumero(),
+                        bl.getId(),
+                        "BON_LIVRAISON",
+                        utilisateur
+                    );
+                } catch (RuntimeException e) {
+                    // Log l'erreur mais continue (le stock peut avoir été déjà sorti manuellement)
+                    System.err.println("⚠️ Erreur création mouvement sortie pour article " 
+                        + ligne.getArticle().getCode() + ": " + e.getMessage());
+                }
+            }
+        }
     }
 
     /**

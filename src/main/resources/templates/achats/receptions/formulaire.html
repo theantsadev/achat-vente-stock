@@ -1,42 +1,88 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
 <head>
     <title>Nouvelle Réception</title>
 </head>
 <body>
 <main>
     <div class="container">
-        <h1>📦 Nouvelle Réception</h1>
+        <h1>📦 Nouvelle Réception de Marchandises</h1>
         
+        <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+        
+        <!-- TODO.YML Ligne 14: Informations du BC -->
         <div class="card">
-            <h2>Bon de Commande</h2>
+            <h2>📄 Bon de Commande</h2>
             <dl>
                 <dt>Numéro:</dt>
                 <dd th:text="${bonCommande.numero}">BC001</dd>
                 
                 <dt>Fournisseur:</dt>
                 <dd th:text="${bonCommande.fournisseur?.raisonSociale}">Fournisseur</dd>
+                
+                <dt>Date Commande:</dt>
+                <dd th:text="${#temporals.format(bonCommande.dateCommande, 'dd/MM/yyyy')}">01/01/2026</dd>
+                
+                <dt>Montant TTC:</dt>
+                <dd th:text="${#numbers.formatDecimal(bonCommande.montantTotalTtc, 1, 2)} + ' €'">1000.00 €</dd>
             </dl>
         </div>
         
-        <form th:action="@{/achats/receptions}" method="post">
-            <input type="hidden" name="bcId" th:value="${bonCommande.id}" />
-            
-            <div class="form-group">
-                <label>N° BL Fournisseur:</label>
-                <input type="text" name="numeroBlFournisseur" required />
-            </div>
-            
-            <div class="form-group">
-                <label>Date BL Fournisseur:</label>
-                <input type="date" name="dateBlFournisseur" required />
-            </div>
-            
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">💾 Créer Réception</button>
-                <a th:href="@{/achats/bons-commande/{id}(id=${bonCommande.id})}" class="btn">Annuler</a>
-            </div>
-        </form>
+        <!-- TODO.YML Ligne 16: Afficher reliquat si réceptions précédentes -->
+        <div class="card" th:if="${reliquat != null and reliquat > 0}">
+            <h2>⚠️ Reliquat à recevoir</h2>
+            <p class="alert alert-info">
+                Il reste <strong th:text="${reliquat}">0</strong> unités à recevoir de commandes précédentes.
+            </p>
+        </div>
+        
+        <!-- TODO.YML Ligne 14: Aperçu des lignes à réceptionner -->
+        <div class="card" th:if="${lignesBC != null and !lignesBC.isEmpty()}">
+            <h2>📋 Articles à réceptionner</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Désignation</th>
+                        <th>Qté Commandée</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ligne : ${lignesBC}">
+                        <td th:text="${ligne.article?.code}">ART001</td>
+                        <td th:text="${ligne.article?.designation}">Article</td>
+                        <td th:text="${ligne.quantite}">100</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Formulaire de création -->
+        <div class="card">
+            <h2>📝 Informations du Bon de Livraison Fournisseur</h2>
+            <form th:action="@{/achats/receptions}" method="post">
+                <input type="hidden" name="bcId" th:value="${bonCommande.id}" />
+                
+                <div class="form-group">
+                    <label for="numeroBlFournisseur">N° BL Fournisseur: <span class="required">*</span></label>
+                    <input type="text" id="numeroBlFournisseur" name="numeroBlFournisseur" required 
+                           placeholder="Ex: BL-2026-001" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="dateBlFournisseur">Date BL Fournisseur: <span class="required">*</span></label>
+                    <input type="date" id="dateBlFournisseur" name="dateBlFournisseur" required 
+                           th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+                </div>
+                
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">📦 Créer Réception et Commencer le Contrôle</button>
+                    <a th:href="@{/achats/bons-commande/{id}(id=${bonCommande.id})}" class="btn">Annuler</a>
+                </div>
+            </form>
+        </div>
     </div>
 </main>
 </body>

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
 <head>
     <title>Détail Bon de Commande</title>
 </head>
@@ -53,18 +55,10 @@
         </div>
         
         <!-- TODO.YML Ligne 12: Validation responsable achats -->
-        <div class="card" th:if="${bonCommande.statut == 'EN_ATTENTE_VALIDATION'}">
+        <div class="card" th:if="${bonCommande.statut == 'EN_ATTENTE_VALIDATION'}" 
+             sec:authorize="hasAnyAuthority('ROLE-RESP-ACHATS', 'ROLE-ADMIN')">
             <h2>Validation Responsable Achats</h2>
             <form th:action="@{/achats/bons-commande/{id}/valider(id=${bonCommande.id})}" method="post">
-                <div class="form-group">
-                    <label>Responsable:</label>
-                    <select name="responsableId" required>
-                        <option th:each="user : ${utilisateurs}" 
-                                th:value="${user.id}" 
-                                th:text="${user.nom}">Utilisateur</option>
-                    </select>
-                </div>
-                
                 <div class="form-group">
                     <label>Décision:</label>
                     <select name="approuve" required>
@@ -75,7 +69,7 @@
                 
                 <div class="form-group">
                     <label>Commentaire:</label>
-                    <textarea name="commentaire" rows="3"></textarea>
+                    <textarea name="commentaire" rows="3" placeholder="Optionnel - motif en cas de rejet"></textarea>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Valider</button>
@@ -83,18 +77,11 @@
         </div>
         
         <!-- TODO.YML Ligne 13: Approbation DG/DAF -->
-        <div class="card" th:if="${bonCommande.statut == 'VALIDEE'}">
+        <div class="card" th:if="${bonCommande.statut == 'VALIDEE'}" 
+             sec:authorize="hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')">
             <h2>Approbation Finale (DG/DAF)</h2>
             <form th:action="@{/achats/bons-commande/{id}/approuver(id=${bonCommande.id})}" method="post">
-                <div class="form-group">
-                    <label>Approbateur (DG/DAF):</label>
-                    <select name="approbateurId" required>
-                        <option th:each="user : ${utilisateurs}" 
-                                th:value="${user.id}" 
-                                th:text="${user.nom}">Utilisateur</option>
-                    </select>
-                </div>
-                
+                <p>En cliquant sur le bouton ci-dessous, vous approuvez ce bon de commande pour signature.</p>
                 <button type="submit" class="btn btn-success">✅ Approuver pour Signature</button>
             </form>
         </div>
@@ -106,14 +93,16 @@
             <!-- TODO.YML Ligne 12: Soumettre pour validation -->
             <form th:if="${bonCommande.statut == 'BROUILLON'}" 
                   th:action="@{/achats/bons-commande/{id}/soumettre(id=${bonCommande.id})}" 
-                  method="post" style="display: inline;">
+                  method="post" style="display: inline;"
+                  sec:authorize="hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-ADMIN')">
                 <button type="submit" class="btn btn-warning">📤 Soumettre pour Validation</button>
             </form>
             
             <!-- Envoyer au fournisseur -->
             <form th:if="${bonCommande.statut == 'APPROUVEE'}" 
                   th:action="@{/achats/bons-commande/{id}/envoyer(id=${bonCommande.id})}" 
-                  method="post" style="display: inline;">
+                  method="post" style="display: inline;"
+                  sec:authorize="hasAnyAuthority('ROLE-ACHETEUR', 'ROLE-RESP-ACHATS', 'ROLE-ADMIN')">
                 <button type="submit" class="btn btn-primary">📧 Envoyer au Fournisseur</button>
             </form>
             

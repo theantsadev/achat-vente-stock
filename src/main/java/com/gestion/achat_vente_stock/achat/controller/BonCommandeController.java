@@ -82,16 +82,14 @@ public class BonCommandeController {
     @PostMapping("/{id}/valider")
     @PreAuthorize("hasAnyAuthority('ROLE-RESP-ACHATS', 'ROLE-ADMIN')")
     public String valider(@PathVariable Long id,
-            @RequestParam Long responsableId,
             @RequestParam boolean approuve,
             @RequestParam(required = false) String commentaire,
             RedirectAttributes redirectAttributes) {
-        Utilisateur responsable = utilisateurRepository.findById(responsableId)
-                .orElseThrow(() -> new RuntimeException("Responsable non trouvé"));
+        Utilisateur responsable = sessionService.getUtilisateurConnecte();
 
         try {
             bonCommandeService.validerBonCommande(id, responsable, approuve, commentaire);
-            redirectAttributes.addFlashAttribute("success", "BC validé");
+            redirectAttributes.addFlashAttribute("success", approuve ? "BC validé" : "BC rejeté");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
@@ -104,11 +102,8 @@ public class BonCommandeController {
      */
     @PostMapping("/{id}/approuver")
     @PreAuthorize("hasAnyAuthority('ROLE-DAF', 'ROLE-ADMIN')")
-    public String approuver(@PathVariable Long id,
-            @RequestParam Long approbateurId,
-            RedirectAttributes redirectAttributes) {
-        Utilisateur approbateur = utilisateurRepository.findById(approbateurId)
-                .orElseThrow(() -> new RuntimeException("Approbateur non trouvé"));
+    public String approuver(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        Utilisateur approbateur = sessionService.getUtilisateurConnecte();
 
         try {
             bonCommandeService.approuverPourSignature(id, approbateur);

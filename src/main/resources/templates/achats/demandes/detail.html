@@ -99,16 +99,15 @@
                 </table>
             </div>
 
-            <!-- TODO.YML Ligne 8-9: Formulaire validation -->
-            <div class="card" th:if="${demande.statut == 'EN_ATTENTE'}">
+            <!-- TODO.YML Ligne 8-9: Formulaire validation (visible uniquement pour les valideurs autorisés) -->
+            <div class="card" th:if="${demande.statut == 'EN_ATTENTE' and peutValider}">
                 <h2>Valider la Demande</h2>
                 <form th:action="@{/achats/demandes/{id}/valider(id=${demande.id})}" method="post">
+                    <input type="hidden" name="valideurId" th:value="${utilisateurConnecte.id}" />
+
                     <div class="form-group">
                         <label>Valideur:</label>
-                        <select name="valideurId" required>
-                            <option th:each="user : ${utilisateurs}" th:value="${user.id}" th:text="${user.nom}">
-                                Utilisateur</option>
-                        </select>
+                        <span th:text="${utilisateurConnecte.nom}" class="form-control-static">Valideur</span>
                     </div>
 
                     <div class="form-group">
@@ -137,6 +136,46 @@
                 </form>
             </div>
 
+            <!-- Validation Finance : Disponibilité des fonds -->
+            <div class="card" th:if="${demande.statut == 'EN_ATTENTE_FINANCE'}"
+                sec:authorize="hasAnyAuthority('ROLE-FINANCE', 'ROLE-DAF', 'ROLE-ADMIN')">
+                <h2>💰 Validation Finance - Disponibilité des Fonds</h2>
+                <div class="info-box info-warning">
+                    <span>⚠️</span>
+                    <span>Cette DA a été approuvée par la hiérarchie. Veuillez confirmer la disponibilité des
+                        fonds.</span>
+                </div>
+                <p><strong>Montant estimé :</strong> <span
+                        th:text="${#numbers.formatDecimal(demande.montantEstimeHt, 1, 2) + ' €'}">0 €</span></p>
+
+                <form th:action="@{/achats/demandes/{id}/valider-finance(id=${demande.id})}" method="post">
+                    <div class="form-group">
+                        <label>Décision :</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="fondsDisponibles" value="true" required>
+                                ✅ Fonds disponibles - Approuver
+                            </label>
+                            <label>
+                                <input type="radio" name="fondsDisponibles" value="false">
+                                ❌ Fonds insuffisants - Rejeter
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Commentaire :</label>
+                        <textarea name="commentaire" rows="3"
+                            placeholder="Précisions sur la disponibilité budgétaire..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"
+                        onclick="return confirm('Confirmer cette décision ?')">
+                        💰 Valider Finance
+                    </button>
+                </form>
+            </div>
+
             <!-- Actions -->
             <div class="actions">
                 <a th:href="@{/achats/demandes}" class="btn">← Retour</a>
@@ -155,6 +194,36 @@
 
             </div>
         </div>
+
+        <style>
+            .info-box {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 1rem;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+            }
+
+            .info-box.info-warning {
+                background: #fff3cd;
+                color: #856404;
+            }
+
+            .radio-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            .radio-group label {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+            }
+        </style>
     </main>
 </body>
 

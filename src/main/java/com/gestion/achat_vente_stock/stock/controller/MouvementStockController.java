@@ -69,16 +69,6 @@ public class MouvementStockController {
     }
 
     /**
-     * Détail d'un mouvement
-     */
-    @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        MouvementStock mouvement = mouvementStockService.trouverParId(id);
-        model.addAttribute("mouvement", mouvement);
-        return "stocks/mouvements/detail";
-    }
-
-    /**
      * Formulaire de création d'une entrée de stock
      */
     @GetMapping("/entree/nouveau")
@@ -137,6 +127,7 @@ public class MouvementStockController {
     /**
      * Créer une sortie de stock
      */
+    @PostMapping("/sortie")
     @PreAuthorize("hasAnyAuthority('ROLE-MAGASINIER-SORT', 'ROLE-CHEF-MAGASIN', 'ROLE-ADMIN')")
     public String creerSortie(@RequestParam Long articleId,
             @RequestParam Long depotId,
@@ -163,6 +154,16 @@ public class MouvementStockController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/stocks/mouvements/sortie/nouveau";
         }
+    }
+
+    /**
+     * Détail d'un mouvement - DOIT ÊTRE APRÈS les routes spécifiques
+     */
+    @GetMapping("/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+        MouvementStock mouvement = mouvementStockService.trouverParId(id);
+        model.addAttribute("mouvement", mouvement);
+        return "stocks/mouvements/detail";
     }
 
     private List<String> getTypesEntree() {

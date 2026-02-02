@@ -6,6 +6,7 @@ import com.gestion.achat_vente_stock.achat.model.LigneBC;
 import com.gestion.achat_vente_stock.achat.model.LigneDA;
 import com.gestion.achat_vente_stock.achat.model.Proforma;
 import com.gestion.achat_vente_stock.achat.repository.BonCommandeRepository;
+import com.gestion.achat_vente_stock.achat.repository.LigneBCRepository;
 import com.gestion.achat_vente_stock.achat.repository.LigneDARepository;
 import com.gestion.achat_vente_stock.admin.model.Utilisateur;
 import com.gestion.achat_vente_stock.admin.service.AuditService;
@@ -33,6 +34,7 @@ public class BonCommandeService {
     private final DemandeAchatService demandeAchatService;
     private final ProformaService proformaService;
     private final LigneDARepository ligneDARepository;
+    private final LigneBCRepository ligneBCRepository;
     private final AuditService auditService;
 
     // TODO.YML Ligne 12: Seuil pour validation responsable achats
@@ -74,7 +76,7 @@ public class BonCommandeService {
             ligneBC.setQuantite(ligneDA.getQuantite());
             ligneBC.setPrixUnitaireHt(ligneDA.getPrixEstimeHt());
             ligneBC.setMontantLigneHt(ligneDA.getQuantite().multiply(ligneDA.getPrixEstimeHt()));
-            // Les lignes seront sauvegardées par le repository LigneBC si nécessaire
+            ligneBCRepository.save(ligneBC); // Sauvegarder la ligne BC
         }
 
         // Marquer la proforma comme transformée en BC
@@ -124,7 +126,7 @@ public class BonCommandeService {
             ligneBC.setQuantite(ligneDA.getQuantite());
             ligneBC.setPrixUnitaireHt(ligneDA.getPrixEstimeHt());
             ligneBC.setMontantLigneHt(ligneDA.getQuantite().multiply(ligneDA.getPrixEstimeHt()));
-            // Les lignes seront sauvegardées par le repository LigneBC si nécessaire
+            ligneBCRepository.save(ligneBC); // Sauvegarder la ligne BC
         }
 
         // Audit
@@ -237,6 +239,14 @@ public class BonCommandeService {
     @Transactional(readOnly = true)
     public List<BonCommande> listerParStatut(String statut) {
         return bonCommandeRepository.findByStatut(statut);
+    }
+
+    /**
+     * TODO.YML Ligne 14: Récupérer les lignes d'un BC pour réception
+     */
+    @Transactional(readOnly = true)
+    public List<LigneBC> getLignesBC(Long bcId) {
+        return ligneBCRepository.findByBonCommandeId(bcId);
     }
 
     private String genererNumeroBC() {

@@ -38,6 +38,9 @@ public class DemandeAchatService {
     private static final BigDecimal SEUIL_N2 = new BigDecimal("50000"); // 50K€
     private static final BigDecimal SEUIL_N3 = new BigDecimal("100000"); // 100K€
 
+    // Statuts possibles pour le workflow complet :
+    // BROUILLON -> EN_ATTENTE -> EN_ATTENTE_FINANCE -> APPROUVEE / REJETEE / ANNULEE
+
     /**
      * TODO.YML Ligne 7: Créer demande d'achat
      */
@@ -124,7 +127,8 @@ public class DemandeAchatService {
             Integer niveauRequis = determinerNiveauApprobationRequis(da.getMontantEstimeHt());
 
             if (niveau >= niveauRequis) {
-                da.setStatut("APPROUVEE");
+                // Toutes les approbations hiérarchiques OK -> passer à Finance
+                da.setStatut("EN_ATTENTE_FINANCE");
             } else {
                 // Attente du niveau suivant
                 da.setStatut("EN_ATTENTE");
@@ -151,6 +155,49 @@ public class DemandeAchatService {
         } else {
             return 0; // Pas d'approbation nécessaire
         }
+    }
+
+    /**
+     * Validation Finance : Confirmer la disponibilité des fonds
+     * Cette étape intervient après les approbations hiérarchiques N1/N2/N3
+     */
+    public void validerFinance(Long daId, Utilisateur valideurFinance, boolean fondsDisponibles, String commentaire) {
+        DemandeAchat da = trouverParId(daId);
+
+        if (!"EN_ATTENTE_FINANCE".equals(da.getStatut())) {
+            throw new RuntimeException("Cette DA n'est pas en attente de validation Finance");
+        }
+
+        // Créer la validation Finance
+        ValidationDA validation = new ValidationDA();
+        validation.setDemandeAchat(da);
+        validation.setValideur(valideurFinance);
+        validation.setNiveau(99); // Niveau spécial pour Finance
+        validation.setDecision(fondsDisponibles ? "FONDS_OK" : "FONDS_INSUFFISANTS");
+        validation.setCommentaire(commentaire);
+        validation.setDateValidation(java.time.LocalDateTime.now());
+        validationDARepository.save(validation);
+
+        if (fondsDisponibles) {
+            da.setStatut("APPROUVEE");
+        } else {
+            da.setStatut("REJETEE");
+        }
+
+        demandeAchatRepository.save(da);
+
+        // Audit
+        auditService.logAction(valideurFinance, "demande_achat", daId,
+                "VALIDATE_FINANCE", "EN_ATTENTE_FINANCE", da.getStatut(), 
+                fondsDisponibles ? "Fonds disponibles" : "Fonds insuffisants: " + commentaire);
+    }
+
+    /**
+     * Lister les DA en attente de validation Finance
+     */
+    @Transactional(readOnly = true)
+    public List<DemandeAchat> listerEnAttenteFinance() {
+        return demandeAchatRepository.findByStatut("EN_ATTENTE_FINANCE");
     }
 
     public DemandeAchat modifierDemandeAchat(Long id, DemandeAchat da) {

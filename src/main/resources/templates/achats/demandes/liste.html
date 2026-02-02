@@ -13,6 +13,14 @@
             <!-- TODO.YML Ligne 7: Créer demande d'achat -->
             <div class="actions">
                 <a th:href="@{/achats/demandes/nouveau}" class="btn btn-primary">➕ Nouvelle Demande</a>
+                <a th:href="@{/achats/demandes/attente-validation}" class="btn btn-warning"
+                   sec:authorize="hasAnyAuthority('ROLE-N1', 'ROLE-N2', 'ROLE-N3', 'ROLE-ADMIN')">
+                   📝 À Valider (Hiérarchie)
+                </a>
+                <a th:href="@{/achats/demandes/attente-finance}" class="btn btn-info"
+                   sec:authorize="hasAnyAuthority('ROLE-FINANCE', 'ROLE-DAF', 'ROLE-ADMIN')">
+                   💰 À Valider (Finance)
+                </a>
             </div>
 
             <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
@@ -41,7 +49,9 @@
                             <span th:class="${'badge badge-' + 
                             (da.statut == 'BROUILLON' ? 'secondary' : 
                              da.statut == 'EN_ATTENTE' ? 'warning' : 
-                             da.statut == 'APPROUVEE' ? 'success' : 'danger')}" th:text="${da.statut}">BROUILLON</span>
+                             da.statut == 'EN_ATTENTE_FINANCE' ? 'info' :
+                             da.statut == 'APPROUVEE' ? 'success' : 'danger')}" 
+                             th:text="${da.statut == 'EN_ATTENTE_FINANCE' ? 'ATTENTE FINANCE' : da.statut}">BROUILLON</span>
                         </td>
                         <td>
                             <a th:href="@{/achats/demandes/{id}(id=${da.id})}" class="btn btn-sm">👁️ Voir</a>

@@ -75,4 +75,8 @@ public class Encaissement {
      * - REJETE: Encaissement rejeté (chèque impayé...)
      */
     private String statut;
+    
+    public BigDecimal getMontant() { // This might be missing or named differently
+        return montantEncaisse;
+    }
 }

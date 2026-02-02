@@ -70,7 +70,7 @@ public class DemandeAchatController {
                             a.getId(),
                             a.getCode(),
                             a.getDesignation(),
-                            a.getPrixAchatMoyen(), 
+                            a.getPrixAchatMoyen(),
                             a.getPrixVentePublic()))
                     .collect(Collectors.toList());
 
@@ -136,6 +136,20 @@ public class DemandeAchatController {
         List<LigneDA> lignes = demandeAchatService.getLignesDA(id);
         List<ValidationDA> validations = demandeAchatService.getValidations(id);
 
+        // Utilisateur connecté
+        Utilisateur utilisateurConnecte = sessionService.getUtilisateurConnecte();
+        model.addAttribute("utilisateurConnecte", utilisateurConnecte);
+
+        // Vérifier si l'utilisateur peut valider (a les permissions nécessaires)
+        // getRoles() retourne List<UtilisateurRole>, on doit accéder à
+        // .getRole().getCode()
+        boolean peutValider = utilisateurConnecte.getRoles().stream()
+                .anyMatch(ur -> ur.getRole() != null &&
+                        (ur.getRole().getCode().equals("ROLE-RESP-ACHATS")
+                                || ur.getRole().getCode().equals("ROLE-DAF")
+                                || ur.getRole().getCode().equals("ROLE-ADMIN")));
+        model.addAttribute("peutValider", peutValider);
+
         model.addAttribute("demande", demande);
         model.addAttribute("lignes", lignes);
         model.addAttribute("validations", validations);
@@ -200,6 +214,42 @@ public class DemandeAchatController {
             RedirectAttributes redirectAttributes) {
         demandeAchatService.modifierDemandeAchat(id, demande);
         redirectAttributes.addFlashAttribute("success", "Demande d'achat modifiée");
+        return "redirect:/achats/demandes/" + id;
+    }
+
+    /**
+     * Liste des DA en attente de validation Finance
+     */
+    @GetMapping("/attente-finance")
+    @PreAuthorize("hasAnyAuthority('ROLE-FINANCE', 'ROLE-DAF', 'ROLE-ADMIN')")
+    public String listerAttenteFinance(Model model) {
+        model.addAttribute("demandes", demandeAchatService.listerEnAttenteFinance());
+        return "achats/demandes/attente-finance";
+    }
+
+    /**
+     * Validation Finance : Confirmer disponibilité des fonds
+     */
+    @PostMapping("/{id}/valider-finance")
+    @PreAuthorize("hasAnyAuthority('ROLE-FINANCE', 'ROLE-DAF', 'ROLE-ADMIN')")
+    public String validerFinance(@PathVariable Long id,
+            @RequestParam boolean fondsDisponibles,
+            @RequestParam(required = false) String commentaire,
+            RedirectAttributes redirectAttributes) {
+        
+        // Utiliser l'utilisateur connecté
+        Utilisateur valideurFinance = sessionService.getUtilisateurConnecte();
+
+        try {
+            demandeAchatService.validerFinance(id, valideurFinance, fondsDisponibles, commentaire);
+            String message = fondsDisponibles ? 
+                "Fonds confirmés - DA approuvée" : 
+                "Fonds insuffisants - DA rejetée";
+            redirectAttributes.addFlashAttribute("success", message);
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
         return "redirect:/achats/demandes/" + id;
     }
 

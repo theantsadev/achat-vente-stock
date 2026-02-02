@@ -28,6 +28,10 @@ public class Article {
     @Column(nullable = false, unique = true)
     private String code;
 
+    // TODO.YML Ligne 15: Code-barres pour scan réception
+    @Column(name = "code_barre", unique = true)
+    private String codeBarre;
+
     private String designation;
 
     @ManyToOne(fetch = FetchType.LAZY)

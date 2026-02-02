@@ -1,99 +1,480 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+
 <head>
     <title>Détail Réception</title>
 </head>
+
 <body>
-<main>
-    <div class="container">
-        <h1>📦 Réception <span th:text="${reception.numero}">BR001</span></h1>
-        
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
-        
-        <div class="card">
-            <h2>Informations Générales</h2>
-            <dl>
-                <dt>Statut:</dt>
-                <dd>
-                    <span th:class="${'badge badge-' + 
-                        (reception.statut == 'PARTIELLE' ? 'warning' : 
+    <main>
+        <div class="container">
+            <h1>📦 Réception <span th:text="${reception.numero}">BR001</span></h1>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+
+            <!-- TODO.YML Ligne 14: Informations générales -->
+            <div class="card">
+                <h2>Informations Générales</h2>
+                <dl>
+                    <dt>Statut:</dt>
+                    <dd>
+                        <span th:class="${'badge badge-' + 
+                        (reception.statut == 'EN_COURS' ? 'info' :
+                         reception.statut == 'PARTIELLE' ? 'warning' : 
                          reception.statut == 'COMPLETE' ? 'success' : 
                          reception.statut == 'AVEC_ECART' ? 'danger' : 'secondary')}"
-                          th:text="${reception.statut}">PARTIELLE</span>
-                </dd>
-                
-                <dt>Bon de Commande:</dt>
-                <dd>
-                    <a th:href="@{/achats/bons-commande/{id}(id=${reception.bonCommande?.id})}"
-                       th:text="${reception.bonCommande?.numero}">BC001</a>
-                </dd>
-                
-                <dt>Magasinier:</dt>
-                <dd th:text="${reception.magasinier?.nom}">Durand</dd>
-                
-                <dt>Date Réception:</dt>
-                <dd th:text="${#temporals.format(reception.dateReception, 'dd/MM/yyyy')}">01/01/2026</dd>
-                
-                <dt>BL Fournisseur:</dt>
-                <dd th:text="${reception.numeroBlFournisseur}">BL-F-001</dd>
-                
-                <dt>Date BL Fournisseur:</dt>
-                <dd th:text="${#temporals.format(reception.dateBlFournisseur, 'dd/MM/yyyy')}">01/01/2026</dd>
-                
-                <dt th:if="${reception.observations != null}">Observations:</dt>
-                <dd th:if="${reception.observations != null}" th:text="${reception.observations}">RAS</dd>
-            </dl>
-        </div>
-        
-        <!-- TODO.YML Ligne 14-16: Lignes de réception avec contrôle quantités -->
-        <div class="card" th:if="${lignes != null and !lignes.isEmpty()}">
-            <h2>Détail Réception</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Article</th>
-                        <th>Qté Commandée</th>
-                        <th>Qté Reçue</th>
-                        <th>Qté Conforme</th>
-                        <th>Qté Non Conforme</th>
-                        <th>Motif Non-Conformité</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="ligne : ${lignes}">
-                        <td th:text="${ligne.article?.designation}">Article</td>
-                        <td th:text="${ligne.quantiteCommandee}">100</td>
-                        <td th:text="${ligne.quantiteRecue}">95</td>
-                        <td th:text="${ligne.quantiteConforme}">90</td>
-                        <td>
-                            <span th:class="${ligne.quantiteNonConforme > 0 ? 'text-danger' : ''}"
-                                  th:text="${ligne.quantiteNonConforme}">5</span>
-                        </td>
-                        <td th:text="${ligne.motifNonConformite}">-</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- TODO.YML Ligne 16: Finaliser réception -->
-        <div class="card" th:if="${reception.statut == 'PARTIELLE' || reception.statut == 'AVEC_ECART'}">
-            <h2>Finaliser la Réception</h2>
-            <form th:action="@{/achats/receptions/{id}/finaliser(id=${reception.id})}" method="post">
+                            th:text="${reception.statut}">EN_COURS</span>
+                    </dd>
+
+                    <dt>Bon de Commande:</dt>
+                    <dd>
+                        <a th:href="@{/achats/bons-commande/{id}(id=${reception.bonCommande?.id})}"
+                            th:text="${reception.bonCommande?.numero}">BC001</a>
+                    </dd>
+
+                    <dt>Fournisseur:</dt>
+                    <dd th:text="${reception.bonCommande?.fournisseur?.raisonSociale}">Fournisseur</dd>
+
+                    <dt>Magasinier:</dt>
+                    <dd th:text="${reception.magasinier?.nom}">Durand</dd>
+
+                    <dt>Date Réception:</dt>
+                    <dd th:text="${#temporals.format(reception.dateReception, 'dd/MM/yyyy')}">01/01/2026</dd>
+
+                    <dt>BL Fournisseur:</dt>
+                    <dd th:text="${reception.numeroBlFournisseur}">BL-F-001</dd>
+
+                    <dt>Date BL Fournisseur:</dt>
+                    <dd th:text="${#temporals.format(reception.dateBlFournisseur, 'dd/MM/yyyy')}">01/01/2026</dd>
+
+                    <dt th:if="${reception.observations != null}">Observations:</dt>
+                    <dd th:if="${reception.observations != null}" th:text="${reception.observations}">RAS</dd>
+                </dl>
+            </div>
+
+            <!-- TODO.YML Ligne 15: Recherche multicritère (si réception en cours) -->
+            <div class="card" th:if="${reception.statut == 'EN_COURS'}">
+                <h2>🔍 Rechercher un Article</h2>
                 <div class="form-group">
-                    <label>Observations finales:</label>
-                    <textarea name="observations" rows="4"></textarea>
+                    <label for="scanInput">Recherche (code, code-barres ou désignation):</label>
+                    <input type="text" id="scanInput" placeholder="Scannez ou saisissez votre recherche..."
+                        onkeypress="if(event.key==='Enter') scanArticle()" autofocus />
+                    <button type="button" class="btn btn-sm btn-primary" onclick="scanArticle()">🔍 Rechercher</button>
+                    <button type="button" class="btn btn-sm" onclick="resetRecherche()">🔄 Réinitialiser</button>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">✅ Finaliser</button>
-            </form>
+                <div id="scanResult" class="alert" style="display: none;"></div>
+                <!-- Liste des résultats multiples -->
+                <div id="multipleResults" style="display: none;">
+                    <h4>Résultats de recherche:</h4>
+                    <ul id="resultsList"></ul>
+                </div>
+            </div>
+
+            <!-- TODO.YML Ligne 14: Résumé des quantités -->
+            <div class="card">
+                <h2>📊 Résumé</h2>
+                <table>
+                    <tr>
+                        <th>Total Commandé</th>
+                        <th>Total Reçu</th>
+                        <th>Total Conforme</th>
+                        <th>Total Non Conforme</th>
+                    </tr>
+                    <tr>
+                        <td th:text="${totalCommande}">100</td>
+                        <td th:text="${totalRecu}">95</td>
+                        <td class="text-success" th:text="${totalConforme}">90</td>
+                        <td th:class="${totalNonConforme > 0 ? 'text-danger' : ''}" th:text="${totalNonConforme}">5</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- TODO.YML Ligne 14-16: Lignes de réception avec contrôle quantités -->
+            <div class="card">
+                <h2>📋 Détail des Articles</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Article</th>
+                            <th>Qté Commandée</th>
+                            <th>Qté Reçue</th>
+                            <th>Qté Conforme</th>
+                            <th>Qté Non Conforme</th>
+                            <th>Motif</th>
+                            <th th:if="${reception.statut == 'EN_COURS'}">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ligne : ${lignes}" th:id="'ligne-' + ${ligne.id}">
+                            <td th:text="${ligne.article?.code}">ART001</td>
+                            <td th:text="${ligne.article?.designation}">Article</td>
+                            <td th:text="${ligne.quantiteCommandee}">100</td>
+                            <td>
+                                <span
+                                    th:class="${ligne.quantiteRecue < ligne.quantiteCommandee ? 'text-warning' : 
+                                             (ligne.quantiteRecue > ligne.quantiteCommandee ? 'text-danger' : 'text-success')}"
+                                    th:text="${ligne.quantiteRecue}">95</span>
+                            </td>
+                            <td class="text-success" th:text="${ligne.quantiteConforme}">90</td>
+                            <td>
+                                <span th:class="${ligne.quantiteNonConforme > 0 ? 'text-danger' : ''}"
+                                    th:text="${ligne.quantiteNonConforme}">5</span>
+                            </td>
+                            <td th:text="${ligne.motifNonConformite ?: '-'}">-</td>
+
+                            <!-- TODO.YML Ligne 14: Bouton édition si en cours -->
+                            <td th:if="${reception.statut == 'EN_COURS'}">
+                                <button type="button" class="btn btn-sm btn-warning btn-edition"
+                                    th:data-ligne-id="${ligne.id}" th:data-qte-commandee="${ligne.quantiteCommandee}"
+                                    th:data-qte-recue="${ligne.quantiteRecue}"
+                                    th:data-qte-conforme="${ligne.quantiteConforme}"
+                                    th:data-qte-non-conforme="${ligne.quantiteNonConforme}"
+                                    th:data-motif="${ligne.motifNonConformite}">
+                                    ✏️ Contrôler
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TODO.YML Ligne 16: Finaliser réception -->
+            <div class="card" th:if="${reception.statut == 'EN_COURS'}">
+                <h2>✅ Finaliser la Réception</h2>
+                <form th:action="@{/achats/receptions/{id}/finaliser(id=${reception.id})}" method="post">
+                    <div class="form-group">
+                        <label for="observations">Observations finales:</label>
+                        <textarea id="observations" name="observations" rows="3"
+                            placeholder="Remarques sur la réception..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success"
+                        onclick="return confirm('Finaliser cette réception ? Cette action est irréversible.')">
+                        ✅ Finaliser la Réception
+                    </button>
+                </form>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <a th:href="@{/achats/receptions}" class="btn">← Liste des réceptions</a>
+                <a th:href="@{/achats/bons-commande/{id}(id=${reception.bonCommande?.id})}" class="btn">
+                    📄 Voir le Bon de Commande
+                </a>
+            </div>
         </div>
-        
-        <!-- Actions -->
-        <div class="actions">
-            <a th:href="@{/achats/receptions}" class="btn">← Retour</a>
+
+        <!-- Modal édition ligne (TODO.YML Ligne 14) -->
+        <div id="modalEdition" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>📦 Contrôle de Réception</h3>
+                <form id="formEditionLigne" method="post">
+                    <input type="hidden" id="editLigneBrId" name="ligneBrId" />
+
+                    <div class="form-group">
+                        <label>Quantité Commandée:</label>
+                        <input type="number" id="editQteCommandee" readonly class="readonly" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editQteRecue">Quantité Reçue: <span class="required">*</span></label>
+                        <input type="number" id="editQteRecue" name="quantiteRecue" step="0.0001" required
+                            onchange="calculerConformite()" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editQteConforme">Quantité Conforme: <span class="required">*</span></label>
+                        <input type="number" id="editQteConforme" name="quantiteConforme" step="0.0001" required
+                            onchange="verifierTotal()" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editQteNonConforme">Quantité Non Conforme:</label>
+                        <input type="number" id="editQteNonConforme" name="quantiteNonConforme" step="0.0001" value="0"
+                            onchange="verifierTotal()" />
+                    </div>
+
+                    <div class="form-group" id="motifGroup" style="display: none;">
+                        <label for="editMotif">Motif de Non-Conformité:</label>
+                        <select id="editMotif" name="motifNonConformite">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="Produit endommagé">Produit endommagé</option>
+                            <option value="Quantité manquante">Quantité manquante</option>
+                            <option value="Produit périmé">Produit périmé</option>
+                            <option value="Mauvaise référence">Mauvaise référence</option>
+                            <option value="Défaut qualité">Défaut qualité</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+
+                    <div id="validationError" class="alert alert-danger" style="display: none;"></div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                        <button type="button" class="btn" onclick="fermerModal()">Annuler</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-</main>
+
+        <script th:inline="javascript">
+            const receptionId = /*[[${reception.id}]]*/ 0;
+
+            // TODO.YML Ligne 15: Recherche multicritère
+            function scanArticle() {
+                const code = document.getElementById('scanInput').value.trim();
+                if (!code) return;
+
+                const resultDiv = document.getElementById('scanResult');
+                const multipleResultsDiv = document.getElementById('multipleResults');
+                const resultsList = document.getElementById('resultsList');
+
+                // Réinitialiser
+                multipleResultsDiv.style.display = 'none';
+                resultsList.innerHTML = '';
+
+                fetch('/achats/receptions/api/scan?brId=' + receptionId + '&code=' + encodeURIComponent(code))
+                    .then(response => response.json())
+                    .then(data => {
+                        resultDiv.style.display = 'block';
+
+                        if (data.found) {
+                            if (data.count === 1) {
+                                // Un seul résultat
+                                resultDiv.className = 'alert alert-success';
+                                resultDiv.innerHTML = '✅ Article trouvé: <strong>' + data.articleCode + '</strong> - ' + data.articleDesignation;
+
+                                // Scroll vers la ligne et surligner
+                                highlightLigne(data.ligneBrId);
+                            } else {
+                                // Plusieurs résultats
+                                resultDiv.className = 'alert alert-info';
+                                resultDiv.innerHTML = '📋 ' + data.count + ' articles correspondent à votre recherche';
+
+                                // Afficher la liste des résultats
+                                multipleResultsDiv.style.display = 'block';
+                                data.lignes.forEach(ligne => {
+                                    const li = document.createElement('li');
+                                    li.innerHTML = '<a href="#" onclick="highlightLigne(' + ligne.ligneBrId + '); return false;">' +
+                                        '<strong>' + ligne.articleCode + '</strong> - ' + ligne.articleDesignation +
+                                        ' (Cmd: ' + ligne.quantiteCommandee + ', Reçu: ' + ligne.quantiteRecue + ')' +
+                                        '</a>';
+                                    resultsList.appendChild(li);
+
+                                    // Surligner toutes les lignes trouvées
+                                    highlightLigne(ligne.ligneBrId, false);
+                                });
+                            }
+                        } else {
+                            resultDiv.className = 'alert alert-warning';
+                            resultDiv.innerHTML = '⚠️ ' + data.message;
+                            if (data.articleCode) {
+                                resultDiv.innerHTML += '<br>Article existant: <strong>' + data.articleCode + '</strong> - ' + data.articleDesignation;
+                            }
+                        }
+
+                        document.getElementById('scanInput').select();
+                    })
+                    .catch(error => {
+                        console.error('Erreur recherche:', error);
+                        resultDiv.style.display = 'block';
+                        resultDiv.className = 'alert alert-danger';
+                        resultDiv.innerHTML = '❌ Erreur lors de la recherche';
+                    });
+            }
+
+            // Surligner une ligne dans le tableau
+            function highlightLigne(ligneBrId, scroll = true) {
+                const ligneElement = document.getElementById('ligne-' + ligneBrId);
+                if (ligneElement) {
+                    if (scroll) {
+                        ligneElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    ligneElement.classList.add('highlight');
+                    setTimeout(() => ligneElement.classList.remove('highlight'), 3000);
+                }
+            }
+
+            // Réinitialiser la recherche et afficher tous les articles
+            function resetRecherche() {
+                document.getElementById('scanInput').value = '';
+                document.getElementById('scanResult').style.display = 'none';
+                document.getElementById('multipleResults').style.display = 'none';
+
+                // Retirer tous les surlignages
+                document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+
+                document.getElementById('scanInput').focus();
+            }
+
+            // TODO.YML Ligne 14: Ouvrir modal édition
+            function ouvrirModalEdition(ligneBrId, qteCommandee, qteRecue, qteConforme, qteNonConforme, motif) {
+                document.getElementById('editLigneBrId').value = ligneBrId;
+                document.getElementById('editQteCommandee').value = qteCommandee;
+                document.getElementById('editQteRecue').value = qteRecue || qteCommandee;
+                document.getElementById('editQteConforme').value = qteConforme || qteCommandee;
+                document.getElementById('editQteNonConforme').value = qteNonConforme || 0;
+                document.getElementById('editMotif').value = motif || '';
+
+                // Afficher/masquer motif selon non-conformité
+                document.getElementById('motifGroup').style.display =
+                    (qteNonConforme > 0) ? 'block' : 'none';
+
+                // Mettre à jour l'action du formulaire
+                document.getElementById('formEditionLigne').action =
+                    '/achats/receptions/' + receptionId + '/lignes/' + ligneBrId;
+
+                document.getElementById('modalEdition').style.display = 'flex';
+            }
+
+            function fermerModal() {
+                document.getElementById('modalEdition').style.display = 'none';
+            }
+
+            // Auto-calcul de la conformité
+            function calculerConformite() {
+                const qteRecue = parseFloat(document.getElementById('editQteRecue').value) || 0;
+                document.getElementById('editQteConforme').value = qteRecue;
+                document.getElementById('editQteNonConforme').value = 0;
+                verifierTotal();
+            }
+
+            // Vérification: conforme + non-conforme = reçue
+            function verifierTotal() {
+                const qteRecue = parseFloat(document.getElementById('editQteRecue').value) || 0;
+                const qteConforme = parseFloat(document.getElementById('editQteConforme').value) || 0;
+                const qteNonConforme = parseFloat(document.getElementById('editQteNonConforme').value) || 0;
+
+                const errorDiv = document.getElementById('validationError');
+                const total = qteConforme + qteNonConforme;
+
+                // Afficher/masquer le champ motif
+                document.getElementById('motifGroup').style.display =
+                    (qteNonConforme > 0) ? 'block' : 'none';
+
+                if (Math.abs(total - qteRecue) > 0.0001) {
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = 'Erreur: Qté Conforme (' + qteConforme + ') + Qté Non Conforme (' +
+                        qteNonConforme + ') doit égaler Qté Reçue (' + qteRecue + ')';
+                } else {
+                    errorDiv.style.display = 'none';
+                }
+            }
+
+            // Fermer modal en cliquant à l'extérieur
+            document.getElementById('modalEdition').addEventListener('click', function (e) {
+                if (e.target === this) fermerModal();
+            });
+
+            // Attacher les événements click aux boutons d'édition
+            document.querySelectorAll('.btn-edition').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const ligneBrId = this.dataset.ligneId;
+                    const qteCommandee = parseFloat(this.dataset.qteCommandee) || 0;
+                    const qteRecue = parseFloat(this.dataset.qteRecue) || 0;
+                    const qteConforme = parseFloat(this.dataset.qteConforme) || 0;
+                    const qteNonConforme = parseFloat(this.dataset.qteNonConforme) || 0;
+                    const motif = this.dataset.motif || '';
+                    ouvrirModalEdition(ligneBrId, qteCommandee, qteRecue, qteConforme, qteNonConforme, motif);
+                });
+            });
+        </script>
+
+        <style>
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+
+            .modal-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                max-width: 500px;
+                width: 90%;
+            }
+
+            .readonly {
+                background-color: #e9ecef;
+            }
+
+            .text-success {
+                color: #28a745;
+            }
+
+            .text-warning {
+                color: #ffc107;
+            }
+
+            .text-danger {
+                color: #dc3545;
+            }
+
+            .required {
+                color: red;
+            }
+
+            /* Surlignage des lignes trouvées */
+            .highlight {
+                background-color: #ffffcc !important;
+                animation: highlightFade 3s ease-out;
+            }
+
+            @keyframes highlightFade {
+                0% {
+                    background-color: #ffff00;
+                }
+
+                100% {
+                    background-color: #ffffcc;
+                }
+            }
+
+            /* Liste des résultats multiples */
+            #multipleResults {
+                margin-top: 1rem;
+                padding: 1rem;
+                background-color: #f8f9fa;
+                border-radius: 4px;
+            }
+
+            #resultsList {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            #resultsList li {
+                padding: 0.5rem;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            #resultsList li:last-child {
+                border-bottom: none;
+            }
+
+            #resultsList a {
+                text-decoration: none;
+                color: #007bff;
+            }
+
+            #resultsList a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </main>
 </body>
+
 </html>
