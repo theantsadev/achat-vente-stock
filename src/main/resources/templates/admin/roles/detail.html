@@ -84,7 +84,7 @@
                     <label>Permission</label>
                     <select name="permissionId" required style="width: 100%;">
                         <option value="">-- Sélectionner une permission --</option>
-                        <optgroup th:each="module : ${#lists.toSet(toutesPermissions.![module])}" th:label="${module}">
+                        <optgroup th:each="module : ${modules}" th:label="${module}">
                             <option th:each="p : ${toutesPermissions}" 
                                     th:if="${p.module == module}"
                                     th:value="${p.id}" 

@@ -32,10 +32,10 @@ public class PermissionService {
     private final SessionService sessionService;
 
     /**
-     * Lister toutes les permissions
+     * Lister toutes les permissions avec leurs rôles associés
      */
     public List<Permission> listerTous() {
-        return permissionRepository.findAll();
+        return permissionRepository.findAllWithRoles();
     }
 
     /**

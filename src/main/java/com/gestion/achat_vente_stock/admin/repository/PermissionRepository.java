@@ -28,6 +28,14 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
     List<Permission> findByRoleId(@Param("roleId") Long roleId);
     
     /**
+     * Lister toutes les permissions avec leurs rôles associés
+     */
+    @Query("SELECT DISTINCT p FROM Permission p " +
+           "LEFT JOIN FETCH p.rolePermissions rp " +
+           "LEFT JOIN FETCH rp.role")
+    List<Permission> findAllWithRoles();
+    
+    /**
      * Vérifier si un rôle a une permission
      */
     @Query("SELECT COUNT(rp) > 0 FROM RolePermission rp " +

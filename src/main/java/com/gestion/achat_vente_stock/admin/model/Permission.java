@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * TODO.YML Ligne 55, 69: Sécurité > RBAC > Permissions
  * Matrice rôles et permissions par module/action
@@ -30,4 +34,16 @@ public class Permission {
     private String action; // "CREATE", "READ", "UPDATE", "DELETE", "APPROVE"
     
     private String description;
+    
+    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY)
+    private Set<RolePermission> rolePermissions = new HashSet<>();
+    
+    /**
+     * Retourne les rôles associés à cette permission
+     */
+    public Set<Role> getRoles() {
+        return rolePermissions.stream()
+                .map(RolePermission::getRole)
+                .collect(Collectors.toSet());
+    }
 }

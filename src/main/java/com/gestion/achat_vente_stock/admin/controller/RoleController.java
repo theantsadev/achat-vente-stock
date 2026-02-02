@@ -51,9 +51,17 @@ public class RoleController {
         List<Permission> permissionsRole = permissionService.getPermissionsRole(id);
         List<Permission> toutesPermissions = permissionService.listerTous();
 
+        // Extraire les modules uniques pour grouper les permissions par module
+        List<String> modules = toutesPermissions.stream()
+                .map(Permission::getModule)
+                .distinct()
+                .sorted()
+                .toList();
+
         model.addAttribute("role", role);
         model.addAttribute("permissionsRole", permissionsRole);
         model.addAttribute("toutesPermissions", toutesPermissions);
+        model.addAttribute("modules", modules);
 
         return "admin/roles/detail";
     }

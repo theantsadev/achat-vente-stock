@@ -31,12 +31,13 @@ public class SessionService {
 
     /**
      * Récupère l'utilisateur connecté
+     * 
      * @return l'utilisateur connecté ou null si non authentifié
      */
     @Transactional(readOnly = true)
     public Utilisateur getUtilisateurConnecte() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return null;
         }
@@ -107,11 +108,13 @@ public class SessionService {
     @Transactional(readOnly = true)
     public boolean hasAccessToDepot(Long depotId) {
         Utilisateur user = getUtilisateurConnecte();
-        if (user == null) return false;
-        
+        if (user == null)
+            return false;
+
         // Admin a accès à tout
-        if (hasRole("ROLE-ADMIN")) return true;
-        
+        if (hasRole("ROLE-ADMIN"))
+            return true;
+
         // Vérifier si un des rôles de l'utilisateur donne accès à ce dépôt
         List<UtilisateurRole> roles = utilisateurRoleRepository.findByUtilisateurId(user.getId());
         return roles.stream()
@@ -125,11 +128,13 @@ public class SessionService {
     @Transactional(readOnly = true)
     public boolean hasAccessToSite(Long siteId) {
         Utilisateur user = getUtilisateurConnecte();
-        if (user == null) return false;
-        
+        if (user == null)
+            return false;
+
         // Admin a accès à tout
-        if (hasRole("ROLE-ADMIN")) return true;
-        
+        if (hasRole("ROLE-ADMIN"))
+            return true;
+
         // Vérifier si un des rôles de l'utilisateur donne accès à ce site
         List<UtilisateurRole> roles = utilisateurRoleRepository.findByUtilisateurId(user.getId());
         return roles.stream()
@@ -138,24 +143,28 @@ public class SessionService {
     }
 
     /**
-     * TODO.YML Ligne 56, 8: ABAC - Vérifier si l'utilisateur peut approuver un montant
+     * TODO.YML Ligne 56, 8: ABAC - Vérifier si l'utilisateur peut approuver un
+     * montant
      */
     @Transactional(readOnly = true)
     public boolean canApproveMontant(BigDecimal montant, String roleCode) {
         Utilisateur user = getUtilisateurConnecte();
-        if (user == null) return false;
-        
+        if (user == null)
+            return false;
+
         // Admin peut tout approuver
-        if (hasRole("ROLE-ADMIN")) return true;
-        
+        if (hasRole("ROLE-ADMIN"))
+            return true;
+
         // Chercher le rôle avec le seuil d'approbation
         List<UtilisateurRole> roles = utilisateurRoleRepository.findByUtilisateurIdAndRoleCode(user.getId(), roleCode);
-        
+
         return roles.stream()
                 .filter(ur -> isRoleActif(ur))
                 .anyMatch(ur -> {
                     // Si pas de montant max défini, peut tout approuver avec ce rôle
-                    if (ur.getMontantMax() == null) return true;
+                    if (ur.getMontantMax() == null)
+                        return true;
                     // Sinon vérifier si le montant est inférieur au seuil
                     return montant.compareTo(ur.getMontantMax()) <= 0;
                 });
@@ -167,8 +176,9 @@ public class SessionService {
      */
     public boolean canApprove(Long createurId) {
         Long currentUserId = getUtilisateurConnecteId();
-        if (currentUserId == null) return false;
-        
+        if (currentUserId == null)
+            return false;
+
         // L'utilisateur ne peut pas approuver ce qu'il a créé
         return !currentUserId.equals(createurId);
     }
@@ -179,10 +189,11 @@ public class SessionService {
     @Transactional(readOnly = true)
     public Optional<BigDecimal> getMontantMaxApprobation(String roleCode) {
         Utilisateur user = getUtilisateurConnecte();
-        if (user == null) return Optional.empty();
-        
+        if (user == null)
+            return Optional.empty();
+
         List<UtilisateurRole> roles = utilisateurRoleRepository.findByUtilisateurIdAndRoleCode(user.getId(), roleCode);
-        
+
         return roles.stream()
                 .filter(ur -> isRoleActif(ur))
                 .map(UtilisateurRole::getMontantMax)
@@ -195,15 +206,15 @@ public class SessionService {
      */
     private boolean isRoleActif(UtilisateurRole ur) {
         LocalDateTime now = LocalDateTime.now();
-        
+
         if (ur.getDateDebut() != null && now.isBefore(ur.getDateDebut())) {
             return false;
         }
-        
+
         if (ur.getDateFin() != null && now.isAfter(ur.getDateFin())) {
             return false;
         }
-        
+
         return true;
     }
 
