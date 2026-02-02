@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title th:text="${utilisateur.id != null} ? 'Modifier utilisateur' : 'Nouvel utilisateur'">Utilisateur</title>
+</head>
+<body>
+<main>
+    <h2 th:text="${utilisateur.id != null} ? '✏️ Modifier l\'utilisateur' : '➕ Nouvel utilisateur'">Utilisateur</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <form th:action="@{/admin/utilisateurs/enregistrer}" method="post" th:object="${utilisateur}">
+        <input type="hidden" th:field="*{id}" />
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <!-- Colonne gauche -->
+            <div>
+                <div class="form-group">
+                    <label>Login *</label>
+                    <input type="text" th:field="*{login}" required 
+                           th:readonly="${utilisateur.id != null}"
+                           placeholder="Identifiant de connexion" />
+                    <small style="color: #7f8c8d;" th:if="${utilisateur.id != null}">Le login ne peut pas être modifié</small>
+                </div>
+                
+                <div class="form-group">
+                    <label th:text="${utilisateur.id != null} ? 'Nouveau mot de passe (laisser vide pour conserver)' : 'Mot de passe *'">Mot de passe</label>
+                    <input type="password" name="nouveauMotDePasse" 
+                           th:required="${utilisateur.id == null}"
+                           placeholder="••••••••" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" th:field="*{nom}" placeholder="Nom de famille" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Prénom</label>
+                    <input type="text" th:field="*{prenom}" placeholder="Prénom" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" th:field="*{email}" placeholder="email@example.com" />
+                </div>
+            </div>
+            
+            <!-- Colonne droite -->
+            <div>
+                <div class="form-group">
+                    <label>Service</label>
+                    <select th:field="*{service}">
+                        <option value="">-- Sélectionner un service --</option>
+                        <option th:each="s : ${services}" th:value="${s.id}" th:text="${s.libelle}"
+                                th:selected="${utilisateur.service != null and utilisateur.service.id == s.id}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Site</label>
+                    <select th:field="*{site}">
+                        <option value="">-- Sélectionner un site --</option>
+                        <option th:each="s : ${sites}" th:value="${s.id}" th:text="${s.libelle}"
+                                th:selected="${utilisateur.site != null and utilisateur.site.id == s.id}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Manager</label>
+                    <select th:field="*{manager}">
+                        <option value="">-- Aucun manager --</option>
+                        <option th:each="m : ${managers}" th:value="${m.id}" 
+                                th:text="${m.prenom + ' ' + m.nom + ' (' + m.login + ')'}"
+                                th:selected="${utilisateur.manager != null and utilisateur.manager.id == m.id}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group" th:if="${utilisateur.id != null}">
+                    <label>Statut</label>
+                    <select th:field="*{actif}">
+                        <option value="true">Actif</option>
+                        <option value="false">Inactif</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+            <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+            <a th:href="@{/admin/utilisateurs}" class="btn btn-danger">❌ Annuler</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

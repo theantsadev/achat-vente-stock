@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Rôles - Administration</title>
+</head>
+<body>
+<main>
+    <h2>🔐 Gestion des Rôles</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <!-- Actions -->
+    <div style="margin-bottom: 1rem;">
+        <a th:href="@{/admin/roles/nouveau}" class="btn btn-success">➕ Nouveau rôle</a>
+        <a th:href="@{/admin/roles/permissions}" class="btn btn-primary">📋 Liste des permissions</a>
+    </div>
+    
+    <!-- Tableau des rôles -->
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Libellé</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="role : ${roles}">
+                <td><code th:text="${role.code}"></code></td>
+                <td><strong th:text="${role.libelle}"></strong></td>
+                <td th:text="${role.description ?: '-'}"></td>
+                <td>
+                    <a th:href="@{/admin/roles/{id}(id=${role.id})}" class="btn btn-primary">👁 Voir</a>
+                    <a th:href="@{/admin/roles/{id}/modifier(id=${role.id})}" class="btn btn-warning">✏️ Modifier</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 1rem;">
+        <a th:href="@{/admin/utilisateurs}" class="btn btn-primary">← Retour aux utilisateurs</a>
+    </div>
+</main>
+</body>
+</html>

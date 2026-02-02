@@ -30,13 +30,14 @@ CREATE TABLE service (
 CREATE TABLE utilisateur (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   login TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL DEFAULT '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqN8bLXABW6e/MvW9.9WKF/FO8VHzCy', -- BCrypt hash de 'password123'
   nom TEXT,
   prenom TEXT,
   email TEXT,
   service_id BIGINT,
   site_id BIGINT,
   manager_id BIGINT,
-  actif BOOLEAN,
+  actif BOOLEAN DEFAULT TRUE,
   last_login TIMESTAMP
 );
 

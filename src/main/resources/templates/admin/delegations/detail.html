@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Détail Délégation - Administration</title>
+</head>
+<body>
+<main>
+    <h2>🔄 Détail de la Délégation</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <div class="card" style="max-width: 700px;">
+        <!-- Statut -->
+        <div style="margin-bottom: 1.5rem;">
+            <span th:if="${delegation.statut == 'ACTIVE'}" 
+                  style="background: #27ae60; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold;">
+                ✓ Délégation Active
+            </span>
+            <span th:if="${delegation.statut == 'ANNULEE'}" 
+                  style="background: #e74c3c; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold;">
+                ✗ Délégation Annulée
+            </span>
+            <span th:if="${delegation.statut == 'EXPIREE'}" 
+                  style="background: #95a5a6; color: white; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold;">
+                ⊘ Délégation Expirée
+            </span>
+        </div>
+        
+        <!-- Informations principales -->
+        <div style="display: grid; grid-template-columns: 150px 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <div style="font-weight: bold; color: #7f8c8d;">Délégant :</div>
+            <div>
+                <span th:text="${delegation.delegant.prenom + ' ' + delegation.delegant.nom}"></span>
+                (<code th:text="${delegation.delegant.login}"></code>)
+            </div>
+            
+            <div style="font-weight: bold; color: #7f8c8d;">Délégataire :</div>
+            <div>
+                <span th:text="${delegation.delegataire.prenom + ' ' + delegation.delegataire.nom}"></span>
+                (<code th:text="${delegation.delegataire.login}"></code>)
+            </div>
+            
+            <div style="font-weight: bold; color: #7f8c8d;">Rôle délégué :</div>
+            <div>
+                <strong th:text="${delegation.role.libelle}"></strong>
+                <span style="color: #7f8c8d;" th:text="'(' + ${delegation.role.code} + ')'"></span>
+            </div>
+            
+            <div style="font-weight: bold; color: #7f8c8d;">Date début :</div>
+            <div th:text="${#temporals.format(delegation.dateDebut, 'dd/MM/yyyy HH:mm')}"></div>
+            
+            <div style="font-weight: bold; color: #7f8c8d;">Date fin :</div>
+            <div th:text="${delegation.dateFin != null ? #temporals.format(delegation.dateFin, 'dd/MM/yyyy HH:mm') : 'Non définie (indéterminée)'}"></div>
+        </div>
+        
+        <!-- Justification -->
+        <div style="margin-bottom: 1.5rem;">
+            <div style="font-weight: bold; color: #7f8c8d; margin-bottom: 0.5rem;">Justification :</div>
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #3498db;"
+                 th:text="${delegation.justification ?: 'Aucune justification fournie'}"></div>
+        </div>
+        
+        <!-- Métadonnées -->
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; font-size: 0.9rem; color: #7f8c8d;">
+            <div>Créée le : <span th:text="${#temporals.format(delegation.createdAt, 'dd/MM/yyyy HH:mm')}"></span></div>
+            <div th:if="${delegation.updatedAt}">Modifiée le : <span th:text="${#temporals.format(delegation.updatedAt, 'dd/MM/yyyy HH:mm')}"></span></div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div style="margin-top: 1.5rem;">
+        <form th:if="${delegation.statut == 'ACTIVE'}" 
+              th:action="@{/admin/delegations/{id}/annuler(id=${delegation.id})}" 
+              method="post" style="display: inline;">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Êtes-vous sûr de vouloir annuler cette délégation ?')">
+                🗑 Annuler cette délégation
+            </button>
+        </form>
+        <a th:href="@{/admin/delegations}" class="btn btn-secondary">← Retour à la liste</a>
+    </div>
+</main>
+</body>
+</html>

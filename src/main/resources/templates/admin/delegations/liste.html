@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Délégations - Administration</title>
+</head>
+<body>
+<main>
+    <h2>🔄 Gestion des Délégations</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <!-- Bouton nouvelle délégation -->
+    <div style="margin-bottom: 1rem;">
+        <a th:href="@{/admin/delegations/nouvelle}" class="btn btn-success">➕ Nouvelle délégation</a>
+    </div>
+    
+    <!-- Mes délégations données -->
+    <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #2c3e50;">📤 Délégations que j'ai données</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Délégataire</th>
+                <th>Rôle délégué</th>
+                <th>Date début</th>
+                <th>Date fin</th>
+                <th>Justification</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="d : ${delegationsDonnees}">
+                <td th:text="${d.delegataire.prenom + ' ' + d.delegataire.nom + ' (' + d.delegataire.login + ')'}"></td>
+                <td><strong th:text="${d.role.libelle}"></strong></td>
+                <td th:text="${#temporals.format(d.dateDebut, 'dd/MM/yyyy')}"></td>
+                <td th:text="${d.dateFin != null ? #temporals.format(d.dateFin, 'dd/MM/yyyy') : 'Indéfinie'}"></td>
+                <td th:text="${d.justification ?: '-'}"></td>
+                <td>
+                    <span th:if="${d.statut == 'ACTIVE'}" style="color: #27ae60; font-weight: bold;">✓ Active</span>
+                    <span th:if="${d.statut == 'ANNULEE'}" style="color: #e74c3c; font-weight: bold;">✗ Annulée</span>
+                    <span th:if="${d.statut == 'EXPIREE'}" style="color: #95a5a6; font-weight: bold;">⊘ Expirée</span>
+                </td>
+                <td>
+                    <form th:if="${d.statut == 'ACTIVE'}" 
+                          th:action="@{/admin/delegations/{id}/annuler(id=${d.id})}" 
+                          method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem;"
+                                onclick="return confirm('Annuler cette délégation ?')">🗑 Annuler</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(delegationsDonnees)}">
+                <td colspan="7" style="text-align: center; padding: 1rem; color: #7f8c8d;">
+                    Vous n'avez donné aucune délégation
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Délégations reçues -->
+    <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #2c3e50;">📥 Délégations que j'ai reçues</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Délégant</th>
+                <th>Rôle délégué</th>
+                <th>Date début</th>
+                <th>Date fin</th>
+                <th>Justification</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="d : ${delegationsRecues}">
+                <td th:text="${d.delegant.prenom + ' ' + d.delegant.nom + ' (' + d.delegant.login + ')'}"></td>
+                <td><strong th:text="${d.role.libelle}"></strong></td>
+                <td th:text="${#temporals.format(d.dateDebut, 'dd/MM/yyyy')}"></td>
+                <td th:text="${d.dateFin != null ? #temporals.format(d.dateFin, 'dd/MM/yyyy') : 'Indéfinie'}"></td>
+                <td th:text="${d.justification ?: '-'}"></td>
+                <td>
+                    <span th:if="${d.statut == 'ACTIVE'}" style="color: #27ae60; font-weight: bold;">✓ Active</span>
+                    <span th:if="${d.statut == 'ANNULEE'}" style="color: #e74c3c; font-weight: bold;">✗ Annulée</span>
+                    <span th:if="${d.statut == 'EXPIREE'}" style="color: #95a5a6; font-weight: bold;">⊘ Expirée</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(delegationsRecues)}">
+                <td colspan="6" style="text-align: center; padding: 1rem; color: #7f8c8d;">
+                    Vous n'avez reçu aucune délégation
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Toutes les délégations (admin seulement) -->
+    <div th:if="${toutesDelegations != null}">
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #2c3e50;">📋 Toutes les délégations (Admin)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Délégant</th>
+                    <th>Délégataire</th>
+                    <th>Rôle</th>
+                    <th>Période</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="d : ${toutesDelegations}">
+                    <td th:text="${d.delegant.login}"></td>
+                    <td th:text="${d.delegataire.login}"></td>
+                    <td th:text="${d.role.libelle}"></td>
+                    <td th:text="${#temporals.format(d.dateDebut, 'dd/MM/yyyy') + ' → ' + (d.dateFin != null ? #temporals.format(d.dateFin, 'dd/MM/yyyy') : '∞')}"></td>
+                    <td>
+                        <span th:if="${d.statut == 'ACTIVE'}" style="color: #27ae60;">✓</span>
+                        <span th:if="${d.statut == 'ANNULEE'}" style="color: #e74c3c;">✗</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

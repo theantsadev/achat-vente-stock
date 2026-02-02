@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Permissions - Administration</title>
+</head>
+<body>
+<main>
+    <h2>🔐 Gestion des Permissions</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <p style="color: #7f8c8d; margin-bottom: 1.5rem;">
+        Liste de toutes les permissions définies dans le système. 
+        Les permissions sont assignées aux rôles via la page de détail de chaque rôle.
+    </p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Module</th>
+                <th>Rôles associés</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="p : ${permissions}">
+                <td><code style="background: #f8f9fa; padding: 0.2rem 0.5rem; border-radius: 3px;" 
+                          th:text="${p.code}"></code></td>
+                <td th:text="${p.description ?: '-'}"></td>
+                <td>
+                    <span th:text="${p.module}"></span>
+                </td>
+                <td>
+                    <span th:each="r, iterStat : ${p.roles}">
+                        <span class="badge" 
+                              style="background: #3498db; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.85rem;"
+                              th:text="${r.libelle}"></span>
+                        <span th:unless="${iterStat.last}">, </span>
+                    </span>
+                    <span th:if="${#lists.isEmpty(p.roles)}" style="color: #95a5a6;">Aucun</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Légende des modules -->
+    <div class="card" style="margin-top: 2rem;">
+        <h3>📚 Modules</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+            <div><span style="font-weight: bold;">ACHAT</span> - Gestion des achats (demandes, commandes, réceptions, factures)</div>
+            <div><span style="font-weight: bold;">VENTE</span> - Gestion des ventes (devis, commandes, livraisons, factures)</div>
+            <div><span style="font-weight: bold;">STOCK</span> - Gestion des stocks (mouvements, inventaires, transferts)</div>
+            <div><span style="font-weight: bold;">ADMIN</span> - Administration (utilisateurs, rôles, audit)</div>
+            <div><span style="font-weight: bold;">REF</span> - Référentiels (articles, fournisseurs, clients, dépôts)</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 1.5rem;">
+        <a th:href="@{/admin/roles}" class="btn btn-primary">← Retour aux rôles</a>
+    </div>
+</main>
+</body>
+</html>

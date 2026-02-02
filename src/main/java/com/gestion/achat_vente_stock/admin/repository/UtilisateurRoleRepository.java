@@ -22,4 +22,34 @@ public interface UtilisateurRoleRepository extends JpaRepository<UtilisateurRole
     @Query("SELECT ur FROM UtilisateurRole ur WHERE ur.utilisateur.id = :userId " +
            "AND (ur.dateFin IS NULL OR ur.dateFin > CURRENT_TIMESTAMP)")
     List<UtilisateurRole> findActiveRolesByUserId(@Param("userId") Long userId);
+    
+    /**
+     * Trouver les rôles d'un utilisateur par code de rôle
+     */
+    @Query("SELECT ur FROM UtilisateurRole ur " +
+           "JOIN ur.role r " +
+           "WHERE ur.utilisateur.id = :userId AND r.code = :roleCode " +
+           "AND (ur.dateDebut IS NULL OR ur.dateDebut <= CURRENT_TIMESTAMP) " +
+           "AND (ur.dateFin IS NULL OR ur.dateFin > CURRENT_TIMESTAMP)")
+    List<UtilisateurRole> findByUtilisateurIdAndRoleCode(@Param("userId") Long userId, @Param("roleCode") String roleCode);
+    
+    /**
+     * Vérifier si un utilisateur a un rôle actif sur un dépôt
+     */
+    @Query("SELECT COUNT(ur) > 0 FROM UtilisateurRole ur " +
+           "WHERE ur.utilisateur.id = :userId " +
+           "AND (ur.depot.id = :depotId OR ur.depot IS NULL) " +
+           "AND (ur.dateDebut IS NULL OR ur.dateDebut <= CURRENT_TIMESTAMP) " +
+           "AND (ur.dateFin IS NULL OR ur.dateFin > CURRENT_TIMESTAMP)")
+    boolean hasAccessToDepot(@Param("userId") Long userId, @Param("depotId") Long depotId);
+    
+    /**
+     * Vérifier si un utilisateur a un rôle actif sur un site
+     */
+    @Query("SELECT COUNT(ur) > 0 FROM UtilisateurRole ur " +
+           "WHERE ur.utilisateur.id = :userId " +
+           "AND (ur.site.id = :siteId OR ur.site IS NULL) " +
+           "AND (ur.dateDebut IS NULL OR ur.dateDebut <= CURRENT_TIMESTAMP) " +
+           "AND (ur.dateFin IS NULL OR ur.dateFin > CURRENT_TIMESTAMP)")
+    boolean hasAccessToSite(@Param("userId") Long userId, @Param("siteId") Long siteId);
 }

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Accès Refusé</title>
+</head>
+<body>
+<main>
+    <div style="text-align: center; padding: 3rem;">
+        <div style="font-size: 6rem; color: #e74c3c;">🚫</div>
+        <h1 style="color: #e74c3c; margin: 1rem 0;">Accès Refusé</h1>
+        <p style="color: #7f8c8d; font-size: 1.2rem; margin-bottom: 2rem;">
+            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+        </p>
+        
+        <div class="card" style="max-width: 500px; margin: 0 auto; text-align: left;">
+            <h3>🔒 Que faire ?</h3>
+            <ul style="margin: 1rem 0;">
+                <li>Vérifiez que vous êtes connecté avec le bon compte</li>
+                <li>Contactez votre administrateur pour obtenir les droits nécessaires</li>
+                <li>Si vous pensez qu'il s'agit d'une erreur, signalez-la au support</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <a th:href="@{/}" class="btn btn-primary">🏠 Retour à l'accueil</a>
+            <a th:href="@{/login}" class="btn btn-secondary">🔑 Se reconnecter</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout (title, content)">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout (title, content)">
 
 <head>
     <meta charset="UTF-8">
@@ -23,10 +25,44 @@
             color: white;
             padding: 1rem 2rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         header h1 {
             font-size: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info .user-name {
+            color: #ecf0f1;
+            font-size: 0.9rem;
+        }
+        
+        .user-info .user-name strong {
+            color: #3498db;
+        }
+        
+        .btn-logout {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background-color: #c0392b;
         }
 
         /* Navigation */
@@ -241,6 +277,16 @@
 <body>
     <header>
         <h1>Système de Gestion Achat-Vente-Stock</h1>
+        
+        <!-- Informations utilisateur connecté -->
+        <div class="user-info" sec:authorize="isAuthenticated()">
+            <span class="user-name">
+                Connecté en tant que <strong sec:authentication="name">utilisateur</strong>
+            </span>
+            <a th:href="@{/logout}" class="btn-logout">
+                🚪 Déconnexion
+            </a>
+        </div>
     </header>
 
     <!-- TODO.YML: Navigation pour tous les modules -->
@@ -314,13 +360,14 @@
                 </ul>
             </li>
 
-            <!-- TODO.YML Ligne 68-72: Admin -->
-            <li>
+            <!-- TODO.YML Ligne 68-72: Admin (réservé aux admins) -->
+            <li sec:authorize="hasAuthority('ROLE-ADMIN')">
                 <a href="#">Administration</a>
                 <ul>
-                    <li><a href="/admin/utilisateurs">Utilisateurs</a></li>
-                    <li><a href="/admin/roles">Rôles & Permissions</a></li>
-                    <li><a href="/admin/parametres">Paramètres</a></li>
+                    <li><a href="/admin/utilisateurs">👤 Utilisateurs</a></li>
+                    <li><a href="/admin/roles">🔐 Rôles & Permissions</a></li>
+                    <li><a href="/admin/delegations">🔄 Délégations</a></li>
+                    <li><a href="/admin/audit">📋 Journal d'audit</a></li>
                 </ul>
             </li>
         </ul>

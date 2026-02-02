@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Utilisateurs - Administration</title>
+</head>
+<body>
+<main>
+    <h2>👤 Gestion des Utilisateurs</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <!-- Filtres -->
+    <form method="get" style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;">
+            <div class="form-group" style="margin: 0;">
+                <label>Service</label>
+                <select name="serviceId" style="min-width: 150px;">
+                    <option value="">Tous les services</option>
+                    <option th:each="s : ${services}" th:value="${s.id}" th:text="${s.libelle}"
+                            th:selected="${serviceId != null and serviceId == s.id}"></option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Site</label>
+                <select name="siteId" style="min-width: 150px;">
+                    <option value="">Tous les sites</option>
+                    <option th:each="s : ${sites}" th:value="${s.id}" th:text="${s.libelle}"
+                            th:selected="${siteId != null and siteId == s.id}"></option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Statut</label>
+                <select name="actif" style="min-width: 120px;">
+                    <option value="">Tous</option>
+                    <option value="true" th:selected="${actif == true}">Actifs uniquement</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+            <a th:href="@{/admin/utilisateurs}" class="btn btn-warning">↻ Réinitialiser</a>
+        </div>
+    </form>
+    
+    <!-- Bouton Nouveau -->
+    <div style="margin-bottom: 1rem;">
+        <a th:href="@{/admin/utilisateurs/nouveau}" class="btn btn-success">➕ Nouvel utilisateur</a>
+    </div>
+    
+    <!-- Tableau des utilisateurs -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Login</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Service</th>
+                <th>Site</th>
+                <th>Statut</th>
+                <th>Dernière connexion</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="u : ${utilisateurs}">
+                <td th:text="${u.id}"></td>
+                <td><strong th:text="${u.login}"></strong></td>
+                <td th:text="${u.nom}"></td>
+                <td th:text="${u.prenom}"></td>
+                <td th:text="${u.email}"></td>
+                <td th:text="${u.service?.libelle ?: '-'}"></td>
+                <td th:text="${u.site?.libelle ?: '-'}"></td>
+                <td>
+                    <span th:if="${u.actif}" style="color: #27ae60; font-weight: bold;">✓ Actif</span>
+                    <span th:unless="${u.actif}" style="color: #e74c3c; font-weight: bold;">✗ Inactif</span>
+                </td>
+                <td th:text="${u.lastLogin != null ? #temporals.format(u.lastLogin, 'dd/MM/yyyy HH:mm') : 'Jamais'}"></td>
+                <td>
+                    <a th:href="@{/admin/utilisateurs/{id}(id=${u.id})}" class="btn btn-primary">👁 Voir</a>
+                    <a th:href="@{/admin/utilisateurs/{id}/modifier(id=${u.id})}" class="btn btn-warning">✏ Modifier</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(utilisateurs)}">
+                <td colspan="10" style="text-align: center; padding: 2rem; color: #7f8c8d;">
+                    Aucun utilisateur trouvé
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Résumé -->
+    <div style="margin-top: 1rem; color: #7f8c8d;">
+        <span th:text="${#lists.size(utilisateurs)}">0</span> utilisateur(s) trouvé(s)
+    </div>
+</main>
+</body>
+</html>

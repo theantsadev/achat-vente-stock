@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title th:text="'Rôle - ' + ${role.libelle}">Détail Rôle</title>
+</head>
+<body>
+<main>
+    <h2>🔐 Rôle : <span th:text="${role.libelle}"></span></h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    <div th:if="${warning}" class="alert alert-info" th:text="${warning}"></div>
+    
+    <!-- Informations du rôle -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 2rem;">
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="margin-bottom: 1rem; color: #2c3e50;">Informations</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Code</td>
+                    <td style="padding: 0.5rem 0;"><code th:text="${role.code}"></code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Libellé</td>
+                    <td style="padding: 0.5rem 0;"><strong th:text="${role.libelle}"></strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Description</td>
+                    <td style="padding: 0.5rem 0;" th:text="${role.description ?: '-'}"></td>
+                </tr>
+            </table>
+            
+            <div style="margin-top: 1rem;">
+                <a th:href="@{/admin/roles/{id}/modifier(id=${role.id})}" class="btn btn-warning">✏️ Modifier</a>
+            </div>
+        </div>
+        
+        <!-- Permissions du rôle -->
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="margin-bottom: 1rem; color: #2c3e50;">📋 Permissions attribuées</h3>
+            
+            <table th:if="${!#lists.isEmpty(permissionsRole)}">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Module</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${permissionsRole}">
+                        <td><code th:text="${p.code}"></code></td>
+                        <td><span th:text="${p.module}"></span></td>
+                        <td><span th:text="${p.action}"></span></td>
+                        <td th:text="${p.description ?: '-'}"></td>
+                        <td>
+                            <form th:action="@{/admin/roles/{roleId}/permissions/{permId}/supprimer(roleId=${role.id}, permId=${p.id})}" 
+                                  method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
+                                        onclick="return confirm('Retirer cette permission ?')">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p th:if="${#lists.isEmpty(permissionsRole)}" style="color: #7f8c8d; text-align: center; padding: 1rem;">
+                Aucune permission attribuée
+            </p>
+        </div>
+    </div>
+    
+    <!-- Formulaire d'ajout de permission -->
+    <div style="background: #e8f4f8; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; color: #2c3e50;">➕ Ajouter une permission</h3>
+        
+        <form th:action="@{/admin/roles/{id}/permissions/ajouter(id=${role.id})}" method="post">
+            <div style="display: flex; gap: 1rem; align-items: end;">
+                <div class="form-group" style="margin: 0; flex: 1;">
+                    <label>Permission</label>
+                    <select name="permissionId" required style="width: 100%;">
+                        <option value="">-- Sélectionner une permission --</option>
+                        <optgroup th:each="module : ${#lists.toSet(toutesPermissions.![module])}" th:label="${module}">
+                            <option th:each="p : ${toutesPermissions}" 
+                                    th:if="${p.module == module}"
+                                    th:value="${p.id}" 
+                                    th:text="${p.action + ' - ' + (p.description ?: p.code)}"></option>
+                        </optgroup>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">➕ Ajouter</button>
+            </div>
+        </form>
+    </div>
+    
+    <div>
+        <a th:href="@{/admin/roles}" class="btn btn-primary">← Retour à la liste</a>
+    </div>
+</main>
+</body>
+</html>

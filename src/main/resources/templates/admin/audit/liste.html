@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Journal d'audit - Administration</title>
+</head>
+<body>
+<main>
+    <h2>📋 Journal d'Audit</h2>
+    
+    <!-- Filtres -->
+    <form method="get" style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;">
+            <div class="form-group" style="margin: 0;">
+                <label>Utilisateur</label>
+                <select name="utilisateurId" style="min-width: 150px;">
+                    <option value="">Tous</option>
+                    <option th:each="u : ${utilisateurs}" th:value="${u.id}" 
+                            th:text="${u.prenom + ' ' + u.nom}"
+                            th:selected="${utilisateurId != null and utilisateurId == u.id}"></option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Table</label>
+                <select name="tableName" style="min-width: 150px;">
+                    <option value="">Toutes</option>
+                    <option th:each="t : ${tables}" th:value="${t}" th:text="${t}"
+                            th:selected="${tableName != null and tableName == t}"></option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Action</label>
+                <select name="action" style="min-width: 120px;">
+                    <option value="">Toutes</option>
+                    <option th:each="a : ${actions}" th:value="${a}" th:text="${a}"
+                            th:selected="${action != null and action == a}"></option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Date début</label>
+                <input type="date" name="dateDebut" th:value="${dateDebut}" />
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Date fin</label>
+                <input type="date" name="dateFin" th:value="${dateFin}" />
+            </div>
+            <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+            <a th:href="@{/admin/audit}" class="btn btn-warning">↻ Réinitialiser</a>
+        </div>
+    </form>
+    
+    <!-- Tableau des logs -->
+    <table>
+        <thead>
+            <tr>
+                <th>Date/Heure</th>
+                <th>Utilisateur</th>
+                <th>Table</th>
+                <th>ID Enreg.</th>
+                <th>Action</th>
+                <th>Détails</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="log : ${logs}">
+                <td th:text="${log.createdAt != null ? #temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm:ss') : '-'}"></td>
+                <td th:text="${log.utilisateur != null ? log.utilisateur.login : 'Système'}"></td>
+                <td><code th:text="${log.tableName}"></code></td>
+                <td th:text="${log.recordId}"></td>
+                <td>
+                    <span th:switch="${log.action}">
+                        <span th:case="'CREATE'" style="color: #27ae60; font-weight: bold;">✚ CREATE</span>
+                        <span th:case="'UPDATE'" style="color: #f39c12; font-weight: bold;">✎ UPDATE</span>
+                        <span th:case="'DELETE'" style="color: #e74c3c; font-weight: bold;">✖ DELETE</span>
+                        <span th:case="'VALIDATE'" style="color: #3498db; font-weight: bold;">✓ VALIDATE</span>
+                        <span th:case="'APPROVE'" style="color: #27ae60; font-weight: bold;">✓ APPROVE</span>
+                        <span th:case="'REJECT'" style="color: #e74c3c; font-weight: bold;">✗ REJECT</span>
+                        <span th:case="'CANCEL'" style="color: #95a5a6; font-weight: bold;">⊘ CANCEL</span>
+                        <span th:case="*" th:text="${log.action}"></span>
+                    </span>
+                </td>
+                <td>
+                    <small style="color: #7f8c8d;">
+                        <span th:if="${log.avant != null}">Avant: <span th:text="${#strings.abbreviate(log.avant, 50)}"></span></span>
+                        <span th:if="${log.apres != null}"> → Après: <span th:text="${#strings.abbreviate(log.apres, 50)}"></span></span>
+                    </small>
+                </td>
+                <td><small th:text="${log.ipAddress ?: '-'}"></small></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(logs)}">
+                <td colspan="7" style="text-align: center; padding: 2rem; color: #7f8c8d;">
+                    Aucun log trouvé
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Résumé -->
+    <div style="margin-top: 1rem; color: #7f8c8d;">
+        <span th:text="${#lists.size(logs)}">0</span> entrée(s) d'audit
+        <span th:if="${#lists.size(logs) >= 100}" style="color: #e74c3c;">
+            (limité aux 100 dernières - utilisez les filtres pour affiner)
+        </span>
+    </div>
+</main>
+</body>
+</html>

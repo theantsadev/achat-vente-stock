@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>Nouvelle Délégation - Administration</title>
+</head>
+<body>
+<main>
+    <h2>➕ Créer une Délégation</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    
+    <div class="card" style="max-width: 600px;">
+        <form th:action="@{/admin/delegations}" method="post">
+            
+            <!-- Délégataire -->
+            <div class="form-group">
+                <label for="delegataireId">Délégataire (reçoit le rôle) *</label>
+                <select id="delegataireId" name="delegataireId" required>
+                    <option value="">-- Sélectionner un utilisateur --</option>
+                    <option th:each="u : ${utilisateurs}" 
+                            th:value="${u.id}" 
+                            th:text="${u.prenom + ' ' + u.nom + ' (' + u.login + ')'}"></option>
+                </select>
+                <small style="color: #7f8c8d;">L'utilisateur qui recevra temporairement le rôle</small>
+            </div>
+            
+            <!-- Rôle à déléguer -->
+            <div class="form-group">
+                <label for="roleId">Rôle à déléguer *</label>
+                <select id="roleId" name="roleId" required>
+                    <option value="">-- Sélectionner un rôle --</option>
+                    <option th:each="r : ${mesRoles}" 
+                            th:value="${r.id}" 
+                            th:text="${r.libelle + ' (' + r.code + ')'}"></option>
+                </select>
+                <small style="color: #7f8c8d;">Vous ne pouvez déléguer que les rôles que vous possédez</small>
+            </div>
+            
+            <!-- Dates -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="dateDebut">Date de début *</label>
+                    <input type="date" id="dateDebut" name="dateDebut" required 
+                           th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                </div>
+                <div class="form-group">
+                    <label for="dateFin">Date de fin</label>
+                    <input type="date" id="dateFin" name="dateFin">
+                    <small style="color: #7f8c8d;">Laisser vide pour une durée indéterminée</small>
+                </div>
+            </div>
+            
+            <!-- Justification -->
+            <div class="form-group">
+                <label for="justification">Justification *</label>
+                <textarea id="justification" name="justification" rows="3" required
+                          placeholder="Raison de la délégation (congés, mission, formation...)"></textarea>
+            </div>
+            
+            <!-- Avertissement -->
+            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                <strong>⚠️ Attention :</strong>
+                <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
+                    <li>Le délégataire pourra exercer ce rôle en votre nom</li>
+                    <li>Toutes les actions seront tracées dans l'audit</li>
+                    <li>Vous restez responsable des actions effectuées via délégation</li>
+                    <li>Vous pouvez annuler cette délégation à tout moment</li>
+                </ul>
+            </div>
+            
+            <!-- Boutons -->
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-success">✓ Créer la délégation</button>
+                <a th:href="@{/admin/delegations}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Validation côté client : date fin >= date début
+        document.getElementById('dateFin').addEventListener('change', function() {
+            const dateDebut = document.getElementById('dateDebut').value;
+            const dateFin = this.value;
+            if (dateFin && dateDebut && dateFin < dateDebut) {
+                alert('La date de fin doit être postérieure à la date de début');
+                this.value = '';
+            }
+        });
+    </script>
+</main>
+</body>
+</html>

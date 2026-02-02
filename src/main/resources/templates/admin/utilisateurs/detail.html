@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title th:text="'Utilisateur - ' + ${utilisateur.login}">Détail Utilisateur</title>
+</head>
+<body>
+<main>
+    <h2>👤 Détail de l'utilisateur</h2>
+    
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    <div th:if="${warning}" class="alert alert-info" th:text="${warning}"></div>
+    
+    <!-- Informations utilisateur -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="margin-bottom: 1rem; color: #2c3e50;">Informations générales</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d; width: 40%;">Login</td>
+                    <td style="padding: 0.5rem 0;"><strong th:text="${utilisateur.login}"></strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Nom complet</td>
+                    <td style="padding: 0.5rem 0;" th:text="${utilisateur.prenom + ' ' + utilisateur.nom}"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Email</td>
+                    <td style="padding: 0.5rem 0;" th:text="${utilisateur.email ?: '-'}"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Service</td>
+                    <td style="padding: 0.5rem 0;" th:text="${utilisateur.service?.libelle ?: '-'}"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Site</td>
+                    <td style="padding: 0.5rem 0;" th:text="${utilisateur.site?.libelle ?: '-'}"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Manager</td>
+                    <td style="padding: 0.5rem 0;" th:text="${utilisateur.manager != null ? utilisateur.manager.prenom + ' ' + utilisateur.manager.nom : '-'}"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Statut</td>
+                    <td style="padding: 0.5rem 0;">
+                        <span th:if="${utilisateur.actif}" style="color: #27ae60; font-weight: bold;">✓ Actif</span>
+                        <span th:unless="${utilisateur.actif}" style="color: #e74c3c; font-weight: bold;">✗ Inactif</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #7f8c8d;">Dernière connexion</td>
+                    <td style="padding: 0.5rem 0;" th:text="${utilisateur.lastLogin != null ? #temporals.format(utilisateur.lastLogin, 'dd/MM/yyyy HH:mm') : 'Jamais connecté'}"></td>
+                </tr>
+            </table>
+            
+            <!-- Actions -->
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                <a th:href="@{/admin/utilisateurs/{id}/modifier(id=${utilisateur.id})}" class="btn btn-warning">✏️ Modifier</a>
+                <form th:if="${utilisateur.actif}" th:action="@{/admin/utilisateurs/{id}/desactiver(id=${utilisateur.id})}" 
+                      method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Désactiver cet utilisateur ?')">
+                        🚫 Désactiver
+                    </button>
+                </form>
+                <form th:unless="${utilisateur.actif}" th:action="@{/admin/utilisateurs/{id}/activer(id=${utilisateur.id})}" 
+                      method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-success">✓ Réactiver</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Rôles actuels -->
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="margin-bottom: 1rem; color: #2c3e50;">🔐 Rôles attribués</h3>
+            
+            <table th:if="${!#lists.isEmpty(rolesUtilisateur)}">
+                <thead>
+                    <tr>
+                        <th>Rôle</th>
+                        <th>Site</th>
+                        <th>Dépôt</th>
+                        <th>Montant max</th>
+                        <th>Validité</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ur : ${rolesUtilisateur}">
+                        <td><strong th:text="${ur.role.libelle}"></strong></td>
+                        <td th:text="${ur.site?.libelle ?: 'Tous'}"></td>
+                        <td th:text="${ur.depot?.libelle ?: 'Tous'}"></td>
+                        <td th:text="${ur.montantMax != null ? #numbers.formatDecimal(ur.montantMax, 1, 2) + ' Ar' : 'Illimité'}"></td>
+                        <td>
+                            <span th:if="${ur.dateFin != null}" th:text="'Jusqu\'au ' + ${#temporals.format(ur.dateFin, 'dd/MM/yyyy')}"></span>
+                            <span th:unless="${ur.dateFin != null}">Permanent</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/admin/utilisateurs/{id}/roles/{roleId}/supprimer(id=${utilisateur.id}, roleId=${ur.id})}" 
+                                  method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
+                                        onclick="return confirm('Supprimer ce rôle ?')">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p th:if="${#lists.isEmpty(rolesUtilisateur)}" style="color: #7f8c8d; text-align: center; padding: 1rem;">
+                Aucun rôle attribué
+            </p>
+        </div>
+    </div>
+    
+    <!-- Formulaire d'ajout de rôle -->
+    <div style="background: #e8f4f8; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; color: #2c3e50;">➕ Ajouter un rôle</h3>
+        
+        <form th:action="@{/admin/utilisateurs/{id}/roles/ajouter(id=${utilisateur.id})}" method="post">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; align-items: end;">
+                <div class="form-group" style="margin: 0;">
+                    <label>Rôle *</label>
+                    <select name="roleId" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option th:each="r : ${rolesDisponibles}" th:value="${r.id}" th:text="${r.libelle}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label>Site (optionnel)</label>
+                    <select name="siteId">
+                        <option value="">Tous les sites</option>
+                        <option th:each="s : ${sites}" th:value="${s.id}" th:text="${s.libelle}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label>Dépôt (optionnel)</label>
+                    <select name="depotId">
+                        <option value="">Tous les dépôts</option>
+                        <option th:each="d : ${depots}" th:value="${d.id}" th:text="${d.libelle}"></option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label>Montant max (Ar)</label>
+                    <input type="number" name="montantMax" step="0.01" min="0" placeholder="Illimité" />
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label>Date début</label>
+                    <input type="date" name="dateDebut" />
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label>Date fin</label>
+                    <input type="date" name="dateFin" />
+                </div>
+                
+                <button type="submit" class="btn btn-success">➕ Ajouter</button>
+            </div>
+        </form>
+    </div>
+    
+    <div>
+        <a th:href="@{/admin/utilisateurs}" class="btn btn-primary">← Retour à la liste</a>
+    </div>
+</main>
+</body>
+</html>
